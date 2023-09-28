@@ -18,7 +18,6 @@ limitations under the License.
 ]]
 
 set(sources DDPlanarDigi/components/DDPlanarDigiProcessor.cpp
-            components/InitializeDD4hep.cpp
 )
 gaudi_add_module(k4RecoPlugins
                  SOURCES ${sources}
