@@ -16,3 +16,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ]]
+
+set(sources DDPlanarDigi/components/DDPlanarDigiProcessor.cpp
+)
+gaudi_add_module(k4RecoDDPlanarDigi
+                 SOURCES ${sources}
+                 LINK Gaudi::GaudiKernel
+                      Gaudi::GaudiAlgLib
+                      k4FWCore::k4FWCore
+                      k4FWCore::k4Interface
+                      EDM4HEP::edm4hep
+                      DD4hep::DDRec
+                      DD4hep::DDCore
+                      )
