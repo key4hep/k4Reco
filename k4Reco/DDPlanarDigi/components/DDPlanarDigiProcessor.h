@@ -102,9 +102,11 @@ struct DDPlanarDigiProcessor final
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
   Gaudi::Property<int> m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
 
-  inline static thread_local std::mt19937 m_engine;
   const dd4hep::rec::SurfaceMap* surfaceMap;
   std::vector<TH1F*> m_histograms;
+  std::string m_collName;
+
+  inline static thread_local std::mt19937 m_engine;
   SmartIF<IGeoSvc> m_geoSvc;
   SmartIF<IUniqueIDGenSvc> m_uidSvc;
   

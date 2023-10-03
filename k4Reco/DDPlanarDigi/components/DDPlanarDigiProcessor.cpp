@@ -97,6 +97,9 @@ DDPlanarDigiProcessor::initialize() {
                                 << det.name() << " in SurfaceManager ";
     throw std::runtime_error(err.str());
   }
+
+  (void)this->getProperty("SimTrackerHitCollectionName", m_collName);
+
   return StatusCode::SUCCESS;
 }
 
@@ -104,11 +107,12 @@ DDPlanarDigiProcessor::initialize() {
 std::tuple<TrackerHitPlaneColl, Association>
 DDPlanarDigiProcessor::operator()(const SimTrackerHitCollection& simTrackerHits) const {
 
-  // TODO: Set seed
-  // gslrng_set( rng, Global::EVENTSEEDER->getSeed(this) );   
-  // debug() << "seed set to " << Global::EVENTSEEDER->getSeed(this) << endmsg;
-  auto seed = m_uidSvc->getUniqueID(1, 2, "hello");
+  // TODO: Set seed correctly
+  auto seed = m_uidSvc->getUniqueID(1, 2, m_collName);
   m_engine.seed(seed);
+  // For rng calls, use the fact that drawing from a
+  // Gaussing with mean mu and variance sigma^2 is the same as drawing from
+  // a normal distribution and then multiplying by sigma and adding mu
   auto dist = std::normal_distribution<double>(0, 1);
   
   int nCreatedHits=0;
@@ -121,9 +125,7 @@ DDPlanarDigiProcessor::operator()(const SimTrackerHitCollection& simTrackerHits)
   dd4hep::DDSegmentation::BitFieldCoder bitFieldCoder(cellIDEncodingString); 
   
   int nSimHits = simTrackerHits.size();
-  std::string collName;
-  (void)this->getProperty("SimTrackerHitCollectionName", collName);
-  debug() << "Processing collection " << collName << " with " << simTrackerHits.size() << " hits ... " << endmsg;
+  debug() << "Processing collection " << m_collName << " with " << simTrackerHits.size() << " hits ... " << endmsg;
 
   for(const auto& hit : simTrackerHits) {
     m_histograms[hitE]->Fill( hit.getEDep() * (dd4hep::GeV / dd4hep::keV) );
@@ -181,9 +183,6 @@ DDPlanarDigiProcessor::operator()(const SimTrackerHitCollection& simTrackerHits)
     if (m_resTLayer.size() and m_resTLayer[0] > 0) {
       float resT = m_resTLayer.size() > 1 ? m_resTLayer[layer] : m_resTLayer[0];
 
-      // For this and other rng calls, use the fact that drawing from a
-      // Gaussing with mean mu and variance sigma^2 is the same as drawing from
-      // a normal distribution and then multiplying by sigma and adding mu
       double tSmear  = resT > 0 ? dist(m_engine) * resT : 0;
       m_histograms[hT]->Fill(resT > 0 ? tSmear / resT : 0);
       m_histograms[diffT]->Fill(tSmear);
@@ -215,7 +214,7 @@ DDPlanarDigiProcessor::operator()(const SimTrackerHitCollection& simTrackerHits)
     dd4hep::rec::Vector3D u = surf->u();
     dd4hep::rec::Vector3D v = surf->v();
 
-    // get local coordinates on surface
+    // Get local coordinates on surface
     dd4hep::rec::Vector2D lv = surf->globalToLocal(dd4hep::mm * oldPos);
     double uL = lv[0] / dd4hep::mm;
     double vL = lv[1] / dd4hep::mm;
