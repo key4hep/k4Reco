@@ -33,6 +33,7 @@
 #include "DDRec/SurfaceManager.h"
 
 #include <string>
+#include <random>
 #include <TH1F.h>
 
 /** ======= DDPlanarDigiProcessor ========== <br>
@@ -101,7 +102,7 @@ struct DDPlanarDigiProcessor final
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
   Gaudi::Property<int> m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
 
-  Rndm::Numbers rng;
+  inline static thread_local std::mt19937 m_engine;
   const dd4hep::rec::SurfaceMap* surfaceMap;
   std::vector<TH1F*> m_histograms;
   SmartIF<IGeoSvc> m_geoSvc;

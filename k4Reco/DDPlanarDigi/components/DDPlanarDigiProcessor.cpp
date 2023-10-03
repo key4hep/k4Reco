@@ -30,6 +30,7 @@
 #include <TFile.h>
 
 #include <cmath>
+#include <random>
 #include <sstream>
 #include <iostream>
 
@@ -54,11 +55,6 @@ DDPlanarDigiProcessor::DDPlanarDigiProcessor(const std::string& name, ISvcLocato
           {KeyValue("TrackerHitCollectionName", "VTXTrackerHits"),
            KeyValue("SimTrkHitRelCollection", "VTXTrackerHitRelations")}) {
 
-
-  auto randSvc = service<IRndmGenSvc>("RndmGenSvc", true);
-  if (!randSvc || !rng.initialize(randSvc, Rndm::Gauss(0, 1))) {
-    error() << "Unable to create Random generator" << endmsg;
-  }
 
   m_uidSvc = service<IUniqueIDGenSvc>("UniqueIDGenSvc", true);
   if (!m_uidSvc) {
@@ -112,6 +108,8 @@ DDPlanarDigiProcessor::operator()(const SimTrackerHitCollection& simTrackerHits)
   // gslrng_set( rng, Global::EVENTSEEDER->getSeed(this) );   
   // debug() << "seed set to " << Global::EVENTSEEDER->getSeed(this) << endmsg;
   auto seed = m_uidSvc->getUniqueID(1, 2, "hello");
+  m_engine.seed(seed);
+  auto dist = std::normal_distribution<double>(0, 1);
   
   int nCreatedHits=0;
   int nDismissedHits=0;
@@ -186,7 +184,7 @@ DDPlanarDigiProcessor::operator()(const SimTrackerHitCollection& simTrackerHits)
       // For this and other rng calls, use the fact that drawing from a
       // Gaussing with mean mu and variance sigma^2 is the same as drawing from
       // a normal distribution and then multiplying by sigma and adding mu
-      double tSmear  = resT > 0 ? rng() * resT : 0;
+      double tSmear  = resT > 0 ? dist(m_engine) * resT : 0;
       m_histograms[hT]->Fill(resT > 0 ? tSmear / resT : 0);
       m_histograms[diffT]->Fill(tSmear);
 
@@ -233,8 +231,8 @@ DDPlanarDigiProcessor::operator()(const SimTrackerHitCollection& simTrackerHits)
       
       // if( tries > 0 ) debug() << "retry smearing for " <<  cellid_decoder( hit ).valueString() << " : retries " << tries << endmsg;
       
-      double uSmear  = rng() * resU;
-      double vSmear  = rng() * resV;
+      double uSmear  = dist(m_engine) * resU;
+      double vSmear  = dist(m_engine) * resV;
       
       dd4hep::rec::Vector3D newPosTmp;
       if (m_isStrip){
