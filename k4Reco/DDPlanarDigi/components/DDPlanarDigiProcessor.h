@@ -19,22 +19,24 @@
 #ifndef DDPLANARDIGIPROCESSOR_H
 #define DDPLANARDIGIPROCESSOR_H
 
+#include "Gaudi/Accumulators/Histogram.h"
 #include "Gaudi/Property.h"
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/RndmGenerators.h"
-#include "k4Interface/IGeoSvc.h"
 #include "k4FWCore/BaseClass.h"
+#include "k4Interface/IGeoSvc.h"
 #include "k4Interface/IUniqueIDGenSvc.h"
 
+#include "edm4hep/EventHeaderCollection.h"
+#include "edm4hep/MCRecoTrackerHitPlaneAssociationCollection.h"
 #include "edm4hep/SimTrackerHitCollection.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
-#include "edm4hep/MCRecoTrackerHitPlaneAssociationCollection.h"
 
 #include "DDRec/SurfaceManager.h"
 
-#include <string>
-#include <random>
 #include <TH1F.h>
+#include <random>
+#include <string>
 
 /** ======= DDPlanarDigiProcessor ========== <br>
  * Creates TrackerHits from SimTrackerHits, smearing them according to the input parameters. 
@@ -69,33 +71,49 @@
  */
 
 using SimTrackerHitCollection = edm4hep::SimTrackerHitCollection;
+using Header                  = edm4hep::EventHeaderCollection;
 
 using TrackerHitPlaneColl = edm4hep::TrackerHitPlaneCollection;
-using Association = edm4hep::MCRecoTrackerHitPlaneAssociationCollection;
+using Association         = edm4hep::MCRecoTrackerHitPlaneAssociationCollection;
 
 struct DDPlanarDigiProcessor final
-    : Gaudi::Functional::MultiTransformer<std::tuple<TrackerHitPlaneColl, Association>(const SimTrackerHitCollection&), BaseClass_t> {
-
+    : Gaudi::Functional::MultiTransformer<
+          std::tuple<TrackerHitPlaneColl, Association>(const SimTrackerHitCollection&, const Header&), BaseClass_t> {
   DDPlanarDigiProcessor(const std::string& name, ISvcLocator* svcLoc);
-  
+
   StatusCode initialize() override;
   StatusCode finalize() override;
 
-  std::tuple<TrackerHitPlaneColl, Association> operator()(const SimTrackerHitCollection& simTrackerHits) const override;
+  std::tuple<TrackerHitPlaneColl, Association> operator()(const SimTrackerHitCollection& simTrackerHits,
+                                                          const Header&                  headers) const override;
 
- private:
-  Gaudi::Property<std::string> m_subDetName{this, "SubDetectorName", "VXD", "Name of the subdetector"};
-  Gaudi::Property<bool> m_isStrip{this, "IsStrip", false, "Whether the hits are 1D strip hits"};
-  Gaudi::Property<std::vector<float>> m_resULayer{this, "ResolutionU", {0.004}, "Resolution in the direction of u; either one per layer or one for all layers"};
-  Gaudi::Property<std::vector<float>> m_resVLayer{this, "ResolutionV", {0.004}, "Resolution in the direction of v; either one per layer or one for all layers"};
-  Gaudi::Property<std::vector<float>> m_resTLayer{this, "ResolutionT", {0.004}, "Resolution in the direction of t; either one per layer or one for all layers. If the single entry is negative, disable time smearing. "};
-  Gaudi::Property<bool> m_forceHitsOntoSurface{this, "ForceHitsOntoSurface", false, "Project hits onto the surfoce in case they are not yet on the surface"};
+private:
+  Gaudi::Property<std::string>        m_subDetName{this, "SubDetectorName", "VXD", "Name of the subdetector"};
+  Gaudi::Property<bool>               m_isStrip{this, "IsStrip", false, "Whether the hits are 1D strip hits"};
+  Gaudi::Property<std::vector<float>> m_resULayer{
+      this, "ResolutionU", {0.004}, "Resolution in the direction of u; either one per layer or one for all layers"};
+  Gaudi::Property<std::vector<float>> m_resVLayer{
+      this, "ResolutionV", {0.004}, "Resolution in the direction of v; either one per layer or one for all layers"};
+  Gaudi::Property<std::vector<float>> m_resTLayer{
+      this,
+      "ResolutionT",
+      {0.004},
+      "Resolution in the direction of t; either one per layer or one for all layers. If the single entry is negative, "
+      "disable time smearing. "};
+  Gaudi::Property<bool>   m_forceHitsOntoSurface{this, "ForceHitsOntoSurface", false,
+                                               "Project hits onto the surfoce in case they are not yet on the surface"};
   Gaudi::Property<double> m_minEnergy{this, "MinEnergy", 0.0, "Minimum energy (GeV) of SimTrackerHit to be digitized"};
 
-  Gaudi::Property<bool> m_useTimeWindow{this, "UseTimeWindow", false, "Only accept hits with time (after smearing) within the specified time window (default: false)"};
-  Gaudi::Property<bool> m_correctTimesForPropagation{this, "CorrectTimesForPropagation", false, "Correct hit time for the propagation: radial distance/c (default: false)"};
-  Gaudi::Property<std::vector<float>> m_timeWindowMin{this, "TimeWindowMin", {-1e9}, "Minimum time (ns) of SimTrackerHit to be digitized"};
-  Gaudi::Property<std::vector<float>> m_timeWindowMax{this, "TimeWindowMax", {1e9}, "Maximum time (ns) of SimTrackerHit to be digitized"};
+  Gaudi::Property<bool> m_useTimeWindow{
+      this, "UseTimeWindow", false,
+      "Only accept hits with time (after smearing) within the specified time window (default: false)"};
+  Gaudi::Property<bool> m_correctTimesForPropagation{
+      this, "CorrectTimesForPropagation", false,
+      "Correct hit time for the propagation: radial distance/c (default: false)"};
+  Gaudi::Property<std::vector<float>> m_timeWindowMin{
+      this, "TimeWindowMin", {-1e9}, "Minimum time (ns) of SimTrackerHit to be digitized"};
+  Gaudi::Property<std::vector<float>> m_timeWindowMax{
+      this, "TimeWindowMax", {1e9}, "Maximum time (ns) of SimTrackerHit to be digitized"};
   Gaudi::Property<std::string> m_encodingStringVariable{
       this, "EncodingStringParameterName", "GlobalTrackerReadoutID",
       "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
@@ -103,13 +121,14 @@ struct DDPlanarDigiProcessor final
   Gaudi::Property<int> m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
 
   const dd4hep::rec::SurfaceMap* surfaceMap;
-  std::vector<TH1F*> m_histograms;
-  std::string m_collName;
+  // std::vector<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>> m_histograms;
+  std::vector<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>> m_histograms;
+  std::string                                                     m_collName;
 
+  // inline static thread_local std::mt19937 m_engine;
   inline static thread_local std::mt19937 m_engine;
-  SmartIF<IGeoSvc> m_geoSvc;
-  SmartIF<IUniqueIDGenSvc> m_uidSvc;
-  
+  SmartIF<IGeoSvc>                        m_geoSvc;
+  SmartIF<IUniqueIDGenSvc>                m_uidSvc;
 };
 
 DECLARE_COMPONENT(DDPlanarDigiProcessor)

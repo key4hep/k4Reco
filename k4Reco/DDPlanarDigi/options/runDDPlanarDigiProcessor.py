@@ -45,6 +45,7 @@ data_svc.input = "input.root"
 inp = PodioInput()
 inp.collections = [
     "VertexBarrelCollection",
+    "EventHeader",
 ]
 
 out = PodioOutput("out")
@@ -56,4 +57,3 @@ ApplicationMgr(TopAlg=[inp, processor, out],
                ExtSvc=[data_svc],
                OutputLevel=INFO,
                )
-
