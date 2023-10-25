@@ -31,8 +31,6 @@
 #include "DD4hep/Detector.h"
 
 #include <TFile.h>
-#include <TMath.h>
-#include <TProfile.h>
 
 #include <cmath>
 #include <iostream>
@@ -330,7 +328,7 @@ std::tuple<TrackerHitPlaneColl, Association> DDPlanarDigiProcessor::operator()(
 }
 
 StatusCode DDPlanarDigiProcessor::finalize() {
-  auto file = TFile::Open("DDPlanarDigiProcessor.root", "RECREATE");
+  auto file = TFile::Open(m_outputFileName.value().c_str(), "RECREATE");
   auto names = {"hu", "hv", "hT", "hitE", "hitsAccepted", "diffu", "diffv", "diffT", "hSize"};
   auto it = names.begin();
   for (auto& h : m_histograms) {
