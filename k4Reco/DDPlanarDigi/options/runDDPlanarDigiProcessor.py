@@ -49,7 +49,7 @@ inp.collections = [
 ]
 
 out = PodioOutput("out")
-out.filename = "ttbar_edm4hep_digi.root"
+out.filename = "planar_digi_histograms.root"
 
 ApplicationMgr(TopAlg=[inp, processor, out],
                EvtSel="NONE",

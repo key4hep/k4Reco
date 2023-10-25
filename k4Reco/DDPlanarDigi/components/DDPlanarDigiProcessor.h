@@ -34,9 +34,9 @@
 
 #include "DDRec/SurfaceManager.h"
 
-#include <TH1F.h>
 #include <random>
 #include <string>
+#include <vector>
 
 /** ======= DDPlanarDigiProcessor ========== <br>
  * Creates TrackerHits from SimTrackerHits, smearing them according to the input parameters. 
@@ -119,6 +119,8 @@ private:
       "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
   Gaudi::Property<int> m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
+
+  Gaudi::Property<std::string> m_outputFileName{this, "OutputFileName", "planar_digi_histograms.root", "Output file name for the histograms"};
 
   const dd4hep::rec::SurfaceMap* surfaceMap;
   // std::vector<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>> m_histograms;
