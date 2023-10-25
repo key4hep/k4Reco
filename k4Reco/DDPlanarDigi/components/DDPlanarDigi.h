@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DDPLANARDIGIPROCESSOR_H
-#define DDPLANARDIGIPROCESSOR_H
+#ifndef DDPLANARDIGI_H
+#define DDPLANARDIGI_H
 
 #include "Gaudi/Accumulators/Histogram.h"
 #include "Gaudi/Property.h"
@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-/** ======= DDPlanarDigiProcessor ========== <br>
+/** ======= DDPlanarDigi ========== <br>
  * Creates TrackerHits from SimTrackerHits, smearing them according to the input parameters. 
  * The positions of "digitized" TrackerHits are obtained by gaussian smearing positions
  * of SimTrackerHits perpendicular and along the ladder according to the specified point resolutions. 
@@ -67,7 +67,7 @@
  * 
  * @author F.Gaede CERN/DESY, S. Aplin DESY
  * @date Dec 2014
- * Originally in https://github.com/iLCSoft/MarlinTrkProcessors/blob/master/source/Digitisers/include/DDPlanarDigiProcessor.h
+ * Originally in https://github.com/iLCSoft/MarlinTrkProcessors/blob/master/source/Digitisers/include/DDPlanarDigi.h
  */
 
 using SimTrackerHitCollection = edm4hep::SimTrackerHitCollection;
@@ -76,10 +76,10 @@ using Header                  = edm4hep::EventHeaderCollection;
 using TrackerHitPlaneColl = edm4hep::TrackerHitPlaneCollection;
 using Association         = edm4hep::MCRecoTrackerHitPlaneAssociationCollection;
 
-struct DDPlanarDigiProcessor final
+struct DDPlanarDigi final
     : Gaudi::Functional::MultiTransformer<
           std::tuple<TrackerHitPlaneColl, Association>(const SimTrackerHitCollection&, const Header&), BaseClass_t> {
-  DDPlanarDigiProcessor(const std::string& name, ISvcLocator* svcLoc);
+  DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize() override;
   StatusCode finalize() override;
@@ -133,6 +133,6 @@ private:
   SmartIF<IUniqueIDGenSvc>                m_uidSvc;
 };
 
-DECLARE_COMPONENT(DDPlanarDigiProcessor)
+DECLARE_COMPONENT(DDPlanarDigi)
 
 #endif

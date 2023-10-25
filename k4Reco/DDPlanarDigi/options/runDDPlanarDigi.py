@@ -18,7 +18,7 @@
 #
 from Gaudi.Configuration import INFO
 from Configurables import ApplicationMgr, k4DataSvc, PodioInput, PodioOutput
-from Configurables import DDPlanarDigiProcessor
+from Configurables import DDPlanarDigi
 from Configurables import GeoSvc
 from Configurables import UniqueIDGenSvc
 import os
@@ -30,7 +30,7 @@ geoservice.detectors = [os.environ["K4GEO"]+"/CLIC/compact/CLIC_o3_v15/CLIC_o3_v
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
 
-processor = DDPlanarDigiProcessor()
+processor = DDPlanarDigi()
 processor.SubDetectorName = "Vertex"
 processor.IsStrip = False
 processor.ResolutionU = [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]

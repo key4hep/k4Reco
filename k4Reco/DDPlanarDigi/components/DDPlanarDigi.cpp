@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "DDPlanarDigiProcessor.h"
+#include "DDPlanarDigi.h"
 
 #include "edm4hep/EventHeaderCollection.h"
 #include "edm4hep/MCRecoTrackerHitPlaneAssociationCollection.h"
@@ -39,7 +39,7 @@
 
 enum { hu = 0, hv, hT, hitE, hitsAccepted, diffu, diffv, diffT, hSize };
 
-DDPlanarDigiProcessor::DDPlanarDigiProcessor(const std::string& name, ISvcLocator* svcLoc)
+DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {
                            KeyValue("SimTrackerHitCollectionName", "SimTrackerHits"),
@@ -53,10 +53,10 @@ DDPlanarDigiProcessor::DDPlanarDigiProcessor(const std::string& name, ISvcLocato
   }
 
   if (m_resULayer.size() != m_resVLayer.size()) {
-    error() << "DDPlanarDigiProcessor - Inconsistent number of resolutions given for U and V coordinate: "
+    error() << "DDPlanarDigi - Inconsistent number of resolutions given for U and V coordinate: "
             << "ResolutionU  :" << m_resULayer.size() << " != ResolutionV : " << m_resVLayer.size();
 
-    throw std::runtime_error("DDPlanarDigiProcessor: Inconsistent number of resolutions given for U and V coordinate");
+    throw std::runtime_error("DDPlanarDigi: Inconsistent number of resolutions given for U and V coordinate");
   }
 
   m_histograms.resize(hSize);
@@ -76,7 +76,7 @@ DDPlanarDigiProcessor::DDPlanarDigiProcessor(const std::string& name, ISvcLocato
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
 }
 
-StatusCode DDPlanarDigiProcessor::initialize() {
+StatusCode DDPlanarDigi::initialize() {
   const auto detector = m_geoSvc->getDetector();
 
   const auto         surfMan = detector->extension<dd4hep::rec::SurfaceManager>();
@@ -94,7 +94,7 @@ StatusCode DDPlanarDigiProcessor::initialize() {
   return StatusCode::SUCCESS;
 }
 
-std::tuple<TrackerHitPlaneColl, Association> DDPlanarDigiProcessor::operator()(
+std::tuple<TrackerHitPlaneColl, Association> DDPlanarDigi::operator()(
     const SimTrackerHitCollection& simTrackerHits, const Header& headers) const {
   auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), m_collName);
   info() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
@@ -132,7 +132,7 @@ std::tuple<TrackerHitPlaneColl, Association> DDPlanarDigiProcessor::operator()(
 
     if (sI == surfaceMap->end()) {
       std::stringstream err;
-      err << " DDPlanarDigiProcessor::processEvent(): no surface found for cellID : " << std::endl;
+      err << " DDPlanarDigi::processEvent(): no surface found for cellID : " << std::endl;
       // <<   cellid_decoder( hit ).valueString() ;
       throw std::runtime_error(err.str());
     }
@@ -327,7 +327,7 @@ std::tuple<TrackerHitPlaneColl, Association> DDPlanarDigiProcessor::operator()(
   return std::make_tuple(std::move(trkhitVec), std::move(thsthcol));
 }
 
-StatusCode DDPlanarDigiProcessor::finalize() {
+StatusCode DDPlanarDigi::finalize() {
   auto file = TFile::Open(m_outputFileName.value().c_str(), "RECREATE");
   auto names = {"hu", "hv", "hT", "hitE", "hitsAccepted", "diffu", "diffv", "diffT", "hSize"};
   auto it = names.begin();
