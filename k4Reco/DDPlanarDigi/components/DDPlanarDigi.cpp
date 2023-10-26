@@ -336,10 +336,6 @@ StatusCode DDPlanarDigi::finalize() {
     // Name that will appear in the stats table
     std::string    histName = *it;
     nlohmann::json json = *h;
-    // Name of the histogram in the ROOT file
-    if (strcmp(*it, "diffu") == 0) {
-      info() << json << endmsg;
-    }
     auto [histo, dir] =
         Gaudi::Histograming::Sink::jsonToRootHistogram<Gaudi::Histograming::Sink::Traits<false, TH1D, 1>>(
             name, histName, json);
