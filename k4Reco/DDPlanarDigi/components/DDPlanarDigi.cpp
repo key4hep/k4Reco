@@ -89,6 +89,7 @@ StatusCode DDPlanarDigi::initialize() {
     throw std::runtime_error(err.str());
   }
 
+  // Get and store the name for a debug message later
   (void)this->getProperty("SimTrackerHitCollectionName", m_collName);
 
   return StatusCode::SUCCESS;
@@ -96,7 +97,7 @@ StatusCode DDPlanarDigi::initialize() {
 
 std::tuple<TrackerHitPlaneColl, Association> DDPlanarDigi::operator()(
     const SimTrackerHitCollection& simTrackerHits, const Header& headers) const {
-  auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), m_collName);
+  auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
   info() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
          << headers[0].getRunNumber() << endmsg;
   m_engine.seed(seed);
