@@ -33,7 +33,6 @@ find_package(k4FWCore REQUIRED)
 find_package(Gaudi REQUIRED)
 find_package(DD4hep REQUIRED)
 find_package(k4SimGeant4 REQUIRED)
-find_package(k4geo REQUIRED)
 
 include(GNUInstallDirs)
 
