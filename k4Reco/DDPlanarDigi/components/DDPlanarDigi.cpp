@@ -37,7 +37,6 @@
 #include <random>
 #include <sstream>
 
-enum { hu = 0, hv, hT, hitE, hitsAccepted, diffu, diffv, diffT, hSize };
 
 DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -58,8 +57,6 @@ DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
 
     throw std::runtime_error("DDPlanarDigi: Inconsistent number of resolutions given for U and V coordinate");
   }
-
-  m_histograms.resize(hSize);
 
   m_histograms[hu].reset(new Gaudi::Accumulators::Histogram<1>{this, "hu", "smearing u", {50, -5., +5.}});
   m_histograms[hv].reset(new Gaudi::Accumulators::Histogram<1>{this, "hv", "smearing v", {50, -5., +5.}});

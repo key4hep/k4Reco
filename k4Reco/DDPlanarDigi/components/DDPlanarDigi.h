@@ -70,22 +70,21 @@
  * Originally in https://github.com/iLCSoft/MarlinTrkProcessors/blob/master/source/Digitisers/include/DDPlanarDigi.h
  */
 
-using SimTrackerHitCollection = edm4hep::SimTrackerHitCollection;
-using Header                  = edm4hep::EventHeaderCollection;
-
-using TrackerHitPlaneColl = edm4hep::TrackerHitPlaneCollection;
-using Association         = edm4hep::MCRecoTrackerHitPlaneAssociationCollection;
+enum { hu = 0, hv, hT, hitE, hitsAccepted, diffu, diffv, diffT, hSize };
 
 struct DDPlanarDigi final
     : Gaudi::Functional::MultiTransformer<
-          std::tuple<TrackerHitPlaneColl, Association>(const SimTrackerHitCollection&, const Header&), BaseClass_t> {
+          std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection>(
+              const edm4hep::SimTrackerHitCollection&, const edm4hep::EventHeaderCollection&),
+          BaseClass_t> {
   DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize() override;
   StatusCode finalize() override;
 
-  std::tuple<TrackerHitPlaneColl, Association> operator()(const SimTrackerHitCollection& simTrackerHits,
-                                                          const Header&                  headers) const override;
+  std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection> operator()(
+      const edm4hep::SimTrackerHitCollection& simTrackerHits,
+      const edm4hep::EventHeaderCollection&   headers) const override;
 
 private:
   Gaudi::Property<std::string>        m_subDetName{this, "SubDetectorName", "VXD", "Name of the subdetector"};
@@ -120,14 +119,13 @@ private:
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
   Gaudi::Property<int> m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
 
-  Gaudi::Property<std::string> m_outputFileName{this, "OutputFileName", "planar_digi_histograms.root", "Output file name for the histograms"};
+  Gaudi::Property<std::string> m_outputFileName{this, "OutputFileName", "planar_digi_histograms.root",
+                                                "Output file name for the histograms"};
 
-  const dd4hep::rec::SurfaceMap* surfaceMap;
-  // std::vector<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>> m_histograms;
-  std::vector<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>> m_histograms;
-  std::string                                                     m_collName;
+  const dd4hep::rec::SurfaceMap*                                        surfaceMap;
+  std::array<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>, hSize> m_histograms;
+  std::string                                                           m_collName;
 
-  // inline static thread_local std::mt19937 m_engine;
   inline static thread_local std::mt19937 m_engine;
   SmartIF<IGeoSvc>                        m_geoSvc;
   SmartIF<IUniqueIDGenSvc>                m_uidSvc;
