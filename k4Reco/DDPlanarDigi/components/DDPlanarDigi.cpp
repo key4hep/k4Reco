@@ -92,8 +92,8 @@ StatusCode DDPlanarDigi::initialize() {
   return StatusCode::SUCCESS;
 }
 
-std::tuple<TrackerHitPlaneColl, Association> DDPlanarDigi::operator()(
-    const SimTrackerHitCollection& simTrackerHits, const Header& headers) const {
+std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection> DDPlanarDigi::operator()(
+    const edm4hep::SimTrackerHitCollection& simTrackerHits, const edm4hep::EventHeaderCollection& headers) const {
   auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
   info() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
          << headers[0].getRunNumber() << endmsg;
