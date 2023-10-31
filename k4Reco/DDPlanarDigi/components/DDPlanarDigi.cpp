@@ -37,7 +37,6 @@
 #include <random>
 #include <sstream>
 
-
 DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {
@@ -70,6 +69,16 @@ DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
   m_histograms[hitsAccepted].reset(
       new Gaudi::Accumulators::Histogram<1>{this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
 
+  m_sigma[hu].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+  m_sigma[hv].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+  m_sigma[hT].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+  m_sigma[diffu].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+  m_sigma[diffv].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+  m_sigma[diffT].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+  m_sigma[hitE].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+  m_sigma[hitsAccepted].reset(
+      new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
 }
 
@@ -92,11 +101,12 @@ StatusCode DDPlanarDigi::initialize() {
   return StatusCode::SUCCESS;
 }
 
-std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection> DDPlanarDigi::operator()(
-    const edm4hep::SimTrackerHitCollection& simTrackerHits, const edm4hep::EventHeaderCollection& headers) const {
+std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection>
+DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
+                         const edm4hep::EventHeaderCollection&   headers) const {
   auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
-  info() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
-         << headers[0].getRunNumber() << endmsg;
+  debug() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
+          << headers[0].getRunNumber() << endmsg;
   m_engine.seed(seed);
   // For rng calls, use the fact that drawing from a
   // Gaussian with mean mu and variance sigma^2 is the same as drawing from
@@ -117,6 +127,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAss
 
   for (const auto& hit : simTrackerHits) {
     ++(*m_histograms[hitE])[hit.getEDep() * (dd4hep::GeV / dd4hep::keV)];
+    *m_sigma[hitE] += hit.getEDep() * (dd4hep::GeV / dd4hep::keV);
 
     if (hit.getEDep() < m_minEnergy) {
       debug() << "Hit with insufficient energy " << hit.getEDep() * (dd4hep::GeV / dd4hep::keV) << " keV" << endmsg;
@@ -172,7 +183,9 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAss
 
       double tSmear = resT > 0 ? dist(m_engine) * resT : 0;
       ++(*m_histograms[hT])[resT > 0 ? tSmear / resT : 0];
+      *m_sigma[hT] += resT > 0 ? tSmear / resT : 0;
       ++(*m_histograms[diffT])[tSmear];
+      *m_sigma[diffT] += tSmear;
 
       hitT += tSmear;
       debug() << "smeared hit at T: " << hit.getTime() << " ns to T: " << hitT
@@ -216,7 +229,6 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAss
     float resU = m_resULayer.size() > 1 ? m_resULayer[layer] : m_resULayer[0];
     float resV = m_resVLayer.size() > 1 ? m_resVLayer[layer] : m_resVLayer[0];
 
-
     while (tries < m_maxTries) {
       // if( tries > 0 ) debug() << "retry smearing for " <<  cellid_decoder( hit ).valueString() << " : retries " << tries << endmsg;
 
@@ -252,10 +264,14 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAss
         newPos    = newPosTmp;
 
         ++(*m_histograms[hu])[uSmear / resU];
+        *m_sigma[hu] += uSmear / resU;
         ++(*m_histograms[hv])[vSmear / resV];
+        *m_sigma[hv] += vSmear / resV;
 
         ++(*m_histograms[diffu])[uSmear];
+        *m_sigma[diffu] += uSmear;
         ++(*m_histograms[diffv])[vSmear];
+        *m_sigma[diffv] += vSmear;
 
         break;
       }
@@ -319,6 +335,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAss
   // Filling the fraction of accepted hits in the event
   float accFraction = nSimHits > 0 ? float(nCreatedHits) / float(nSimHits) * 100.0 : 0.0;
   ++(*m_histograms[hitsAccepted])[accFraction];
+  *m_sigma[hitsAccepted] += accFraction;
 
   debug() << "Created " << nCreatedHits << " hits, " << nDismissedHits << " hits  dismissed" << endmsg;
 
@@ -326,14 +343,18 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAss
 }
 
 StatusCode DDPlanarDigi::finalize() {
-  auto file = TFile::Open(m_outputFileName.value().c_str(), "RECREATE");
+  auto file  = TFile::Open(m_outputFileName.value().c_str(), "RECREATE");
   auto names = {"hu", "hv", "hT", "hitE", "hitsAccepted", "diffu", "diffv", "diffT", "hSize"};
+  for (int i = 0; i < hSize; ++i) {
+    info() << "Standard deviation: " << m_sigma[i].get()->standard_deviation() << endmsg;
+    info() << "Mean: " << m_sigma[i].get()->mean() << endmsg;
+  }
   auto it = names.begin();
   for (auto& h : m_histograms) {
     std::string name = "";
     // Name that will appear in the stats table
     std::string    histName = *it;
-    nlohmann::json json = *h;
+    nlohmann::json json     = *h;
     auto [histo, dir] =
         Gaudi::Histograming::Sink::jsonToRootHistogram<Gaudi::Histograming::Sink::Traits<false, TH1D, 1>>(
             name, histName, json);

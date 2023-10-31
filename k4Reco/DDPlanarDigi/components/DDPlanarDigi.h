@@ -19,6 +19,7 @@
 #ifndef DDPLANARDIGI_H
 #define DDPLANARDIGI_H
 
+#include <Gaudi/Accumulators.h>
 #include "Gaudi/Accumulators/Histogram.h"
 #include "Gaudi/Property.h"
 #include "GaudiAlg/Transformer.h"
@@ -124,7 +125,10 @@ private:
 
   const dd4hep::rec::SurfaceMap*                                        surfaceMap;
   std::array<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>, hSize> m_histograms;
-  std::string                                                           m_collName;
+  std::array<std::unique_ptr<Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>>,
+             hSize>
+              m_sigma;
+  std::string m_collName;
 
   inline static thread_local std::mt19937 m_engine;
   SmartIF<IGeoSvc>                        m_geoSvc;
