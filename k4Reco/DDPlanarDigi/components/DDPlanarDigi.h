@@ -19,8 +19,7 @@
 #ifndef DDPLANARDIGI_H
 #define DDPLANARDIGI_H
 
-#include <Gaudi/Accumulators.h>
-#include "Gaudi/Accumulators/Histogram.h"
+#include "Gaudi/Accumulators/RootHistogram.h"
 #include "Gaudi/Property.h"
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/RndmGenerators.h"
@@ -67,8 +66,6 @@
  * (default value lcio::ILDDetID::VXD) <br>
  * <br>
  * 
- * @author F.Gaede CERN/DESY, S. Aplin DESY
- * @date Dec 2014
  * Originally in https://github.com/iLCSoft/MarlinTrkProcessors/blob/master/source/Digitisers/include/DDPlanarDigi.h
  */
 
@@ -124,10 +121,7 @@ private:
                                                 "Output file name for the histograms"};
 
   const dd4hep::rec::SurfaceMap*                                        surfaceMap;
-  std::array<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>, hSize> m_histograms;
-  std::array<std::unique_ptr<Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>>,
-             hSize>
-              m_sigma;
+  std::array<std::unique_ptr<Gaudi::Accumulators::RootHistogram<1>>, hSize> m_histograms;
   std::string m_collName;
 
   inline static thread_local std::mt19937 m_engine;

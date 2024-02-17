@@ -17,7 +17,8 @@
 # limitations under the License.
 #
 from Gaudi.Configuration import INFO
-from Configurables import ApplicationMgr, k4DataSvc, PodioInput, PodioOutput
+from k4FWCore import ApplicationMgr, IOSvc
+from Configurables import EventDataSvc
 from Configurables import DDPlanarDigi
 from Configurables import GeoSvc
 from Configurables import UniqueIDGenSvc
@@ -30,30 +31,28 @@ geoservice.detectors = [os.environ["K4GEO"]+"/CLIC/compact/CLIC_o3_v15/CLIC_o3_v
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
 
-processor = DDPlanarDigi()
-processor.SubDetectorName = "Vertex"
-processor.IsStrip = False
-processor.ResolutionU = [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]
-processor.ResolutionV = [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]
-processor.SimTrackerHitCollectionName = "VertexBarrelCollection"
-processor.SimTrkHitRelCollection = "VXDTrackerHitRelations"
-processor.TrackerHitCollectionName = "VXDTrackerHits"
+digi = DDPlanarDigi()
+digi.SubDetectorName = "Vertex"
+digi.IsStrip = False
+digi.ResolutionU = [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]
+digi.ResolutionV = [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]
+digi.SimTrackerHitCollectionName = "VertexBarrelCollection"
+digi.SimTrkHitRelCollection = "VXDTrackerHitRelations"
+digi.TrackerHitCollectionName = "VXDTrackerHits"
+digi.OutputFileName = "planar_digi_histograms.root"
 
-data_svc = k4DataSvc("EventDataSvc")
-data_svc.input = "input.root"
+iosvc = IOSvc()
+iosvc.input = "input.root"
+iosvc.output = "output_digi.root"
 
-inp = PodioInput()
-inp.collections = [
-    "VertexBarrelCollection",
-    "EventHeader",
-]
+# inp.collections = [
+#     "VertexBarrelCollection",
+#     "EventHeader",
+# ]
 
-out = PodioOutput("out")
-out.filename = "planar_digi_histograms.root"
-
-ApplicationMgr(TopAlg=[inp, processor, out],
+ApplicationMgr(TopAlg=[digi],
                EvtSel="NONE",
                EvtMax=-1,
-               ExtSvc=[data_svc],
+               ExtSvc=[EventDataSvc("EventDataSvc")],
                OutputLevel=INFO,
                )

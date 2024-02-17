@@ -23,7 +23,7 @@
 #include "edm4hep/SimTrackerHit.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
 
-#include "Gaudi/Accumulators/Histogram.h"
+#include "Gaudi/Accumulators/RootHistogram.h"
 #include "Gaudi/Histograming/Sink/Utils.h"
 
 #include "DD4hep/BitFieldCoder.h"
@@ -57,27 +57,17 @@ DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     throw std::runtime_error("DDPlanarDigi: Inconsistent number of resolutions given for U and V coordinate");
   }
 
-  m_histograms[hu].reset(new Gaudi::Accumulators::Histogram<1>{this, "hu", "smearing u", {50, -5., +5.}});
-  m_histograms[hv].reset(new Gaudi::Accumulators::Histogram<1>{this, "hv", "smearing v", {50, -5., +5.}});
-  m_histograms[hT].reset(new Gaudi::Accumulators::Histogram<1>{this, "hT", "smearing time", {50, -5., +5.}});
+  m_histograms[hu].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hu", "smearing u", {50, -5., +5.}});
+  m_histograms[hv].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hv", "smearing v", {50, -5., +5.}});
+  m_histograms[hT].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hT", "smearing time", {50, -5., +5.}});
 
-  m_histograms[diffu].reset(new Gaudi::Accumulators::Histogram<1>{this, "diffu", "diff u", {1000, -.1, +.1}});
-  m_histograms[diffv].reset(new Gaudi::Accumulators::Histogram<1>{this, "diffv", "diff v", {1000, -.1, +.1}});
-  m_histograms[diffT].reset(new Gaudi::Accumulators::Histogram<1>{this, "diffT", "diff time", {1000, -5., +5.}});
+  m_histograms[diffu].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "diffu", "diff u", {1000, -.1, +.1}});
+  m_histograms[diffv].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "diffv", "diff v", {1000, -.1, +.1}});
+  m_histograms[diffT].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "diffT", "diff time", {1000, -5., +5.}});
 
-  m_histograms[hitE].reset(new Gaudi::Accumulators::Histogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
+  m_histograms[hitE].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
   m_histograms[hitsAccepted].reset(
-      new Gaudi::Accumulators::Histogram<1>{this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
-
-  m_sigma[hu].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
-  m_sigma[hv].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
-  m_sigma[hT].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
-  m_sigma[diffu].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
-  m_sigma[diffv].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
-  m_sigma[diffT].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
-  m_sigma[hitE].reset(new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
-  m_sigma[hitsAccepted].reset(
-      new Gaudi::Accumulators::SigmaAccumulator<Gaudi::Accumulators::atomicity::full, double>{});
+      new Gaudi::Accumulators::RootHistogram<1>{this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
 
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
 }
@@ -127,7 +117,6 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
 
   for (const auto& hit : simTrackerHits) {
     ++(*m_histograms[hitE])[hit.getEDep() * (dd4hep::GeV / dd4hep::keV)];
-    *m_sigma[hitE] += hit.getEDep() * (dd4hep::GeV / dd4hep::keV);
 
     if (hit.getEDep() < m_minEnergy) {
       debug() << "Hit with insufficient energy " << hit.getEDep() * (dd4hep::GeV / dd4hep::keV) << " keV" << endmsg;
@@ -183,9 +172,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
 
       double tSmear = resT > 0 ? dist(m_engine) * resT : 0;
       ++(*m_histograms[hT])[resT > 0 ? tSmear / resT : 0];
-      *m_sigma[hT] += resT > 0 ? tSmear / resT : 0;
       ++(*m_histograms[diffT])[tSmear];
-      *m_sigma[diffT] += tSmear;
 
       hitT += tSmear;
       debug() << "smeared hit at T: " << hit.getTime() << " ns to T: " << hitT
@@ -264,14 +251,10 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
         newPos    = newPosTmp;
 
         ++(*m_histograms[hu])[uSmear / resU];
-        *m_sigma[hu] += uSmear / resU;
         ++(*m_histograms[hv])[vSmear / resV];
-        *m_sigma[hv] += vSmear / resV;
 
         ++(*m_histograms[diffu])[uSmear];
-        *m_sigma[diffu] += uSmear;
         ++(*m_histograms[diffv])[vSmear];
-        *m_sigma[diffv] += vSmear;
 
         break;
       }
@@ -335,7 +318,6 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
   // Filling the fraction of accepted hits in the event
   float accFraction = nSimHits > 0 ? float(nCreatedHits) / float(nSimHits) * 100.0 : 0.0;
   ++(*m_histograms[hitsAccepted])[accFraction];
-  *m_sigma[hitsAccepted] += accFraction;
 
   debug() << "Created " << nCreatedHits << " hits, " << nDismissedHits << " hits  dismissed" << endmsg;
 
@@ -344,11 +326,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
 
 StatusCode DDPlanarDigi::finalize() {
   auto file  = TFile::Open(m_outputFileName.value().c_str(), "RECREATE");
-  auto names = {"hu", "hv", "hT", "hitE", "hitsAccepted", "diffu", "diffv", "diffT", "hSize"};
-  for (int i = 0; i < hSize; ++i) {
-    info() << "Standard deviation: " << m_sigma[i].get()->standard_deviation() << endmsg;
-    info() << "Mean: " << m_sigma[i].get()->mean() << endmsg;
-  }
+  std::vector<const char*> names = {"hu", "hv", "hT", "hitE", "hitsAccepted", "diffu", "diffv", "diffT", "hSize"};
   auto it = names.begin();
   for (auto& h : m_histograms) {
     std::string name = "";
