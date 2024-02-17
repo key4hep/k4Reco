@@ -24,14 +24,15 @@
 #include "Gaudi/Property.h"
 #include "GaudiAlg/Transformer.h"
 #include "GaudiKernel/RndmGenerators.h"
-#include "k4FWCore/BaseClass.h"
-#include "k4Interface/IGeoSvc.h"
-#include "k4Interface/IUniqueIDGenSvc.h"
 
 #include "edm4hep/EventHeaderCollection.h"
 #include "edm4hep/MCRecoTrackerHitPlaneAssociationCollection.h"
 #include "edm4hep/SimTrackerHitCollection.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
+
+#include "k4FWCore/Transformer.h"
+#include "k4Interface/IGeoSvc.h"
+#include "k4Interface/IUniqueIDGenSvc.h"
 
 #include "DDRec/SurfaceManager.h"
 
@@ -74,10 +75,9 @@
 enum { hu = 0, hv, hT, hitE, hitsAccepted, diffu, diffv, diffT, hSize };
 
 struct DDPlanarDigi final
-    : Gaudi::Functional::MultiTransformer<
+    : k4FWCore::MultiTransformer<
           std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection>(
-              const edm4hep::SimTrackerHitCollection&, const edm4hep::EventHeaderCollection&),
-          BaseClass_t> {
+              const edm4hep::SimTrackerHitCollection&, const edm4hep::EventHeaderCollection&)> {
   DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize() override;

@@ -40,11 +40,11 @@
 DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {
-                           KeyValue("SimTrackerHitCollectionName", "SimTrackerHits"),
-                           KeyValue("HeaderName", "EventHeader"),
+                         KeyValues("SimTrackerHitCollectionName", {"SimTrackerHits"}),
+                           KeyValues("HeaderName", {"EventHeader"}),
                        },
-                       {KeyValue("TrackerHitCollectionName", "VTXTrackerHits"),
-                        KeyValue("SimTrkHitRelCollection", "VTXTrackerHitRelations")}) {
+                       {KeyValues("TrackerHitCollectionName", {"VTXTrackerHits"}),
+                        KeyValues("SimTrkHitRelCollection", {"VTXTrackerHitRelations"})}) {
   m_uidSvc = service<IUniqueIDGenSvc>("UniqueIDGenSvc", true);
   if (!m_uidSvc) {
     error() << "Unable to get UniqueIDGenSvc" << endmsg;
