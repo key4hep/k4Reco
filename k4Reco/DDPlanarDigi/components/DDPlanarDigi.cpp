@@ -33,9 +33,9 @@
 #include <TFile.h>
 
 #include <cmath>
-#include <format>
 #include <iostream>
 #include <random>
+#include <fmt/format.h>
 
 DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -80,7 +80,7 @@ StatusCode DDPlanarDigi::initialize() {
   surfaceMap                 = surfMan->map(m_subDetName.value());
 
   if (!surfaceMap) {
-    throw std::runtime_error(std::format("Could not find surface map for detector: {} in SurfaceManager", det.name()));
+    throw std::runtime_error(fmt::format("Could not find surface map for detector: {} in SurfaceManager", det.name()));
   }
 
   // Get and store the name for a debug message later
@@ -127,7 +127,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
     dd4hep::rec::SurfaceMap::const_iterator sI = surfaceMap->find(cellID0);
 
     if (sI == surfaceMap->end()) {
-      throw std::runtime_error(std::format("DDPlanarDigi::processEvent(): no surface found for cellID : {}", cellID0));
+      throw std::runtime_error(fmt::format("DDPlanarDigi::processEvent(): no surface found for cellID : {}", cellID0));
     }
 
     const dd4hep::rec::ISurface* surf  = sI->second;
