@@ -33,14 +33,14 @@
 #include <TFile.h>
 
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <random>
-#include <sstream>
 
 DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {
-                         KeyValues("SimTrackerHitCollectionName", {"SimTrackerHits"}),
+                           KeyValues("SimTrackerHitCollectionName", {"SimTrackerHits"}),
                            KeyValues("HeaderName", {"EventHeader"}),
                        },
                        {KeyValues("TrackerHitCollectionName", {"VTXTrackerHits"}),
@@ -66,8 +66,8 @@ DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
   m_histograms[diffT].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "diffT", "diff time", {1000, -5., +5.}});
 
   m_histograms[hitE].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
-  m_histograms[hitsAccepted].reset(
-      new Gaudi::Accumulators::RootHistogram<1>{this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
+  m_histograms[hitsAccepted].reset(new Gaudi::Accumulators::RootHistogram<1>{
+      this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
 
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
 }
@@ -80,9 +80,7 @@ StatusCode DDPlanarDigi::initialize() {
   surfaceMap                 = surfMan->map(m_subDetName.value());
 
   if (!surfaceMap) {
-    std::stringstream err;
-    err << " Could not find surface map for detector: " << det.name() << " in SurfaceManager ";
-    throw std::runtime_error(err.str());
+    throw std::runtime_error(std::format("Could not find surface map for detector: {} in SurfaceManager", det.name()));
   }
 
   // Get and store the name for a debug message later
@@ -129,10 +127,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
     dd4hep::rec::SurfaceMap::const_iterator sI = surfaceMap->find(cellID0);
 
     if (sI == surfaceMap->end()) {
-      std::stringstream err;
-      err << " DDPlanarDigi::processEvent(): no surface found for cellID : " << std::endl;
-      // <<   cellid_decoder( hit ).valueString() ;
-      throw std::runtime_error(err.str());
+      throw std::runtime_error(std::format("DDPlanarDigi::processEvent(): no surface found for cellID : {}", cellID0));
     }
 
     const dd4hep::rec::ISurface* surf  = sI->second;
@@ -325,9 +320,9 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
 }
 
 StatusCode DDPlanarDigi::finalize() {
-  auto file  = TFile::Open(m_outputFileName.value().c_str(), "RECREATE");
+  auto                     file  = TFile::Open(m_outputFileName.value().c_str(), "RECREATE");
   std::vector<const char*> names = {"hu", "hv", "hT", "hitE", "hitsAccepted", "diffu", "diffv", "diffT", "hSize"};
-  auto it = names.begin();
+  auto                     it    = names.begin();
   for (auto& h : m_histograms) {
     std::string name = "";
     // Name that will appear in the stats table
