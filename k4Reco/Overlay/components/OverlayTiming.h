@@ -102,7 +102,7 @@ private:
       this,
       "BackgroundFileNames",
       {},
-      "Name of the lcio input file(s) with background - assume one file per bunch crossing."};
+      "Name of the edm4hep input file(s) with background."};
 
   Gaudi::Property<double> _NOverlay{this, "NumberBackground", 1,
                                     "Number of Background events to overlay - either fixed or Poisson mean"};
@@ -112,7 +112,7 @@ private:
       "Draw random number of Events to overlay from Poisson distribution with  mean value NumberBackground"};
 
   Gaudi::Property<std::string> _mcParticleCollectionName{this, "MCParticleCollectionName", "MCParticle",
-                                                         "The MC Particle Collection Name"};
+                                                         "The name of the MCParticle collection in the background files"};
 
   Gaudi::Property<float> _DefaultStart_int{
       this, "Start_Integration_Time", float(-0.25),
