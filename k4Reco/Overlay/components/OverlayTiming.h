@@ -11,6 +11,7 @@
 #include "k4FWCore/Transformer.h"
 #include "k4Interface/IUniqueIDGenSvc.h"
 
+// Needed for some of the more complex properties
 #include "Gaudi/Parsers/Factory.h"
 #include "Gaudi/Property.h"
 
@@ -59,16 +60,11 @@ struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
   template <typename T> void overlayCollection(std::string collName, const podio::CollectionBase& inColl);
 
   virtual StatusCode initialize() final;
-  /**  Execute.
-   *   @return status code
-   */
-  virtual StatusCode finalize() final;
 
   retType virtual operator()(
       const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection& mcParticles,
       const std::vector<const edm4hep::SimTrackerHitCollection*>&       simTrackerHits,
       const std::vector<const edm4hep::SimCalorimeterHitCollection*>&   simCalorimeterHits
-      // const std::map<std::string, const edm4hep::CaloHitContributionCollection&>& caloHitContribs
                              ) const final;
 
   std::pair<float, float> define_time_windows(const std::string& Collection_name) const;

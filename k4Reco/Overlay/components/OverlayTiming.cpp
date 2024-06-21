@@ -50,6 +50,7 @@ StatusCode OverlayTiming::initialize() {
       for (auto& file : m_inputFileNames.value()) {
         err += " " + file[0];
       }
+      error() << err << endmsg;
       return StatusCode::FAILURE;
     }
   }
@@ -61,7 +62,6 @@ StatusCode OverlayTiming::initialize() {
     m_Noverlay.value() = std::vector<double>(m_bkgEvents->size(), 1);
   }
 
-  std::vector<bool> actualPoisson;
   if (m_Poisson.empty()) {
     info() << "Using the default overlay mode (no Poission distribution) for each group, since none was specified with "
               "Poisson_random_Noverlay"
@@ -178,7 +178,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
       m_bkgEvents->m_nextEntry = m_startWithBackgroundEvent;
     }
 
-    // Now overlay the background evnts to each bunchcrossing in the bunch train
+    // Overlay the background events to each bunchcrossing in the bunch train
     for (int bxInTrain = 0; bxInTrain < _nBunchTrain; ++bxInTrain) {
       const int BX_number_in_train = permutation.at(bxInTrain);
 
@@ -198,10 +198,11 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
                << endmsg;
         auto backgroundEvent =
           m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry);
-        // if (!ptr) {
-        //   warning() << "No more events in background file " << endmsg;
-        //   break;
+        // m_bkgEvents->m_nextEntry++;
+        // if(m_bkgEvents->m_nextEntry >= m_bkgEvents->m_totalNumberOfEvents[groupIndex] && !m_allowReusingBackgroundFiles) {
+        //   throw GaudiException("No more events in background file", name(), StatusCode::FAILURE);
         // }
+        // m_bkgEvents->m_nextEntry %= m_bkgEvents->m_totalNumberOfEvents[groupIndex];
         auto availableCollections = backgroundEvent.getAvailableCollections();
 
         // Either 0 or negative
@@ -279,25 +280,6 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
               ocoll->push_back(nhit);
             }
           }
-          // else if (TPCHits) {
-          //   for (auto elem : backgroundEvent.get<edm4hep::SimTrackerHitCollection>(name)) {
-          //     const float tof = time_of_flight(elem.getPosition());
-          //     if (!((elem.getTime() + timeOffset > this_start + tof) &&
-          //           (elem.getTime() + timeOffset < this_stop + tof)))
-          //       continue;
-          //     auto nhit     = elem.clone();
-          //     auto position = elem.getPosition();
-          //     if (position.z <= 0.) {
-          //       position.z -= timeOffset * _tpcVdrift_mm_ns;
-          //     } else {
-          //       position.z += timeOffset * _tpcVdrift_mm_ns;
-          //     }
-          //     nhit.setPosition(position);
-          //     nhit.setTime(nhit.getTime() + timeOffset);
-          //     nhit.setOverlay(true);
-          //     ocoll->push_back(nhit);
-          //   }
-          // }
         }
 
         for (size_t i = 0; i < simCaloHits.size(); ++i) {
@@ -335,10 +317,6 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
                 calhit.setCellID(elem.getCellID());
                 calhit.setEnergy(elem.getEnergy());
                 calhit.setPosition(elem.getPosition());
-                // if (calhit.getCellID() == 18444492282485805327ULL) {
-                //   info() << "Adding hit with cellID " << calhit.getCellID() << " to collection " << name
-                //          << " with index " << calhit.id().index << endmsg;
-                // }
                 calHitMap[calhit.getCellID()] = calhit;
               }
             } else {
@@ -359,6 +337,9 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
       }
     }
   }
+  // Move the SimCalorimeterHitCollections to the output vector
+  // So far they are stored in a map with the cellID as key
+  // but they don't belong to any collection yet
   for (auto& [index, calHitMap] : cellIDsMap) {
     auto ocoll = edm4hep::SimCalorimeterHitCollection();
     for (auto& [cellID, hit] : calHitMap) {
@@ -372,5 +353,3 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
   return std::make_tuple(std::move(oparticles), std::move(osimTrackerHits), std::move(osimCaloHits),
                          std::move(ocaloHitContribs));
 }
-
-StatusCode OverlayTiming::finalize() { return Gaudi::Algorithm::finalize(); }
