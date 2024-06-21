@@ -1,5 +1,6 @@
 #include "podio/Frame.h"
 #include "podio/ROOTReader.h"
+#include "podio/Reader.h"
 
 #include "edm4hep/CaloHitContributionCollection.h"
 #include "edm4hep/EventHeaderCollection.h"
@@ -17,7 +18,7 @@
 
 struct EventHolder {
   std::vector<std::vector<std::string>>           m_fileNames;
-  std::vector<std::unique_ptr<podio::ROOTReader>> m_rootFileReaders;
+  std::vector<podio::Reader>                      m_rootFileReaders;
   std::vector<int>                                m_totalNumberOfEvents;
   std::map<int, podio::Frame>                     m_events;
 
@@ -25,9 +26,8 @@ struct EventHolder {
 
   EventHolder(const std::vector<std::vector<std::string>>& fileNames) : m_fileNames(fileNames) {
     for (auto& names : m_fileNames) {
-      m_rootFileReaders.emplace_back(std::make_unique<podio::ROOTReader>());
-      m_rootFileReaders.back()->openFiles(names);
-      m_totalNumberOfEvents.push_back(m_rootFileReaders.back()->getEntries("events"));
+      m_rootFileReaders.emplace_back(podio::makeReader(names));
+      m_totalNumberOfEvents.push_back(m_rootFileReaders.back().getEntries("events"));
     }
   }
   EventHolder() = default;
@@ -35,14 +35,14 @@ struct EventHolder {
   size_t size() const { return m_fileNames.size(); }
 };
 
-using retType = std::tuple<edm4hep::MCParticleCollection, std::map<std::string, edm4hep::SimTrackerHitCollection>,
-                           std::map<std::string, edm4hep::SimCalorimeterHitCollection>,
-                           std::map<std::string, edm4hep::CaloHitContributionCollection>>;
+using retType = std::tuple<edm4hep::MCParticleCollection, std::vector<edm4hep::SimTrackerHitCollection>,
+                           std::vector<edm4hep::SimCalorimeterHitCollection>,
+                           std::vector<edm4hep::CaloHitContributionCollection>>;
 
 struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
                            const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection&,
-                           const std::map<std::string, const edm4hep::SimTrackerHitCollection&>&,
-                           const std::map<std::string, const edm4hep::SimCalorimeterHitCollection&>&
+                           const std::vector<const edm4hep::SimTrackerHitCollection*>&,
+                           const std::vector<const edm4hep::SimCalorimeterHitCollection*>&
                            // const std::map<std::string, const edm4hep::CaloHitContributionCollection&>&
                                                                  )> {
   OverlayTiming(const std::string& name, ISvcLocator* svcLoc)
@@ -66,20 +66,18 @@ struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
 
   retType virtual operator()(
       const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection& mcParticles,
-      const std::map<std::string, const edm4hep::SimTrackerHitCollection&>&       simTrackerHits,
-      const std::map<std::string, const edm4hep::SimCalorimeterHitCollection&>&   simCalorimeterHits
+      const std::vector<const edm4hep::SimTrackerHitCollection*>&       simTrackerHits,
+      const std::vector<const edm4hep::SimCalorimeterHitCollection*>&   simCalorimeterHits
       // const std::map<std::string, const edm4hep::CaloHitContributionCollection&>& caloHitContribs
                              ) const final;
 
   std::pair<float, float> define_time_windows(const std::string& Collection_name) const;
 
 private:
-  Gaudi::Property<std::vector<std::string>> m_SimTrackerHitNames{
-      this, "SimTrackerHitNames", {}, "List of names of the SimTrackerHit outputs"};
-  Gaudi::Property<std::vector<std::string>> m_SimCalorimeterHitNames{
-      this, "SimCalorimeterHitNames", {}, "List of names of the SimCalorimeterHit outputs"};
-  Gaudi::Property<std::vector<std::string>> m_CaloHitContributionNames{
-      this, "CaloHitContributionNames", {}, "List of names of the SimCalorimeterHit outputs"};
+
+  // These correspond to the index position in the argument list
+  constexpr static int TRACKERHIT_INDEX_POSITION = 2;
+  constexpr static int SIMCALOHIT_INDEX_POSITION = 3;
 
   Gaudi::Property<bool>        _randomBX{this, "RandomBx", false,
                                   "Place the physics event at an random position in the train: overrides PhysicsBX"};
