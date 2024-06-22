@@ -1,3 +1,18 @@
+/** Background overlay algorithm
+
+    This algorithm overlays background events on top of the signal events. The
+    background events are read from a set of input files, and the signal events
+    are the input in the main event loop.
+
+    The MCParticleCollection in signal are background are overlaid into one
+    collection. The SimTrackerHit collections are cropped and overlayed if they
+    are in the time window. The SimCalorimeterHit collections are overlayed
+    based on the cellID. If a signal hit has the same cellID as a background
+    hit, they are combined into a single hit. Only hits that have
+    CaloHitContributions in the time range are considered.
+
+**/
+
 #include "podio/Frame.h"
 #include "podio/ROOTReader.h"
 #include "podio/Reader.h"
@@ -18,10 +33,10 @@
 #include <random>
 
 struct EventHolder {
-  std::vector<std::vector<std::string>>           m_fileNames;
-  std::vector<podio::Reader>                      m_rootFileReaders;
-  std::vector<int>                                m_totalNumberOfEvents;
-  std::map<int, podio::Frame>                     m_events;
+  std::vector<std::vector<std::string>> m_fileNames;
+  std::vector<podio::Reader>            m_rootFileReaders;
+  std::vector<int>                      m_totalNumberOfEvents;
+  std::map<int, podio::Frame>           m_events;
 
   int m_nextEntry = 0;
 
@@ -33,26 +48,28 @@ struct EventHolder {
   }
   EventHolder() = default;
 
+  // TODO: Cache functionality
+  // podio::Frame& read
+
   size_t size() const { return m_fileNames.size(); }
 };
 
-using retType = std::tuple<edm4hep::MCParticleCollection, std::vector<edm4hep::SimTrackerHitCollection>,
-                           std::vector<edm4hep::SimCalorimeterHitCollection>,
-                           std::vector<edm4hep::CaloHitContributionCollection>>;
+using retType =
+    std::tuple<edm4hep::MCParticleCollection, std::vector<edm4hep::SimTrackerHitCollection>,
+               std::vector<edm4hep::SimCalorimeterHitCollection>, std::vector<edm4hep::CaloHitContributionCollection>>;
 
 struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
                            const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection&,
                            const std::vector<const edm4hep::SimTrackerHitCollection*>&,
                            const std::vector<const edm4hep::SimCalorimeterHitCollection*>&
                            // const std::map<std::string, const edm4hep::CaloHitContributionCollection&>&
-                                                                 )> {
+                           )> {
   OverlayTiming(const std::string& name, ISvcLocator* svcLoc)
       : MultiTransformer(
             name, svcLoc,
             {KeyValues("EventHeader", {"EventHeader"}), KeyValues("MCParticles", {"DefaultMCParticles"}),
              KeyValues("SimTrackerHits", {"DefaultSimTrackerHits"}),
-             KeyValues("SimCalorimeterHits", {"DefaultSimCalorimeterHits"})
-            },
+             KeyValues("SimCalorimeterHits", {"DefaultSimCalorimeterHits"})},
             {KeyValues("OutputMCParticles", {"NewMCParticles"}), KeyValues("OutputSimTrackerHits", {"MCParticles1"}),
              KeyValues("OutputSimCalorimeterHits", {"MCParticles2"}),
              KeyValues("OutputCaloHitContributions", {"OverlayCaloHitContributions"})}) {}
@@ -63,27 +80,23 @@ struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
 
   retType virtual operator()(
       const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection& mcParticles,
-      const std::vector<const edm4hep::SimTrackerHitCollection*>&       simTrackerHits,
-      const std::vector<const edm4hep::SimCalorimeterHitCollection*>&   simCalorimeterHits
-                             ) const final;
+      const std::vector<const edm4hep::SimTrackerHitCollection*>&     simTrackerHits,
+      const std::vector<const edm4hep::SimCalorimeterHitCollection*>& simCalorimeterHits) const final;
 
   std::pair<float, float> define_time_windows(const std::string& Collection_name) const;
 
 private:
-
   // These correspond to the index position in the argument list
   constexpr static int TRACKERHIT_INDEX_POSITION = 2;
   constexpr static int SIMCALOHIT_INDEX_POSITION = 3;
 
-  Gaudi::Property<bool>        _randomBX{this, "RandomBx", false,
+  Gaudi::Property<bool>        m_randomBX{this, "RandomBx", false,
                                   "Place the physics event at an random position in the train: overrides PhysicsBX"};
-  mutable Gaudi::Property<int> _BX_phys{this, "PhysicsBX", 1, "Number of the Bunch crossing of the physics event"};
-  Gaudi::Property<float>       _tpcVdrift_mm_ns{this, "TPCDriftvelocity", float(5.0e-2),
-                                          "Drift velocity in TPC [mm/ns] - default 5.0e-2 (5cm/us)"};
+  mutable Gaudi::Property<int> m_physBX{this, "PhysicsBX", 1, "Number of the Bunch crossing of the physics event"};
   Gaudi::Property<int>         _nBunchTrain{this, "NBunchtrain", 1, "Number of bunches in a bunch train"};
-  Gaudi::Property<int>         m_startWithBackgroundFile{this, "StartBackgroundFileIndex", -1,
-                                                 "Which background file to startWith"};
-  Gaudi::Property<int>         m_startWithBackgroundEvent{this, "StartBackgroundEventIndex", -1,
+  // Gaudi::Property<int>         m_startWithBackgroundFile{this, "StartBackgroundFileIndex", -1,
+  //                                                "Which background file to startWith"};
+  Gaudi::Property<int> m_startWithBackgroundEvent{this, "StartBackgroundEventIndex", -1,
                                                   "Which background event to startWith"};
 
   Gaudi::Property<std::vector<std::vector<std::string>>> m_inputFileNames{
@@ -116,7 +129,10 @@ private:
   Gaudi::Property<bool> m_allowReusingBackgroundFiles{
       this, "AllowReusingBackgroundFiles", false, "If true the same background file can be used for the same event"};
 
+  // Gaudi::Property<int> m_maxCachedFrames{
+  //   this, "MaxCachedFrames", 0, "Maximum number of frames cached from background files"};
+
 private:
-  mutable std::mt19937     m_engine;
-  SmartIF<IUniqueIDGenSvc> m_uidSvc;
+  inline static thread_local std::mt19937 m_engine;
+  SmartIF<IUniqueIDGenSvc>         m_uidSvc;
 };
