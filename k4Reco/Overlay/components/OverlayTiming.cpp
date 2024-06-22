@@ -55,18 +55,25 @@ StatusCode OverlayTiming::initialize() {
     }
   }
 
+  if (std::any_of(m_bkgEvents->m_totalNumberOfEvents.begin(), m_bkgEvents->m_totalNumberOfEvents.end(),
+                  [this](const int& val) { return this->m_startWithBackgroundEvent >= val; })) {
+    throw GaudiException("StartWithBackgroundEvent is larger than the number of events in the background files", name(),
+                         StatusCode::FAILURE);
+    return StatusCode::FAILURE;
+  }
+
   if (m_Noverlay.empty()) {
     info() << "Using the default number of overlay events (1) for each group, since none was specified with "
               "NumberBackground "
            << endmsg;
-    m_Noverlay.value() = std::vector<double>(m_bkgEvents->size(), 1);
+    m_Noverlay = std::vector<double>(m_bkgEvents->size(), 1);
   }
 
   if (m_Poisson.empty()) {
     info() << "Using the default overlay mode (no Poission distribution) for each group, since none was specified with "
               "Poisson_random_Noverlay"
            << endmsg;
-    m_Poisson.value() = std::vector<bool>(m_bkgEvents->size(), false);
+    m_Poisson = std::vector<bool>(m_bkgEvents->size(), false);
   }
 
   return StatusCode::SUCCESS;
@@ -87,7 +94,6 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
   for (size_t i = 0; i < simCaloHits.size(); ++i) {
     ocaloHitContribs.emplace_back(edm4hep::CaloHitContributionCollection());
   }
-  
 
   // Copy MCParticles for physics event into a new collection
   for (auto&& part : particles) {
@@ -154,17 +160,17 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
 
   // Iterate over each group of files and parameters
   for (size_t groupIndex = 0; groupIndex < m_bkgEvents->size(); groupIndex++) {
-    if (_randomBX) {
-      _BX_phys = std::uniform_int_distribution<int>(0, _nBunchTrain - 1)(m_engine);
-      debug() << "Physics Event was placed in the " << _BX_phys << " bunch crossing!" << endmsg;
+    if (m_randomBX) {
+      m_physBX = std::uniform_int_distribution<int>(0, _nBunchTrain - 1)(m_engine);
+      debug() << "Physics Event was placed in the " << m_physBX << " bunch crossing!" << endmsg;
     }
 
     // define a permutation for the events to overlay -- the physics event is per definition at position 0
     std::vector<int> permutation;
 
     // Permutation has negative values and the last one is 0
-    // if (!_randomBX) then _BX_phys (default = 1)
-    for (int i = -(_BX_phys - 1); i < _nBunchTrain - (_BX_phys - 1); ++i) {
+    // if (!m_randomBX) then m_physBX (default = 1)
+    for (int i = -(m_physBX - 1); i < _nBunchTrain - (m_physBX - 1); ++i) {
       permutation.push_back(i);
     }
     std::shuffle(permutation.begin(), permutation.end(), m_engine);
@@ -190,19 +196,19 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
         NOverlay_to_this_BX = m_Noverlay[groupIndex];
       }
 
-      debug() << "Will overlay " << NOverlay_to_this_BX << " events to BX number " << BX_number_in_train + _BX_phys
+      debug() << "Will overlay " << NOverlay_to_this_BX << " events to BX number " << BX_number_in_train + m_physBX
               << endmsg;
 
       for (int k = 0; k < NOverlay_to_this_BX; ++k) {
-        info() << "Overlaying event " << m_bkgEvents->m_nextEntry << " to BX number " << BX_number_in_train + _BX_phys
+        info() << "Overlaying event " << m_bkgEvents->m_nextEntry << " to BX number " << BX_number_in_train + m_physBX
                << endmsg;
-        auto backgroundEvent =
-          m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry);
-        // m_bkgEvents->m_nextEntry++;
-        // if(m_bkgEvents->m_nextEntry >= m_bkgEvents->m_totalNumberOfEvents[groupIndex] && !m_allowReusingBackgroundFiles) {
-        //   throw GaudiException("No more events in background file", name(), StatusCode::FAILURE);
-        // }
-        // m_bkgEvents->m_nextEntry %= m_bkgEvents->m_totalNumberOfEvents[groupIndex];
+        auto backgroundEvent = m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry);
+        m_bkgEvents->m_nextEntry++;
+        if (m_bkgEvents->m_nextEntry >= m_bkgEvents->m_totalNumberOfEvents[groupIndex] &&
+            !m_allowReusingBackgroundFiles) {
+          throw GaudiException("No more events in background file", name(), StatusCode::FAILURE);
+        }
+        m_bkgEvents->m_nextEntry %= m_bkgEvents->m_totalNumberOfEvents[groupIndex];
         auto availableCollections = backgroundEvent.getAvailableCollections();
 
         // Either 0 or negative
@@ -262,7 +268,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
           }
           auto [this_start, this_stop] = define_time_windows(name);
           // There are only contributions to the readout if the hits are in the integration window
-          if (this_stop <= (BX_number_in_train - _BX_phys) * _T_diff) {
+          if (this_stop <= (BX_number_in_train - m_physBX) * _T_diff) {
             info() << "Skipping collection " << name << " as it is not in the integration window" << endmsg;
             continue;
           }
@@ -291,7 +297,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
           }
           auto [this_start, this_stop] = define_time_windows(name);
           // There are only contributions to the readout if the hits are in the integration window
-          if (this_stop <= (BX_number_in_train - _BX_phys) * _T_diff) {
+          if (this_stop <= (BX_number_in_train - m_physBX) * _T_diff) {
             info() << "Skipping collection " << name << " as it is not in the integration window" << endmsg;
             continue;
           }
