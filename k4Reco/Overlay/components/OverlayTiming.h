@@ -1,16 +1,17 @@
 #include "podio/Frame.h"
 #include "podio/ROOTReader.h"
 
+#include "edm4hep/CaloHitContributionCollection.h"
 #include "edm4hep/EventHeaderCollection.h"
 #include "edm4hep/MCParticleCollection.h"
 #include "edm4hep/SimCalorimeterHitCollection.h"
 #include "edm4hep/SimTrackerHitCollection.h"
-#include "edm4hep/CaloHitContributionCollection.h"
 
 #include "k4FWCore/Transformer.h"
 #include "k4Interface/IUniqueIDGenSvc.h"
 
 #include "Gaudi/Property.h"
+#include "Gaudi/Parsers/Factory.h"
 
 #include <random>
 
@@ -32,43 +33,27 @@ struct EventHolder {
   EventHolder() = default;
 
   size_t size() const { return m_fileNames.size(); }
-
-  // podio::Frame& maybeRead(int eventNumber) {
-  //   if (m_events.count(eventNumber) == 0) {
-  //     m_events[eventNumber] = m_rootFileReader.readEntry("events", eventNumber);
-  //   }
-  //   return m_events[eventNumber];
-  // }
-
-  // podio::Frame& maybeReadNext() { return maybeRead(m_nextEntry++); }
 };
 
-using retType = std::tuple<edm4hep::MCParticleCollection, std::map<std::string, edm4hep::SimTrackerHitCollection>,
-                           std::map<std::string, edm4hep::SimCalorimeterHitCollection>,
-                           edm4hep::CaloHitContributionCollection
-                           >;
+using retType =
+    std::tuple<edm4hep::MCParticleCollection, std::map<std::string, edm4hep::SimTrackerHitCollection>,
+               std::map<std::string, edm4hep::SimCalorimeterHitCollection>, edm4hep::CaloHitContributionCollection>;
 
 struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
                            const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection&,
                            const std::map<std::string, const edm4hep::SimTrackerHitCollection&>&,
                            const std::map<std::string, const edm4hep::SimCalorimeterHitCollection&>&,
-                           const edm4hep::CaloHitContributionCollection&
-                                                                 )> {
+                           const edm4hep::CaloHitContributionCollection&)> {
   OverlayTiming(const std::string& name, ISvcLocator* svcLoc)
-      : MultiTransformer(name, svcLoc,
-                         {
-                             KeyValues("EventHeader", {"EventHeader"}),
-                             KeyValues("MCParticles", {"DefaultMCParticles"}),
-                             KeyValues("SimTrackerHits", {"DefaultSimTrackerHits"}),
-                             KeyValues("SimCalorimeterHits", {"DefaultSimCalorimeterHits"}),
-                             KeyValues("CaloHitContributions", {"CaloHitContributions"})
-                         },
-                         {
-                             KeyValues("OutputMCParticles", {"NewMCParticles"}),
-                             KeyValues("OutputSimTrackerHits", {"MCParticles1"}),
-                             KeyValues("OutputSimCalorimeterHits", {"MCParticles2"}),
-                             KeyValues("OutputCaloHitContributions", {"OverlayCaloHitContributions"})
-                         }) {}
+      : MultiTransformer(
+            name, svcLoc,
+            {KeyValues("EventHeader", {"EventHeader"}), KeyValues("MCParticles", {"DefaultMCParticles"}),
+             KeyValues("SimTrackerHits", {"DefaultSimTrackerHits"}),
+             KeyValues("SimCalorimeterHits", {"DefaultSimCalorimeterHits"}),
+             KeyValues("CaloHitContributions", {"CaloHitContributions"})},
+            {KeyValues("OutputMCParticles", {"NewMCParticles"}), KeyValues("OutputSimTrackerHits", {"MCParticles1"}),
+             KeyValues("OutputSimCalorimeterHits", {"MCParticles2"}),
+             KeyValues("OutputCaloHitContributions", {"OverlayCaloHitContributions"})}) {}
 
   template <typename T> void overlayCollection(std::string collName, const podio::CollectionBase& inColl);
 
@@ -84,35 +69,40 @@ struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
       const std::map<std::string, const edm4hep::SimCalorimeterHitCollection&>& simCalorimeterHits,
       const edm4hep::CaloHitContributionCollection&                             caloHitContribs) const final;
 
-  std::tuple<float, float, bool> define_time_windows(const std::string& Collection_name) const;
+  std::pair<float, float> define_time_windows(const std::string& Collection_name) const;
 
 private:
+
+  Gaudi::Property<std::vector<std::string>> m_SimTrackerHitNames{
+      this, "SimTrackerHitNames", {}, "List of names of the SimTrackerHit outputs"};
+  Gaudi::Property<std::vector<std::string>> m_SimCalorimeterHitNames{
+      this, "SimCalorimeterHitNames", {}, "List of names of the SimCalorimeterHit outputs"};
+
   Gaudi::Property<bool>        _randomBX{this, "RandomBx", false,
                                   "Place the physics event at an random position in the train: overrides PhysicsBX"};
   mutable Gaudi::Property<int> _BX_phys{this, "PhysicsBX", 1, "Number of the Bunch crossing of the physics event"};
   Gaudi::Property<float>       _tpcVdrift_mm_ns{this, "TPCDriftvelocity", float(5.0e-2),
                                           "Drift velocity in TPC [mm/ns] - default 5.0e-2 (5cm/us)"};
   Gaudi::Property<int>         _nBunchTrain{this, "NBunchtrain", 1, "Number of bunches in a bunch train"};
-  mutable Gaudi::Property<int> m_startWithBackgroundFile{this, "StartBackgroundFileIndex", -1,
+  Gaudi::Property<int> m_startWithBackgroundFile{this, "StartBackgroundFileIndex", -1,
                                                          "Which background file to startWith"};
   Gaudi::Property<int>         m_startWithBackgroundEvent{this, "StartBackgroundEventIndex", -1,
                                                   "Which background event to startWith"};
 
   Gaudi::Property<std::vector<std::vector<std::string>>> m_inputFileNames{
+      this, "BackgroundFileNames", {}, "Name of the edm4hep input file(s) with background."};
+
+  Gaudi::Property<std::vector<double>> m_Noverlay{
+      this, "NumberBackground", {}, "Number of Background events to overlay - either fixed or Poisson mean"};
+
+  Gaudi::Property<std::vector<bool>> m_Poisson{
       this,
-      "BackgroundFileNames",
+      "Poisson_random_NOverlay",
       {},
-      "Name of the edm4hep input file(s) with background."};
+      "Draw random number of Events to overlay from Poisson distribution with mean value NumberBackground"};
 
-  Gaudi::Property<double> _NOverlay{this, "NumberBackground", 1,
-                                    "Number of Background events to overlay - either fixed or Poisson mean"};
-
-  Gaudi::Property<bool> _Poisson{
-      this, "Poisson_random_NOverlay", false,
-      "Draw random number of Events to overlay from Poisson distribution with  mean value NumberBackground"};
-
-  Gaudi::Property<std::string> _mcParticleCollectionName{this, "MCParticleCollectionName", "MCParticle",
-                                                         "The name of the MCParticle collection in the background files"};
+  Gaudi::Property<std::string> _mcParticleCollectionName{
+      this, "MCParticleCollectionName", "MCParticle", "The name of the MCParticle collection in the background files"};
 
   Gaudi::Property<float> _DefaultStart_int{
       this, "Start_Integration_Time", float(-0.25),
@@ -121,11 +111,11 @@ private:
 
   Gaudi::Property<float> _T_diff{this, "Delta_t", float(0.5), "Time difference between BXs in the BXtrain"};
 
-  mutable std::mt19937     m_engine;
-  SmartIF<IUniqueIDGenSvc> m_uidSvc;
-
   mutable std::unique_ptr<EventHolder> m_bkgEvents{};
 
+  Gaudi::Property<std::map<std::string, std::vector<float>>> m_timeWindows{
+    this, "TimeWindows", std::map<std::string, std::vector<float>>(), "Time windows for the different collections"};
+private:
   // Collections with Integration Times
 
   Gaudi::Property<float> _BeamCal_int{
@@ -222,4 +212,9 @@ private:
                                   "Integration time for the OuterTrackerEndcapCollection"};
   Gaudi::Property<bool>  m_allowReusingBackgroundFiles{
       this, "AllowReusingBackgroundFiles", false, "If true the same background file can be used for the same event"};
+
+private:
+  mutable std::mt19937     m_engine;
+  SmartIF<IUniqueIDGenSvc> m_uidSvc;
+
 };
