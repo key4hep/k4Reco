@@ -21,8 +21,6 @@
 
 #include "Gaudi/Accumulators/RootHistogram.h"
 #include "Gaudi/Property.h"
-#include "GaudiAlg/Transformer.h"
-#include "GaudiKernel/RndmGenerators.h"
 
 #include "edm4hep/EventHeaderCollection.h"
 #include "edm4hep/MCRecoTrackerHitPlaneAssociationCollection.h"

@@ -33,7 +33,6 @@
 #include <TFile.h>
 
 #include <cmath>
-#include <iostream>
 #include <random>
 #include <fmt/format.h>
 
