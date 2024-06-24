@@ -124,9 +124,9 @@ private:
   std::array<std::unique_ptr<Gaudi::Accumulators::RootHistogram<1>>, hSize> m_histograms;
   std::string                                                               m_collName;
 
-  inline static thread_local TRandom2     m_engine;
-  SmartIF<IGeoSvc>                        m_geoSvc;
-  SmartIF<IUniqueIDGenSvc>                m_uidSvc;
+  inline static thread_local TRandom2 m_engine;
+  SmartIF<IGeoSvc>                    m_geoSvc;
+  SmartIF<IUniqueIDGenSvc>            m_uidSvc;
 };
 
 DECLARE_COMPONENT(DDPlanarDigi)
