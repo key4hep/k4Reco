@@ -30,7 +30,8 @@
 #include "DD4hep/DD4hepUnits.h"
 #include "DD4hep/Detector.h"
 
-#include <TFile.h>
+#include "TFile.h"
+#include "TMath.h"
 
 #include <fmt/format.h>
 #include <cmath>
@@ -94,7 +95,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
   auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
   debug() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
           << headers[0].getRunNumber() << endmsg;
-  m_engine.seed(seed);
+  m_engine.SetSeed(seed);
   // For rng calls, use the fact that drawing from a
   // Gaussian with mean mu and variance sigma^2 is the same as drawing from
   // a normal distribution and then multiplying by sigma and adding mu
@@ -164,7 +165,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
     if (m_resTLayer.size() and m_resTLayer[0] > 0) {
       float resT = m_resTLayer.size() > 1 ? m_resTLayer[layer] : m_resTLayer[0];
 
-      double tSmear = resT > 0 ? dist(m_engine) * resT : 0;
+      double tSmear = resT > 0 ? m_engine.Gaus(0, 1) * resT : 0;
       ++(*m_histograms[hT])[resT > 0 ? tSmear / resT : 0];
       ++(*m_histograms[diffT])[tSmear];
 
@@ -213,8 +214,8 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
     while (tries < m_maxTries) {
       // if( tries > 0 ) debug() << "retry smearing for " <<  cellid_decoder( hit ).valueString() << " : retries " << tries << endmsg;
 
-      double uSmear = dist(m_engine) * resU;
-      double vSmear = dist(m_engine) * resV;
+      double uSmear = m_engine.Gaus(0, 1) * resU;
+      double vSmear = m_engine.Gaus(0, 1) * resV;
 
       dd4hep::rec::Vector3D newPosTmp;
       if (m_isStrip) {

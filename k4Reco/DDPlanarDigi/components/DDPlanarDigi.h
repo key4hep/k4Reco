@@ -33,6 +33,8 @@
 
 #include "DDRec/SurfaceManager.h"
 
+#include "TRandom2.h"
+
 #include <random>
 #include <string>
 #include <vector>
@@ -122,7 +124,7 @@ private:
   std::array<std::unique_ptr<Gaudi::Accumulators::RootHistogram<1>>, hSize> m_histograms;
   std::string                                                               m_collName;
 
-  inline static thread_local std::mt19937 m_engine;
+  inline static thread_local TRandom2     m_engine;
   SmartIF<IGeoSvc>                        m_geoSvc;
   SmartIF<IUniqueIDGenSvc>                m_uidSvc;
 };
