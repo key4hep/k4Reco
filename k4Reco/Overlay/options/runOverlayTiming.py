@@ -26,7 +26,9 @@ iosvc.output = "output_overlay.root"
 overlay = OverlayTiming()
 overlay.MCParticles = ["MCParticle"]
 overlay.SimTrackerHits = ["VertexBarrelCollection", "VertexEndcapCollection"]
+overlay.SimTrackerHitNames = ["NewVertexBarrelCollection", "NewVertexEndcapCollection"]
 overlay.SimCalorimeterHits = ["HCalRingCollection"]
+overlay.SimCalorimeterHitNames = ["NewHCalRingCollection"]
 overlay.CaloHitContributions = ["CaloHitContributionsCollection"]
 overlay.OutputSimTrackerHits = ["NewVertexBarrelCollection", "NewVertexEndcapCollection"]
 overlay.OutputSimCalorimeterHits = ["NewHCalRingCollection"]
@@ -36,24 +38,11 @@ overlay.BackgroundFileNames = [
     ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background1.root"],
     ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background2.root"],
 ]
-# overlay.MCParticles = "MCParticles"
-# overlay.filterTimeMin = -0.25
-# overlay.filterTimeMax = 23.25
-# Supported formats:
-#   <collection name>: []  << all objects
-#   <collection name>: [t_max]  << all objects with time < t_max
-#   <collection name>: [t_min, t_max]  << all objects with time between t_min and t_max
-
-# overlay.inputCollections = {
-#     "MCParticles": [],
-#     "VertexBarrelCollection": [],
-#     "HCalRingCollection": [],
-
-# }
+overlay.TimeWindows = {"MCParticle": [0, 23.5], "VertexBarrelCollection": [0, 23.5], "VertexEndcapCollection": [0, 23.5], "HCalRingCollection": [0, 23.5]}
 
 ApplicationMgr(TopAlg=[overlay],
                EvtSel="NONE",
-               EvtMax=1,
+               EvtMax=10,
                ExtSvc=[eds],
                OutputLevel=INFO,
                )
