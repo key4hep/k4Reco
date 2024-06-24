@@ -28,6 +28,8 @@ gaudi_add_module(k4RecoPlugins
                       EDM4HEP::edm4hep
                       DD4hep::DDRec
                       DD4hep::DDCore
+                      ROOT::Core
+                      ROOT::MathCore
                       )
 target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
