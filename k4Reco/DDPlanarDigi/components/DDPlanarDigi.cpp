@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023 Key4hep-Project.
+ * Copyright (c) 2020-2024 Key4hep-Project.
  *
  * This file is part of Key4hep.
  * See https://key4hep.github.io/key4hep-doc/ for further info.
@@ -32,9 +32,9 @@
 
 #include <TFile.h>
 
+#include <fmt/format.h>
 #include <cmath>
 #include <random>
-#include <fmt/format.h>
 
 DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,

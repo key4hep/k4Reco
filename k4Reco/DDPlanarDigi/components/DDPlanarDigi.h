@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2023 Key4hep-Project.
+ * Copyright (c) 2020-2024 Key4hep-Project.
  *
  * This file is part of Key4hep.
  * See https://key4hep.github.io/key4hep-doc/ for further info.
@@ -38,13 +38,13 @@
 #include <vector>
 
 /** ======= DDPlanarDigi ========== <br>
- * Creates TrackerHits from SimTrackerHits, smearing them according to the input parameters. 
+ * Creates TrackerHits from SimTrackerHits, smearing them according to the input parameters.
  * The positions of "digitized" TrackerHits are obtained by gaussian smearing positions
- * of SimTrackerHits perpendicular and along the ladder according to the specified point resolutions. 
+ * of SimTrackerHits perpendicular and along the ladder according to the specified point resolutions.
  * The geometry of the surface is retreived from DDRec::Surface associated to the hit via cellID.
- * 
- * 
- * <h4>Input collections and prerequisites</h4> 
+ *
+ *
+ * <h4>Input collections and prerequisites</h4>
  * Processor requires a collection of SimTrackerHits <br>
  * <h4>Output</h4>
  * Processor produces collection of smeared TrackerHits<br>
@@ -63,7 +63,7 @@
  * @param Sub_Detector_ID ID of Sub-Detector using UTIL/ILDConf.h from lcio <br>
  * (default value lcio::ILDDetID::VXD) <br>
  * <br>
- * 
+ *
  * Originally in https://github.com/iLCSoft/MarlinTrkProcessors/blob/master/source/Digitisers/include/DDPlanarDigi.h
  */
 
@@ -118,9 +118,9 @@ private:
   Gaudi::Property<std::string> m_outputFileName{this, "OutputFileName", "planar_digi_histograms.root",
                                                 "Output file name for the histograms"};
 
-  const dd4hep::rec::SurfaceMap*                                        surfaceMap;
+  const dd4hep::rec::SurfaceMap*                                            surfaceMap;
   std::array<std::unique_ptr<Gaudi::Accumulators::RootHistogram<1>>, hSize> m_histograms;
-  std::string m_collName;
+  std::string                                                               m_collName;
 
   inline static thread_local std::mt19937 m_engine;
   SmartIF<IGeoSvc>                        m_geoSvc;
