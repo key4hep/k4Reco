@@ -17,7 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]
 
-set(sources DDPlanarDigi/components/DDPlanarDigi.cpp
+set(sources
+  DDPlanarDigi/components/DDPlanarDigi.cpp
+  Overlay/components/OverlayTiming.cpp
 )
 gaudi_add_module(k4RecoPlugins
                  SOURCES ${sources}
