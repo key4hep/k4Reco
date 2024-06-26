@@ -23,7 +23,7 @@
 #include "Gaudi/Property.h"
 
 #include "edm4hep/EventHeaderCollection.h"
-#include "edm4hep/MCRecoTrackerHitPlaneAssociationCollection.h"
+#include "edm4hep/MCRecoTrackerAssociationCollection.h"
 #include "edm4hep/SimTrackerHitCollection.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
 
@@ -73,14 +73,14 @@ enum { hu = 0, hv, hT, hitE, hitsAccepted, diffu, diffv, diffT, hSize };
 
 struct DDPlanarDigi final
     : k4FWCore::MultiTransformer<
-          std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection>(
+          std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerAssociationCollection>(
               const edm4hep::SimTrackerHitCollection&, const edm4hep::EventHeaderCollection&)> {
   DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize() override;
   StatusCode finalize() override;
 
-  std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerHitPlaneAssociationCollection> operator()(
+  std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerAssociationCollection> operator()(
       const edm4hep::SimTrackerHitCollection& simTrackerHits,
       const edm4hep::EventHeaderCollection&   headers) const override;
 
