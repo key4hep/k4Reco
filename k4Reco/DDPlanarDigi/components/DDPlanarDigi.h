@@ -35,7 +35,6 @@
 
 #include "TRandom2.h"
 
-#include <random>
 #include <string>
 #include <vector>
 
@@ -94,7 +93,7 @@ private:
   Gaudi::Property<std::vector<float>> m_resTLayer{
       this,
       "ResolutionT",
-      {0.004},
+      {-1},
       "Resolution in the direction of t; either one per layer or one for all layers. If the single entry is negative, "
       "disable time smearing. "};
   Gaudi::Property<bool>   m_forceHitsOntoSurface{this, "ForceHitsOntoSurface", false,
