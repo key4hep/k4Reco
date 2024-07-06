@@ -23,13 +23,11 @@
 #include "edm4hep/TrackerHitPlaneCollection.h"
 
 #include "Gaudi/Accumulators/RootHistogram.h"
-#include "Gaudi/Histograming/Sink/Utils.h"
 
 #include "DD4hep/DD4hepUnits.h"
 #include "DD4hep/Detector.h"
 #include "DDSegmentation/BitFieldCoder.h"
 
-#include "TFile.h"
 #include "TMath.h"
 
 #include <fmt/format.h>
@@ -310,26 +308,4 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerAssociation
   debug() << "Created " << nCreatedHits << " hits, " << nDismissedHits << " hits  dismissed" << endmsg;
 
   return std::make_tuple(std::move(trkhitVec), std::move(thsthcol));
-}
-
-StatusCode DDPlanarDigi::finalize() {
-  auto file = TFile::Open(m_outputFileName.value().c_str(), "UPDATE");
-
-  std::vector<const char*> names = {"hu", "hv", "hT", "hitE", "hitsAccepted", "diffu", "diffv", "diffT", "hSize"};
-
-  std::string directory = this->name();
-
-  for (size_t i = 0; i < m_histograms.size(); ++i) {
-    std::string           histName = names[i];
-    const nlohmann::json& json     = *m_histograms[i];
-
-    auto [histo, dir] =
-        Gaudi::Histograming::Sink::jsonToRootHistogram<Gaudi::Histograming::Sink::Traits<false, TH1D, 1>>(
-            directory, histName, json);
-
-    histo.Write(histName.c_str());
-  }
-
-  file->Close();
-  return StatusCode::SUCCESS;
 }

@@ -22,6 +22,8 @@ from Configurables import EventDataSvc
 from Configurables import DDPlanarDigi
 from Configurables import GeoSvc
 from Configurables import UniqueIDGenSvc
+from Configurables import RootHistSvc
+from Configurables import Gaudi__Histograming__Sink__Root as RootHistoSink
 import os
 
 id_service = UniqueIDGenSvc("UniqueIDGenSvc")
@@ -50,9 +52,13 @@ iosvc.output = "output_digi.root"
 #     "EventHeader",
 # ]
 
+hps = RootHistSvc("HistogramPersistencySvc")
+root_hist_svc = RootHistoSink("RootHistoSink")
+root_hist_svc.FileName = "ddplanardigi_hist.root"
+
 ApplicationMgr(TopAlg=[digi],
                EvtSel="NONE",
                EvtMax=-1,
-               ExtSvc=[EventDataSvc("EventDataSvc")],
+               ExtSvc=[EventDataSvc("EventDataSvc"), root_hist_svc],
                OutputLevel=INFO,
                )

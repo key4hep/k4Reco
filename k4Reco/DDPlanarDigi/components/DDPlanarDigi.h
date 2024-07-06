@@ -77,7 +77,6 @@ struct DDPlanarDigi final
   DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize() override;
-  StatusCode finalize() override;
 
   std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerAssociationCollection> operator()(
       const edm4hep::SimTrackerHitCollection& simTrackerHits,
