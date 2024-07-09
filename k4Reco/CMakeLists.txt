@@ -17,11 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]
 
-set(sources DDPlanarDigi/components/DDPlanarDigi.cpp
+set(sources
+  DDPlanarDigi/components/DDPlanarDigi.cpp
+  Overlay/components/OverlayTiming.cpp
 )
 gaudi_add_module(k4RecoPlugins
                  SOURCES ${sources}
-                 LINK Gaudi::GaudiKernel
+                 LINK
+                      podio::podioIO
+                      Gaudi::GaudiKernel
                       Gaudi::GaudiAlgLib
                       k4FWCore::k4FWCore
                       k4FWCore::k4Interface
