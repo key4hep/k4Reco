@@ -23,9 +23,9 @@
 #include "Gaudi/Property.h"
 
 #include "edm4hep/EventHeaderCollection.h"
-#include "edm4hep/TrackerHitSimTrackerHitLinkCollection.h"
 #include "edm4hep/SimTrackerHitCollection.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
+#include "edm4hep/TrackerHitSimTrackerHitLinkCollection.h"
 
 #include "k4FWCore/Transformer.h"
 #include "k4Interface/IGeoSvc.h"
