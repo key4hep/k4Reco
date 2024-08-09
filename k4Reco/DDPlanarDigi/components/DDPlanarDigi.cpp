@@ -85,7 +85,7 @@ StatusCode DDPlanarDigi::initialize() {
   return StatusCode::SUCCESS;
 }
 
-std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerAssociationCollection> DDPlanarDigi::operator()(
+std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitLinkCollection> DDPlanarDigi::operator()(
     const edm4hep::SimTrackerHitCollection& simTrackerHits, const edm4hep::EventHeaderCollection& headers) const {
   auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
   debug() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
@@ -96,7 +96,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerAssociation
   int nDismissedHits = 0;
 
   auto trkhitVec = edm4hep::TrackerHitPlaneCollection();
-  auto thsthcol  = edm4hep::MCRecoTrackerAssociationCollection();
+  auto thsthcol  = edm4hep::TrackerHitSimTrackerHitLinkCollection();
 
   std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
   dd4hep::DDSegmentation::BitFieldCoder bitFieldCoder(cellIDEncodingString);
@@ -295,8 +295,8 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::MCRecoTrackerAssociation
     }
 
     auto association = thsthcol.create();
-    association.setSim(hit);
-    association.setRec(trkHit);
+    association.setTo(hit);
+    association.setFrom(trkHit);
 
     ++nCreatedHits;
   }
