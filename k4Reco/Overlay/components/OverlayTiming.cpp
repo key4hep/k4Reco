@@ -72,42 +72,22 @@ StatusCode OverlayTiming::initialize() {
   return StatusCode::SUCCESS;
 }
 
-retType OverlayTiming::operator()(
-    const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection& particles,
-    const std::map<std::string, const edm4hep::SimTrackerHitCollection&>&       simTrackerHits,
-    const std::map<std::string, const edm4hep::SimCalorimeterHitCollection&>&   simCaloHits
-                                  ) const {
-  if (m_SimTrackerHitNames.size() != simTrackerHits.size()) {
-    throw std::runtime_error(
-        "The number of names for the output SimTrackerHit collections is not the expected one, expected: " +
-        std::to_string(m_SimTrackerHitNames.size()) + " but the input has " + std::to_string(simTrackerHits.size()) +
-        " collections");
-  }
-  if (m_SimCalorimeterHitNames.size() != simCaloHits.size()) {
-    throw std::runtime_error(
-        "The number of names for the output SimCalorimeterHit collections is not the expected one, expected: " +
-        std::to_string(m_SimCalorimeterHitNames.size()) + " but the input has " + std::to_string(simCaloHits.size()) +
-        " collections");
-  }
-  // if (m_CaloHitContributionNames.size() != caloHitContribs.size()) {
-  //   throw std::runtime_error(
-  //       "The number of names for the output CaloHitContribution collections is not the expected one, expected: " +
-  //       std::to_string(m_CaloHitContributionNames.size()) + " but the input has " +
-  //       std::to_string(caloHitContribs.size()) + " collections");
-  // }
-  std::map<std::string, std::string> simCaloToContribution;
-  for (size_t i = 0; i < simCaloHits.size(); ++i) {
-    simCaloToContribution[std::next(simCaloHits.begin(), i)->first] = m_CaloHitContributionNames[i];
-  }
-
+retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&                           headers,
+                                  const edm4hep::MCParticleCollection&                            particles,
+                                  const std::vector<const edm4hep::SimTrackerHitCollection*>&     simTrackerHits,
+                                  const std::vector<const edm4hep::SimCalorimeterHitCollection*>& simCaloHits) const {
   const auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
   m_engine.seed(seed);
 
   // Output collections
   auto oparticles       = edm4hep::MCParticleCollection();
-  auto osimTrackerHits  = std::map<std::string, edm4hep::SimTrackerHitCollection>();
-  auto osimCaloHits     = std::map<std::string, edm4hep::SimCalorimeterHitCollection>();
-  auto ocaloHitContribs = std::map<std::string, edm4hep::CaloHitContributionCollection>();
+  auto osimTrackerHits  = std::vector<edm4hep::SimTrackerHitCollection>();
+  auto osimCaloHits     = std::vector<edm4hep::SimCalorimeterHitCollection>();
+  auto ocaloHitContribs = std::vector<edm4hep::CaloHitContributionCollection>();
+  for (size_t i = 0; i < simCaloHits.size(); ++i) {
+    ocaloHitContribs.emplace_back(edm4hep::CaloHitContributionCollection());
+  }
+  
 
   // Copy MCParticles for physics event into a new collection
   for (auto&& part : particles) {
@@ -124,11 +104,12 @@ retType OverlayTiming::operator()(
   }
 
   // Copy the SimTrackerHits and crop them
-  for (auto it = simTrackerHits.begin(); it != simTrackerHits.end(); ++it) {
-    auto& [name, coll]           = *it;
+  for (size_t i = 0; i < simTrackerHits.size(); ++i) {
+    auto& coll                   = simTrackerHits[i];
+    auto  name                   = m_inputLocations[2][i].key();
     auto [this_start, this_stop] = define_time_windows(name);
     auto ocoll                   = edm4hep::SimTrackerHitCollection();
-    for (auto&& elem : coll) {
+    for (auto&& elem : *coll) {
       const float tof = time_of_flight(elem.getPosition());
       if ((elem.getTime() > this_start + tof) && (elem.getTime() < this_stop + tof)) {
         auto nhit = elem.clone(false);
@@ -136,16 +117,18 @@ retType OverlayTiming::operator()(
         ocoll->push_back(nhit);
       }
     }
-    osimTrackerHits[m_SimTrackerHitNames[std::distance(simTrackerHits.begin(), it)]] = std::move(ocoll);
+    osimTrackerHits.emplace_back(std::move(ocoll));
   }
 
   // Copy the SimCalorimeterHits and crop them together with the contributions
-  std::map<std::string, std::map<uint64_t, edm4hep::MutableSimCalorimeterHit>> cellIDsMap;
-  for (auto& [name, coll] : simCaloHits) {
+  std::map<int, std::map<uint64_t, edm4hep::MutableSimCalorimeterHit>> cellIDsMap;
+  for (size_t i = 0; i < simCaloHits.size(); ++i) {
+    auto& coll                   = simCaloHits[i];
+    auto  name                   = m_inputLocations[3][i].key();
     auto [this_start, this_stop] = define_time_windows(name);
-    auto& calHitMap              = cellIDsMap[name];
-    auto& caloHitContribs        = ocaloHitContribs[simCaloToContribution[name]];
-    for (auto&& elem : coll) {
+    auto& calHitMap              = cellIDsMap[i];
+    auto& caloHitContribs        = ocaloHitContribs[i];
+    for (auto&& elem : *coll) {
       const float      tof                = time_of_flight(elem.getPosition());
       bool             within_time_window = false;
       std::vector<int> thisContribs;
@@ -164,10 +147,6 @@ retType OverlayTiming::operator()(
         for (auto& contrib : thisContribs) {
           newhit.addToContributions(caloHitContribs[contrib]);
         }
-        // if (elem.getCellID() == 18444492282485805327ULL) {
-        //   info() << "Adding (crop) hit with cellID " << elem.getCellID() << " to collection " << name << " with index "
-        //          << newhit.id().index << endmsg;
-        // }
         calHitMap.emplace(elem.getCellID(), std::move(newhit));
       }
     }
@@ -217,13 +196,12 @@ retType OverlayTiming::operator()(
       for (int k = 0; k < NOverlay_to_this_BX; ++k) {
         info() << "Overlaying event " << m_bkgEvents->m_nextEntry << " to BX number " << BX_number_in_train + _BX_phys
                << endmsg;
-        auto ptr =
-            m_bkgEvents->m_rootFileReaders[groupIndex]->readEntry(podio::Category::Event, m_bkgEvents->m_nextEntry);
-        if (!ptr) {
-          warning() << "No more events in background file " << endmsg;
-          break;
-        }
-        auto backgroundEvent      = podio::Frame(std::move(ptr));
+        auto backgroundEvent =
+          m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry);
+        // if (!ptr) {
+        //   warning() << "No more events in background file " << endmsg;
+        //   break;
+        // }
         auto availableCollections = backgroundEvent.getAvailableCollections();
 
         // Either 0 or negative
@@ -274,9 +252,9 @@ retType OverlayTiming::operator()(
           }
         }
 
-        for (auto it = simTrackerHits.begin(); it != simTrackerHits.end(); ++it) {
-          auto& [name, coll] = *it;
-          info() << "Processing collection " << name << endmsg;
+        for (size_t i = 0; i < simTrackerHits.size(); ++i) {
+          auto name = m_inputLocations[TRACKERHIT_INDEX_POSITION][i].key();
+          debug() << "Processing collection " << name << endmsg;
           if (std::find(availableCollections.begin(), availableCollections.end(), name) == availableCollections.end()) {
             warning() << "Collection " << name << " not found in background event" << endmsg;
             continue;
@@ -287,7 +265,7 @@ retType OverlayTiming::operator()(
             info() << "Skipping collection " << name << " as it is not in the integration window" << endmsg;
             continue;
           }
-          auto& ocoll = osimTrackerHits[m_SimTrackerHitNames[std::distance(simTrackerHits.begin(), it)]];
+          auto& ocoll = osimTrackerHits[i];
           if (std::abs(timeOffset) < std::numeric_limits<float>::epsilon()) {
             for (auto&& elem : backgroundEvent.get<edm4hep::SimTrackerHitCollection>(name)) {
               const float tof = time_of_flight(elem.getPosition());
@@ -322,9 +300,9 @@ retType OverlayTiming::operator()(
           // }
         }
 
-        for (auto it = simCaloHits.begin(); it != simCaloHits.end(); ++it) {
-          auto& [name, coll] = *it;
-          info() << "Processing collection " << name << endmsg;
+        for (size_t i = 0; i < simCaloHits.size(); ++i) {
+          auto name = m_inputLocations[SIMCALOHIT_INDEX_POSITION][i].key();
+          debug() << "Processing collection " << name << endmsg;
           if (std::find(availableCollections.begin(), availableCollections.end(), name) == availableCollections.end()) {
             warning() << "Collection " << name << " not found in background event" << endmsg;
             continue;
@@ -336,8 +314,8 @@ retType OverlayTiming::operator()(
             continue;
           }
 
-          auto& calHitMap = cellIDsMap[name];
-          auto& calHitContribs = ocaloHitContribs[simCaloToContribution[name]];
+          auto& calHitMap      = cellIDsMap[i];
+          auto& calHitContribs = ocaloHitContribs[i];
           for (auto&& elem : backgroundEvent.get<edm4hep::SimCalorimeterHitCollection>(name)) {
             if (calHitMap.find(elem.getCellID()) == calHitMap.end()) {
               // There is no hit at this position. The new hit can be added, if it is not outside the window
@@ -381,18 +359,12 @@ retType OverlayTiming::operator()(
       }
     }
   }
-  for (auto& [name, calHitMap] : cellIDsMap) {
-    info() << "There are " << calHitMap.size() << " hits in collection " << name << endmsg;
+  for (auto& [index, calHitMap] : cellIDsMap) {
     auto ocoll = edm4hep::SimCalorimeterHitCollection();
     for (auto& [cellID, hit] : calHitMap) {
-      if (hit.getCellID() == 18444492282485805327ULL) {
-        info() << "Adding hit with cellID " << hit.getCellID() << " to collection " << name << " with index "
-               << hit.id().index << endmsg;
-      }
       ocoll->push_back(std::move(hit));
     }
-    osimCaloHits[m_SimCalorimeterHitNames[std::distance(simCaloHits.begin(), simCaloHits.find(name))]] =
-        std::move(ocoll);
+    osimCaloHits.emplace_back(std::move(ocoll));
   }
 
   info() << "oparticles.size() = " << oparticles.size() << endmsg;
