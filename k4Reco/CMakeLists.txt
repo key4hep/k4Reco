@@ -23,6 +23,7 @@ set(sources
 )
 gaudi_add_module(k4RecoPlugins
                  SOURCES ${sources}
+                 LINK
                       podio::podioIO
                       Gaudi::GaudiKernel
                       k4FWCore::k4FWCore
