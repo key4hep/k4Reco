@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /** Background overlay algorithm
 
     This algorithm overlays background events on top of the signal events. The
@@ -91,7 +110,7 @@ private:
   constexpr static int SIMCALOHIT_INDEX_POSITION = 3;
 
   Gaudi::Property<bool>        m_randomBX{this, "RandomBx", false,
-                                  "Place the physics event at an random position in the train: overrides PhysicsBX"};
+                                   "Place the physics event at an random position in the train: overrides PhysicsBX"};
   mutable Gaudi::Property<int> m_physBX{this, "PhysicsBX", 1, "Number of the Bunch crossing of the physics event"};
   Gaudi::Property<int>         _nBunchTrain{this, "NBunchtrain", 1, "Number of bunches in a bunch train"};
   // Gaudi::Property<int>         m_startWithBackgroundFile{this, "StartBackgroundFileIndex", -1,
@@ -134,5 +153,5 @@ private:
 
 private:
   inline static thread_local std::mt19937 m_engine;
-  SmartIF<IUniqueIDGenSvc>         m_uidSvc;
+  SmartIF<IUniqueIDGenSvc>                m_uidSvc;
 };
