@@ -30,8 +30,8 @@ eds = EventDataSvc("EventDataSvc")
 
 iosvc = IOSvc()
 # iosvc.input = "input.root"
-iosvc.input = "/home/juanmi/Key4hep/Algorithm-validation/Overlay/signal.root"
-iosvc.output = "output_overlay.root"
+iosvc.Input = "/home/juanmi/Key4hep/Algorithm-validation/Overlay/signal.root"
+iosvc.Output = "output_overlay.root"
 
 # inp.collections = [
 #     "EventHeader",
@@ -43,6 +43,7 @@ iosvc.output = "output_overlay.root"
 
 overlay = OverlayTiming()
 overlay.MCParticles = ["MCParticle"]
+overlay.BackgroundMCParticleCollectionName = ["MCParticle"]
 overlay.SimTrackerHits = ["VertexBarrelCollection", "VertexEndcapCollection"]
 overlay.SimTrackerHitNames = ["NewVertexBarrelCollection", "NewVertexEndcapCollection"]
 overlay.SimCalorimeterHits = ["HCalRingCollection"]

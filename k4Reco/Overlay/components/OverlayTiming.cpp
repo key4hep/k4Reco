@@ -278,7 +278,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
         }
 
         for (size_t i = 0; i < simTrackerHits.size(); ++i) {
-          auto name = m_inputLocations[TRACKERHIT_INDEX_POSITION][i].key();
+          auto name = inputLocations(SIMTRACKERHIT_INDEX_POSITION)[i];
           debug() << "Processing collection " << name << endmsg;
           if (std::find(availableCollections.begin(), availableCollections.end(), name) == availableCollections.end()) {
             warning() << "Collection " << name << " not found in background event" << endmsg;
@@ -307,7 +307,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
         }
 
         for (size_t i = 0; i < simCaloHits.size(); ++i) {
-          auto name = m_inputLocations[SIMCALOHIT_INDEX_POSITION][i].key();
+          auto name = inputLocations(SIMCALOHIT_INDEX_POSITION)[i];
           debug() << "Processing collection " << name << endmsg;
           if (std::find(availableCollections.begin(), availableCollections.end(), name) == availableCollections.end()) {
             warning() << "Collection " << name << " not found in background event" << endmsg;

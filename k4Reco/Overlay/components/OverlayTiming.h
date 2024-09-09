@@ -20,7 +20,7 @@
 /** Background overlay algorithm
 
     This algorithm overlays background events on top of the signal events. The
-    background events are read from a set of input files, and the signal events
+    background events are read from sets of input files, and the signal events
     are the input in the main event loop.
 
     The MCParticleCollection in signal are background are overlaid into one
@@ -33,7 +33,6 @@
 **/
 
 #include "podio/Frame.h"
-#include "podio/ROOTReader.h"
 #include "podio/Reader.h"
 
 #include "edm4hep/CaloHitContributionCollection.h"
@@ -81,7 +80,6 @@ struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
                            const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection&,
                            const std::vector<const edm4hep::SimTrackerHitCollection*>&,
                            const std::vector<const edm4hep::SimCalorimeterHitCollection*>&
-                           // const std::map<std::string, const edm4hep::CaloHitContributionCollection&>&
                            )> {
   OverlayTiming(const std::string& name, ISvcLocator* svcLoc)
       : MultiTransformer(
@@ -106,7 +104,7 @@ struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
 
 private:
   // These correspond to the index position in the argument list
-  constexpr static int TRACKERHIT_INDEX_POSITION = 2;
+  constexpr static int SIMTRACKERHIT_INDEX_POSITION = 2;
   constexpr static int SIMCALOHIT_INDEX_POSITION = 3;
 
   Gaudi::Property<bool>        m_randomBX{this, "RandomBx", false,
