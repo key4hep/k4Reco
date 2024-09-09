@@ -79,8 +79,7 @@ using retType =
 struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
                            const edm4hep::EventHeaderCollection& headers, const edm4hep::MCParticleCollection&,
                            const std::vector<const edm4hep::SimTrackerHitCollection*>&,
-                           const std::vector<const edm4hep::SimCalorimeterHitCollection*>&
-                           )> {
+                           const std::vector<const edm4hep::SimCalorimeterHitCollection*>&)> {
   OverlayTiming(const std::string& name, ISvcLocator* svcLoc)
       : MultiTransformer(
             name, svcLoc,
@@ -105,7 +104,7 @@ struct OverlayTiming : public k4FWCore::MultiTransformer<retType(
 private:
   // These correspond to the index position in the argument list
   constexpr static int SIMTRACKERHIT_INDEX_POSITION = 2;
-  constexpr static int SIMCALOHIT_INDEX_POSITION = 3;
+  constexpr static int SIMCALOHIT_INDEX_POSITION    = 3;
 
   Gaudi::Property<bool>        m_randomBX{this, "RandomBx", false,
                                    "Place the physics event at an random position in the train: overrides PhysicsBX"};

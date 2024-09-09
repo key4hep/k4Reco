@@ -28,8 +28,6 @@
 #include <limits>
 #include <random>
 
-DECLARE_COMPONENT(OverlayTiming)
-
 template <typename T> inline float time_of_flight(const T& pos) {
   // Returns the time of flight to the radius in ns
   // Assumming positions in mm, then mm/m/s = 10^-3 s = 10^6 ns
@@ -377,3 +375,5 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
   return std::make_tuple(std::move(oparticles), std::move(osimTrackerHits), std::move(osimCaloHits),
                          std::move(ocaloHitContribs));
 }
+
+DECLARE_COMPONENT(OverlayTiming)
