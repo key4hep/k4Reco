@@ -130,7 +130,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
   // Copy the SimTrackerHits and crop them
   for (size_t i = 0; i < simTrackerHits.size(); ++i) {
     auto& coll                   = simTrackerHits[i];
-    auto  name                   = m_inputLocations[2][i].key();
+    auto  name                   = inputLocations(SIMTRACKERHIT_INDEX_POSITION)[i];
     auto [this_start, this_stop] = define_time_windows(name);
     auto ocoll                   = edm4hep::SimTrackerHitCollection();
     for (auto&& elem : *coll) {
@@ -148,7 +148,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
   std::map<int, std::map<uint64_t, edm4hep::MutableSimCalorimeterHit>> cellIDsMap;
   for (size_t i = 0; i < simCaloHits.size(); ++i) {
     auto& coll                   = simCaloHits[i];
-    auto  name                   = m_inputLocations[3][i].key();
+    auto  name                   = inputLocations(SIMCALOHIT_INDEX_POSITION)[i];
     auto [this_start, this_stop] = define_time_windows(name);
     auto& calHitMap              = cellIDsMap[i];
     auto& caloHitContribs        = ocaloHitContribs[i];
