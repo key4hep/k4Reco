@@ -241,18 +241,18 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
         std::map<int, int>                                           oldToNewMap;
         std::map<int, std::pair<std::vector<int>, std::vector<int>>> parentDaughterMap;
 
-        auto& particles = backgroundEvent.get<edm4hep::MCParticleCollection>(_mcParticleCollectionName);
+        auto& bgParticles = backgroundEvent.get<edm4hep::MCParticleCollection>(_mcParticleCollectionName);
         int   j         = oparticles.size();
-        for (size_t i = 0; i < particles.size(); ++i) {
-          auto npart = particles[i].clone(false);
+        for (size_t i = 0; i < bgParticles.size(); ++i) {
+          auto npart = bgParticles[i].clone(false);
 
-          npart.setTime(particles[i].getTime() + timeOffset);
+          npart.setTime(bgParticles[i].getTime() + timeOffset);
           npart.setOverlay(true);
           oparticles->push_back(npart);
-          for (auto& parent : particles[i].getParents()) {
+          for (auto& parent : bgParticles[i].getParents()) {
             parentDaughterMap[j].first.push_back(parent.getObjectID().index);
           }
-          for (auto& daughter : particles[i].getDaughters()) {
+          for (auto& daughter : bgParticles[i].getDaughters()) {
             parentDaughterMap[j].second.push_back(daughter.getObjectID().index);
           }
           oldToNewMap[i] = j;
