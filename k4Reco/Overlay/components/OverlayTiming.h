@@ -132,11 +132,6 @@ private:
       this, "BackgroundMCParticleCollectionName", "MCParticle",
       "The name of the MCParticle collection in the background files"};
 
-  Gaudi::Property<float> _DefaultStart_int{
-      this, "Start_Integration_Time", float(-0.25),
-      "Starting integration time.  Should be shortly before the BX, but may need to be shifted "
-      "earlier if the vertex is smeared in time."};
-
   Gaudi::Property<float> _T_diff{this, "Delta_t", float(0.5), "Time difference between BXs in the BXtrain"};
 
   mutable std::unique_ptr<EventHolder> m_bkgEvents{};
