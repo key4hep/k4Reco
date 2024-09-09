@@ -242,7 +242,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
         std::map<int, std::pair<std::vector<int>, std::vector<int>>> parentDaughterMap;
 
         auto& bgParticles = backgroundEvent.get<edm4hep::MCParticleCollection>(_mcParticleCollectionName);
-        int   j         = oparticles.size();
+        int   j           = oparticles.size();
         for (size_t i = 0; i < bgParticles.size(); ++i) {
           auto npart = bgParticles[i].clone(false);
 
