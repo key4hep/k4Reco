@@ -53,6 +53,7 @@ overlay.OutputSimTrackerHits = ["NewVertexBarrelCollection", "NewVertexEndcapCol
 overlay.OutputSimCalorimeterHits = ["NewHCalRingCollection"]
 overlay.OutputCaloHitContributions = ["NewCaloHitCollection"]
 # overlay.StartBackgroundEventIndex = 0
+overlay.NumberBackground = [0.32, 15]
 overlay.BackgroundFileNames = [
     ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background1.root"],
     ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background2.root"],
