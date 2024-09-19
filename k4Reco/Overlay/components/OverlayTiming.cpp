@@ -193,8 +193,8 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
 
     // TODO: Check that there is anything to overlay
 
-    debug() << "Starting overlay at event: " << m_bkgEvents->m_nextEntry[groupIndex] << " for the background group " << groupIndex
-            << endmsg;
+    debug() << "Starting overlay at event: " << m_bkgEvents->m_nextEntry[groupIndex] << " for the background group "
+            << groupIndex << endmsg;
 
     if (m_startWithBackgroundEvent >= 0) {
       info() << "Skipping to event: " << m_startWithBackgroundEvent << endmsg;
@@ -219,9 +219,10 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
               << endmsg;
 
       for (int k = 0; k < NOverlay_to_this_BX; ++k) {
-        info() << "Overlaying background event " << m_bkgEvents->m_nextEntry[groupIndex] << " from group " << groupIndex << " to BX " << bxInTrain
-               << endmsg;
-        auto backgroundEvent = m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry[groupIndex]);
+        info() << "Overlaying background event " << m_bkgEvents->m_nextEntry[groupIndex] << " from group " << groupIndex
+               << " to BX " << bxInTrain << endmsg;
+        auto backgroundEvent =
+            m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry[groupIndex]);
         m_bkgEvents->m_nextEntry[groupIndex]++;
         if (m_bkgEvents->m_nextEntry[groupIndex] >= m_bkgEvents->m_totalNumberOfEvents[groupIndex] &&
             !m_allowReusingBackgroundFiles) {
