@@ -53,7 +53,7 @@
 struct EventHolder {
   std::vector<std::vector<std::string>> m_fileNames;
   std::vector<podio::Reader>            m_rootFileReaders;
-  std::vector<int>                      m_totalNumberOfEvents;
+  std::vector<size_t>                      m_totalNumberOfEvents;
   std::map<int, podio::Frame>           m_events;
 
   std::vector<size_t> m_nextEntry;
