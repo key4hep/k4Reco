@@ -30,7 +30,7 @@ eds = EventDataSvc("EventDataSvc")
 
 iosvc = IOSvc()
 # iosvc.input = "input.root"
-iosvc.Input = "/home/juanmi/Key4hep/Algorithm-validation/Overlay/signal.root"
+iosvc.Input = "input.root"
 iosvc.Output = "output_overlay.root"
 
 # inp.collections = [
@@ -53,8 +53,8 @@ overlay.OutputCaloHitContributions = ["NewCaloHitCollection"]
 overlay.NumberBackground = [0.32, 15]
 overlay.Poisson_random_NOverlay = [True, False]
 overlay.BackgroundFileNames = [
-    ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background1.root"],
-    ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background2.root"],
+      ["background_group1_1.root"],
+      ["background_group2_1.root"],
 ]
 overlay.TimeWindows = {"MCParticle": [0, 23.5], "VertexBarrelCollection": [0, 23.5], "VertexEndcapCollection": [0, 23.5], "HCalRingCollection": [0, 23.5]}
 
