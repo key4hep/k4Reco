@@ -75,7 +75,6 @@ StatusCode OverlayTiming::initialize() {
                   [this](const int& val) { return this->m_startWithBackgroundEvent >= val; })) {
     throw GaudiException("StartWithBackgroundEvent is larger than the number of events in the background files", name(),
                          StatusCode::FAILURE);
-    return StatusCode::FAILURE;
   }
 
   if (m_Noverlay.empty()) {
@@ -87,7 +86,7 @@ StatusCode OverlayTiming::initialize() {
 
   if (m_Poisson.empty()) {
     info() << "Using the default overlay mode (no Poission distribution) for each group, since none was specified with "
-              "Poisson_random_Noverlay"
+              "Poisson_random_NOverlay"
            << endmsg;
     m_Poisson = std::vector<bool>(m_bkgEvents->size(), false);
   }
@@ -135,7 +134,8 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
       const float tof = time_of_flight(elem.getPosition());
       if ((elem.getTime() > this_start + tof) && (elem.getTime() < this_stop + tof)) {
         auto nhit = elem.clone(false);
-        nhit.setParticle(oparticles[elem.getParticle().getObjectID().index]);
+        if (elem.getParticle().getObjectID().index != -1)
+          nhit.setParticle(oparticles[elem.getParticle().getObjectID().index]);
         ocoll->push_back(nhit);
       }
     }
@@ -193,11 +193,14 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
 
     // TODO: Check that there is anything to overlay
 
-    info() << "Starting at event: " << m_bkgEvents->m_nextEntry << endmsg;
+    debug() << "Starting overlay at event: " << m_bkgEvents->m_nextEntry[groupIndex] << " for the background group " << groupIndex
+            << endmsg;
 
     if (m_startWithBackgroundEvent >= 0) {
       info() << "Skipping to event: " << m_startWithBackgroundEvent << endmsg;
-      m_bkgEvents->m_nextEntry = m_startWithBackgroundEvent;
+      for (auto& entry : m_bkgEvents->m_nextEntry) {
+        entry = m_startWithBackgroundEvent;
+      }
     }
 
     // Overlay the background events to each bunchcrossing in the bunch train
@@ -216,15 +219,15 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
               << endmsg;
 
       for (int k = 0; k < NOverlay_to_this_BX; ++k) {
-        info() << "Overlaying event " << m_bkgEvents->m_nextEntry << " to BX number " << BX_number_in_train + m_physBX
+        info() << "Overlaying background event " << m_bkgEvents->m_nextEntry[groupIndex] << " from group " << groupIndex << " to BX " << bxInTrain
                << endmsg;
-        auto backgroundEvent = m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry);
-        m_bkgEvents->m_nextEntry++;
-        if (m_bkgEvents->m_nextEntry >= m_bkgEvents->m_totalNumberOfEvents[groupIndex] &&
+        auto backgroundEvent = m_bkgEvents->m_rootFileReaders[groupIndex].readEvent(m_bkgEvents->m_nextEntry[groupIndex]);
+        m_bkgEvents->m_nextEntry[groupIndex]++;
+        if (m_bkgEvents->m_nextEntry[groupIndex] >= m_bkgEvents->m_totalNumberOfEvents[groupIndex] &&
             !m_allowReusingBackgroundFiles) {
           throw GaudiException("No more events in background file", name(), StatusCode::FAILURE);
         }
-        m_bkgEvents->m_nextEntry %= m_bkgEvents->m_totalNumberOfEvents[groupIndex];
+        m_bkgEvents->m_nextEntry[groupIndex] %= m_bkgEvents->m_totalNumberOfEvents[groupIndex];
         auto availableCollections = backgroundEvent.getAvailableCollections();
 
         // Either 0 or negative
@@ -369,8 +372,6 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
     }
     osimCaloHits.emplace_back(std::move(ocoll));
   }
-
-  info() << "oparticles.size() = " << oparticles.size() << endmsg;
 
   return std::make_tuple(std::move(oparticles), std::move(osimTrackerHits), std::move(osimCaloHits),
                          std::move(ocaloHitContribs));

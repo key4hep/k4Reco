@@ -45,15 +45,14 @@ overlay = OverlayTiming()
 overlay.MCParticles = ["MCParticle"]
 overlay.BackgroundMCParticleCollectionName = ["MCParticle"]
 overlay.SimTrackerHits = ["VertexBarrelCollection", "VertexEndcapCollection"]
-overlay.SimTrackerHitNames = ["NewVertexBarrelCollection", "NewVertexEndcapCollection"]
 overlay.SimCalorimeterHits = ["HCalRingCollection"]
-overlay.SimCalorimeterHitNames = ["NewHCalRingCollection"]
 overlay.CaloHitContributions = ["CaloHitContributionsCollection"]
 overlay.OutputSimTrackerHits = ["NewVertexBarrelCollection", "NewVertexEndcapCollection"]
 overlay.OutputSimCalorimeterHits = ["NewHCalRingCollection"]
 overlay.OutputCaloHitContributions = ["NewCaloHitCollection"]
 # overlay.StartBackgroundEventIndex = 0
 overlay.NumberBackground = [0.32, 15]
+overlay.Poisson_random_NOverlay = [True, False]
 overlay.BackgroundFileNames = [
     ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background1.root"],
     ["/home/juanmi/Key4hep/Algorithm-validation/Overlay/background2.root"],

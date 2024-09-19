@@ -56,13 +56,14 @@ struct EventHolder {
   std::vector<int>                      m_totalNumberOfEvents;
   std::map<int, podio::Frame>           m_events;
 
-  int m_nextEntry = 0;
+  std::vector<size_t> m_nextEntry;
 
   EventHolder(const std::vector<std::vector<std::string>>& fileNames) : m_fileNames(fileNames) {
     for (auto& names : m_fileNames) {
       m_rootFileReaders.emplace_back(podio::makeReader(names));
       m_totalNumberOfEvents.push_back(m_rootFileReaders.back().getEntries("events"));
     }
+    m_nextEntry.resize(m_fileNames.size(), 0);
   }
   EventHolder() = default;
 
