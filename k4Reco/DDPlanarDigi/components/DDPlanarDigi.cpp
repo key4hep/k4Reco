@@ -53,16 +53,16 @@ DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     throw std::runtime_error("DDPlanarDigi: Inconsistent number of resolutions given for U and V coordinate");
   }
 
-  m_histograms[hu].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hu", "smearing u", {50, -5., +5.}});
-  m_histograms[hv].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hv", "smearing v", {50, -5., +5.}});
-  m_histograms[hT].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hT", "smearing time", {50, -5., +5.}});
+  m_histograms[hu].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "hu", "smearing u", {50, -5., +5.}});
+  m_histograms[hv].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "hv", "smearing v", {50, -5., +5.}});
+  m_histograms[hT].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "hT", "smearing time", {50, -5., +5.}});
 
-  m_histograms[diffu].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "diffu", "diff u", {1000, -.1, +.1}});
-  m_histograms[diffv].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "diffv", "diff v", {1000, -.1, +.1}});
-  m_histograms[diffT].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "diffT", "diff time", {1000, -5., +5.}});
+  m_histograms[diffu].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "diffu", "diff u", {1000, -.1, +.1}});
+  m_histograms[diffv].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "diffv", "diff v", {1000, -.1, +.1}});
+  m_histograms[diffT].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "diffT", "diff time", {1000, -5., +5.}});
 
-  m_histograms[hitE].reset(new Gaudi::Accumulators::RootHistogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
-  m_histograms[hitsAccepted].reset(new Gaudi::Accumulators::RootHistogram<1>{
+  m_histograms[hitE].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
+  m_histograms[hitsAccepted].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
       this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
 
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
