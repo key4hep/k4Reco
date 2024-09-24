@@ -42,7 +42,9 @@
 
 #if GAUDI_MAJOR_VERSION < 39
 namespace Gaudi::Accumulators {
-  using StaticRootHistogram = Gaudi::Accumulators::RootHistogram;
+  template <unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
+  using StaticRootHistogram =
+      Gaudi::Accumulators::RootHistogramingCounterBase<ND, Atomicity, Arithmetic, naming::histogramString>;
 }
 #endif
 
