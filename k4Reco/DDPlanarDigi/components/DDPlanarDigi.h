@@ -134,8 +134,6 @@ private:
   SmartIF<IGeoSvc>                    m_geoSvc;
   SmartIF<IUniqueIDGenSvc>            m_uidSvc;
 
-public:
-  void registerCallBack(Gaudi::StateMachine::Transition, std::function<void()>) {}
 };
 
 DECLARE_COMPONENT(DDPlanarDigi)
