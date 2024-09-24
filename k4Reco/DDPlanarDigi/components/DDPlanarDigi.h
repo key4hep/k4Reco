@@ -126,14 +126,13 @@ private:
   Gaudi::Property<std::string> m_outputFileName{this, "OutputFileName", "planar_digi_histograms.root",
                                                 "Output file name for the histograms"};
 
-  const dd4hep::rec::SurfaceMap*                                            surfaceMap;
+  const dd4hep::rec::SurfaceMap*                                                  surfaceMap;
   std::array<std::unique_ptr<Gaudi::Accumulators::StaticRootHistogram<1>>, hSize> m_histograms;
-  std::string                                                               m_collName;
+  std::string                                                                     m_collName;
 
   inline static thread_local TRandom2 m_engine;
   SmartIF<IGeoSvc>                    m_geoSvc;
   SmartIF<IUniqueIDGenSvc>            m_uidSvc;
-
 };
 
 DECLARE_COMPONENT(DDPlanarDigi)

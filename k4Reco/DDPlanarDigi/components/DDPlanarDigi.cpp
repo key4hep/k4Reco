@@ -59,9 +59,11 @@ DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
 
   m_histograms[diffu].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "diffu", "diff u", {1000, -.1, +.1}});
   m_histograms[diffv].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "diffv", "diff v", {1000, -.1, +.1}});
-  m_histograms[diffT].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "diffT", "diff time", {1000, -5., +5.}});
+  m_histograms[diffT].reset(
+      new Gaudi::Accumulators::StaticRootHistogram<1>{this, "diffT", "diff time", {1000, -5., +5.}});
 
-  m_histograms[hitE].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
+  m_histograms[hitE].reset(
+      new Gaudi::Accumulators::StaticRootHistogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
   m_histograms[hitsAccepted].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
       this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
 
