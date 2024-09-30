@@ -29,7 +29,7 @@ import os
 id_service = UniqueIDGenSvc("UniqueIDGenSvc")
 
 geoservice = GeoSvc("GeoSvc")
-geoservice.detectors = [os.environ["K4GEO"]+"/CLIC/compact/CLIC_o2_v07/CLIC_o2_v07.xml"]
+geoservice.detectors = [os.environ["K4GEO"]+"FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml"]
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
 
