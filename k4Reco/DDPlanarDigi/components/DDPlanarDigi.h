@@ -125,9 +125,6 @@ private:
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
   Gaudi::Property<int> m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
 
-  Gaudi::Property<std::string> m_outputFileName{this, "OutputFileName", "planar_digi_histograms.root",
-                                                "Output file name for the histograms"};
-
   const dd4hep::rec::SurfaceMap*                                                  surfaceMap;
   std::array<std::unique_ptr<Gaudi::Accumulators::StaticRootHistogram<1>>, hSize> m_histograms;
   std::string                                                                     m_collName;

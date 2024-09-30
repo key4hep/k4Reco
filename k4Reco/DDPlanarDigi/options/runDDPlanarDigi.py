@@ -29,7 +29,7 @@ import os
 id_service = UniqueIDGenSvc("UniqueIDGenSvc")
 
 geoservice = GeoSvc("GeoSvc")
-geoservice.detectors = [os.environ["K4GEO"]+"/CLIC/compact/CLIC_o3_v15/CLIC_o3_v15.xml"]
+geoservice.detectors = [os.environ["K4GEO"]+"/CLIC/compact/CLIC_o2_v07/CLIC_o2_v07.xml"]
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
 
@@ -38,10 +38,9 @@ digi.SubDetectorName = "Vertex"
 digi.IsStrip = False
 digi.ResolutionU = [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]
 digi.ResolutionV = [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]
-digi.SimTrackerHitCollectionName = "VertexBarrelCollection"
-digi.SimTrkHitRelCollection = "VXDTrackerHitRelations"
-digi.TrackerHitCollectionName = "VXDTrackerHits"
-digi.OutputFileName = "planar_digi_histograms.root"
+digi.SimTrackerHitCollectionName = ["VertexBarrelCollection"]
+digi.SimTrkHitRelCollection = ["VXDTrackerHitRelations"]
+digi.TrackerHitCollectionName = ["VXDTrackerHits"]
 
 iosvc = IOSvc()
 iosvc.input = "input.root"
