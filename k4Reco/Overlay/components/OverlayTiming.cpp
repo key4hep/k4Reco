@@ -19,14 +19,23 @@
 #include "OverlayTiming.h"
 #include <GaudiKernel/MsgStream.h>
 
-#include "podio/Frame.h"
+#include "podio/FrameCategories.h"
 
-#include "edm4hep/MutableCaloHitContribution.h"
+#include "edm4hep/CaloHitContributionCollection.h"
+#include "edm4hep/Constants.h"
+#include "edm4hep/EventHeaderCollection.h"
+#include "edm4hep/MCParticleCollection.h"
+#include "edm4hep/SimCalorimeterHitCollection.h"
+#include "edm4hep/SimTrackerHitCollection.h"
+
+#include "k4FWCore/MetadataUtils.h"
 
 #include <TMath.h>
 
 #include <limits>
 #include <random>
+#include <utility>
+#include <vector>
 
 template <typename T> inline float time_of_flight(const T& pos) {
   // Returns the time of flight to the radius in ns
@@ -376,6 +385,27 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
 
   return std::make_tuple(std::move(oparticles), std::move(osimTrackerHits), std::move(osimCaloHits),
                          std::move(ocaloHitContribs));
+}
+
+StatusCode OverlayTiming::finalize() {
+  if (m_copyCellIDMetadata) {
+    for (auto& [input, output] :
+         {std::make_pair(inputLocations("SimTrackerHits"), outputLocations("OutputSimTrackerHits")),
+          std::make_pair(inputLocations("SimCalorimeterHits"), outputLocations("OutputSimCalorimeterHits"))}) {
+      for (size_t i = 0; i < input.size(); ++i) {
+        auto value = k4FWCore::getParameter<std::string>(
+            podio::collMetadataParamName(input[i], edm4hep::labels::CellIDEncoding), this);
+        if (value.has_value()) {
+          k4FWCore::putParameter(podio::collMetadataParamName(output[i], edm4hep::labels::CellIDEncoding),
+                                 value.value(), this);
+        } else {
+          warning() << "No metadata found for " << input[i] << " when copying CellID metadata was requested" << endmsg;
+        }
+      }
+    }
+  }
+
+  return Gaudi::Algorithm::finalize();
 }
 
 DECLARE_COMPONENT(OverlayTiming)

@@ -57,6 +57,10 @@ overlay.BackgroundFileNames = [
       ["background_group2_1.root"],
 ]
 overlay.TimeWindows = {"MCParticle": [0, 23.5], "VertexBarrelCollection": [0, 23.5], "VertexEndcapCollection": [0, 23.5], "HCalRingCollection": [0, 23.5]}
+overlay.CopyCellIDMetadata = True
+
+# In case the original collections should be dropped
+# iosvc.outputCommands = ["drop MCParticles", "drop VertexBarrelCollection"]
 
 ApplicationMgr(TopAlg=[overlay],
                EvtSel="NONE",
