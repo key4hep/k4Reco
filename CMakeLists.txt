@@ -29,10 +29,10 @@ set(PACKAGE_VERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE
 
 SET(CMAKE_CXX_FLAGS "-fPIC -Wall -Wextra -Wpedantic ${CMAKE_CXX_FLAGS}")
 
+find_package(DD4hep REQUIRED)
 find_package(EDM4HEP REQUIRED)
 find_package(Gaudi REQUIRED)
 find_package(k4FWCore REQUIRED)
-find_package(DD4hep REQUIRED)
 find_package(ROOT REQUIRED COMPONENTS RIO Tree)
 find_package(k4SimGeant4 REQUIRED)
 
