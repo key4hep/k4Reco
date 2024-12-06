@@ -138,7 +138,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
     const auto& coll                   = simTrackerHits[i];
     const auto  name                   = inputLocations(SIMTRACKERHIT_INDEX_POSITION)[i];
     const auto [this_start, this_stop] = define_time_windows(name);
-    auto ocoll                   = edm4hep::SimTrackerHitCollection();
+    auto ocoll                         = edm4hep::SimTrackerHitCollection();
     for (const auto&& simTrackerHit : *coll) {
       const float tof = time_of_flight(simTrackerHit.getPosition());
       if ((simTrackerHit.getTime() > this_start + tof) && (simTrackerHit.getTime() < this_stop + tof)) {
@@ -157,8 +157,8 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
     const auto& coll                   = simCaloHits[i];
     const auto  name                   = inputLocations(SIMCALOHIT_INDEX_POSITION)[i];
     const auto [this_start, this_stop] = define_time_windows(name);
-    auto& calHitMap              = cellIDsMap[i];
-    auto& caloHitContribs        = ocaloHitContribs[i];
+    auto& calHitMap                    = cellIDsMap[i];
+    auto& caloHitContribs              = ocaloHitContribs[i];
     for (const auto&& simCaloHit : *coll) {
       const float      tof                = time_of_flight(simCaloHit.getPosition());
       bool             within_time_window = false;
@@ -253,7 +253,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
         std::map<int, std::pair<std::vector<int>, std::vector<int>>> parentDaughterMap;
 
         const auto& bgParticles = backgroundEvent.get<edm4hep::MCParticleCollection>(_mcParticleCollectionName);
-        int   j           = oparticles.size();
+        int         j           = oparticles.size();
         for (size_t i = 0; i < bgParticles.size(); ++i) {
           auto npart = bgParticles[i].clone(false);
 
