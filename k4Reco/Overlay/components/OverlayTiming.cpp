@@ -120,26 +120,26 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
   }
 
   // Copy MCParticles for physics event into a new collection
-  for (auto&& part : particles) {
+  for (const auto&& part : particles) {
     oparticles->push_back(part.clone(false));
   }
   // Fix relations to point to the new particles
   for (size_t i = 0; i < particles.size(); ++i) {
-    for (auto& parent : particles[i].getParents()) {
+    for (const auto& parent : particles[i].getParents()) {
       oparticles[i].addToParents(oparticles[parent.getObjectID().index]);
     }
-    for (auto& daughter : particles[i].getDaughters()) {
+    for (const auto& daughter : particles[i].getDaughters()) {
       oparticles[i].addToDaughters(oparticles[daughter.getObjectID().index]);
     }
   }
 
   // Copy the SimTrackerHits and crop them
   for (size_t i = 0; i < simTrackerHits.size(); ++i) {
-    auto& coll                   = simTrackerHits[i];
-    auto  name                   = inputLocations(SIMTRACKERHIT_INDEX_POSITION)[i];
-    auto [this_start, this_stop] = define_time_windows(name);
+    const auto& coll                   = simTrackerHits[i];
+    const auto  name                   = inputLocations(SIMTRACKERHIT_INDEX_POSITION)[i];
+    const auto [this_start, this_stop] = define_time_windows(name);
     auto ocoll                   = edm4hep::SimTrackerHitCollection();
-    for (auto&& simTrackerHit : *coll) {
+    for (const auto&& simTrackerHit : *coll) {
       const float tof = time_of_flight(simTrackerHit.getPosition());
       if ((simTrackerHit.getTime() > this_start + tof) && (simTrackerHit.getTime() < this_stop + tof)) {
         auto nhit = simTrackerHit.clone(false);
@@ -154,16 +154,16 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
   // Copy the SimCalorimeterHits and crop them together with the contributions
   std::map<int, std::map<uint64_t, edm4hep::MutableSimCalorimeterHit>> cellIDsMap;
   for (size_t i = 0; i < simCaloHits.size(); ++i) {
-    auto& coll                   = simCaloHits[i];
-    auto  name                   = inputLocations(SIMCALOHIT_INDEX_POSITION)[i];
-    auto [this_start, this_stop] = define_time_windows(name);
+    const auto& coll                   = simCaloHits[i];
+    const auto  name                   = inputLocations(SIMCALOHIT_INDEX_POSITION)[i];
+    const auto [this_start, this_stop] = define_time_windows(name);
     auto& calHitMap              = cellIDsMap[i];
     auto& caloHitContribs        = ocaloHitContribs[i];
     for (const auto&& simCaloHit : *coll) {
       const float      tof                = time_of_flight(simCaloHit.getPosition());
       bool             within_time_window = false;
       std::vector<int> thisContribs;
-      for (auto&& contrib : simCaloHit.getContributions()) {
+      for (const auto& contrib : simCaloHit.getContributions()) {
         if (!((contrib.getTime() > this_start + tof) && (contrib.getTime() < this_stop + tof)))
           continue;
         within_time_window = true;
@@ -252,7 +252,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
         std::map<int, int>                                           oldToNewMap;
         std::map<int, std::pair<std::vector<int>, std::vector<int>>> parentDaughterMap;
 
-        auto& bgParticles = backgroundEvent.get<edm4hep::MCParticleCollection>(_mcParticleCollectionName);
+        const auto& bgParticles = backgroundEvent.get<edm4hep::MCParticleCollection>(_mcParticleCollectionName);
         int   j           = oparticles.size();
         for (size_t i = 0; i < bgParticles.size(); ++i) {
           auto npart = bgParticles[i].clone(false);
@@ -325,7 +325,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection&         
             warning() << "Collection " << name << " not found in background event" << endmsg;
             continue;
           }
-          auto [this_start, this_stop] = define_time_windows(name);
+          const auto [this_start, this_stop] = define_time_windows(name);
           // There are only contributions to the readout if the hits are in the integration window
           if (this_stop <= (BX_number_in_train - m_physBX) * _T_diff) {
             info() << "Skipping collection " << name << " as it is not in the integration window" << endmsg;
