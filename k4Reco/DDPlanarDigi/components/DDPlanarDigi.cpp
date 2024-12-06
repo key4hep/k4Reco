@@ -22,7 +22,7 @@
 #include "edm4hep/SimTrackerHit.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
 
-#include "Gaudi/Accumulators/StaticRootHistogram.h"
+#include "Gaudi/Accumulators/RootHistogram.h"
 
 #include "DD4hep/DD4hepUnits.h"
 #include "DD4hep/Detector.h"
