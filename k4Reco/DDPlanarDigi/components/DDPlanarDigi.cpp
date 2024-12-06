@@ -22,7 +22,7 @@
 #include "edm4hep/SimTrackerHit.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
 
-#include "Gaudi/Accumulators/RootHistogram.h"
+#include "Gaudi/Accumulators/StaticRootHistogram.h"
 
 #include "DD4hep/DD4hepUnits.h"
 #include "DD4hep/Detector.h"
@@ -101,7 +101,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
   auto thsthcol  = edm4hep::TrackerHitSimTrackerHitLinkCollection();
 
   std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
-  dd4hep::DDSegmentation::BitFieldCoder bitFieldCoder(cellIDEncodingString);
+  dd4hep::DDSegmentation::BitFieldCoder bitFieldCoder("system:4,layer:4,ring:2,module:8,sensor:2,x:32:-12,y:-12");
 
   int nSimHits = simTrackerHits.size();
   debug() << "Processing collection " << m_collName << " with " << simTrackerHits.size() << " hits ... " << endmsg;
