@@ -66,11 +66,9 @@ DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
       new Gaudi::Accumulators::StaticRootHistogram<1>{this, "hitE", "hitEnergy in keV", {1000, 0, 200}});
   m_histograms[hitsAccepted].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
       this, "hitsAccepted", "Fraction of accepted hits [%]", {201, 0, 100.5}});
-
 }
 
 StatusCode DDPlanarDigi::initialize() {
-
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
   if (!m_geoSvc) {
     error() << "Unable to retrieve the GeoSvc" << endmsg;
