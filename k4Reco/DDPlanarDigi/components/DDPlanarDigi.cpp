@@ -101,7 +101,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
   auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
   debug() << "Using seed " << seed << " for event " << headers[0].getEventNumber() << " and run "
           << headers[0].getRunNumber() << endmsg;
-  m_engine.SetSeed(seed);
+  auto rng_engine = TRandom2(seed);
 
   int nCreatedHits = 0;
   int nDismissedHits = 0;
@@ -167,7 +167,7 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
     if (m_resTLayer.size() && m_resTLayer[0] > 0) {
       float resT = m_resTLayer.size() > 1 ? m_resTLayer[layer] : m_resTLayer[0];
 
-      double tSmear = resT > 0 ? m_engine.Gaus(0, resT) : 0;
+      double tSmear = resT > 0 ? rng_engine.Gaus(0, resT) : 0;
       ++(*m_histograms[hT])[resT > 0 ? tSmear / resT : 0];
       ++(*m_histograms[diffT])[tSmear];
 
@@ -217,8 +217,8 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
       // if( tries > 0 ) debug() << "retry smearing for " <<  cellid_decoder( hit ).valueString() << " : retries " <<
       // tries << endmsg;
 
-      double uSmear = m_engine.Gaus(0, resU);
-      double vSmear = m_engine.Gaus(0, resV);
+      double uSmear = rng_engine.Gaus(0, resU);
+      double vSmear = rng_engine.Gaus(0, resV);
 
       dd4hep::rec::Vector3D newPosTmp;
       if (m_isStrip) {
