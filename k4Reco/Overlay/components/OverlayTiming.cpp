@@ -67,7 +67,7 @@ StatusCode OverlayTiming::initialize() {
   //   inputFiles = m_inputFileNames;
   // }
   // TODO:: shuffle input files
-  // std::shuffle(inputFiles.begin(), inputFiles.end(), m_engine);
+  // std::shuffle(inputFiles.begin(), inputFiles.end(), rng_engine);
 
   m_bkgEvents = make_unique<EventHolder>(inputFiles);
   for (auto& val : m_bkgEvents->m_totalNumberOfEvents) {
@@ -109,7 +109,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection& headers,
                                   const std::vector<const edm4hep::SimTrackerHitCollection*>& simTrackerHits,
                                   const std::vector<const edm4hep::SimCalorimeterHitCollection*>& simCaloHits) const {
   const auto seed = m_uidSvc->getUniqueID(headers[0].getEventNumber(), headers[0].getRunNumber(), this->name());
-  m_engine.seed(seed);
+  auto rng_engine = std::mt19937(seed);
 
   // Output collections
   auto oparticles = edm4hep::MCParticleCollection();
@@ -187,7 +187,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection& headers,
   // Iterate over each group of files and parameters
   for (size_t groupIndex = 0; groupIndex < m_bkgEvents->size(); groupIndex++) {
     if (m_randomBX) {
-      m_physBX = std::uniform_int_distribution<int>(0, m_NBunchTrain - 1)(m_engine);
+      m_physBX = std::uniform_int_distribution<int>(0, m_NBunchTrain - 1)(rng_engine);
       debug() << "Physics Event was placed in the " << m_physBX << " bunch crossing!" << endmsg;
     }
 
@@ -199,7 +199,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection& headers,
     for (int i = -(m_physBX - 1); i < m_NBunchTrain - (m_physBX - 1); ++i) {
       permutation.push_back(i);
     }
-    std::shuffle(permutation.begin(), permutation.end(), m_engine);
+    std::shuffle(permutation.begin(), permutation.end(), rng_engine);
 
     // TODO: Check that there is anything to overlay
 
@@ -220,7 +220,7 @@ retType OverlayTiming::operator()(const edm4hep::EventHeaderCollection& headers,
       int NOverlay_to_this_BX = 0;
 
       if (m_Poisson[groupIndex]) {
-        NOverlay_to_this_BX = std::poisson_distribution<>(m_Noverlay[groupIndex])(m_engine);
+        NOverlay_to_this_BX = std::poisson_distribution<>(m_Noverlay[groupIndex])(rng_engine);
       } else {
         NOverlay_to_this_BX = m_Noverlay[groupIndex];
       }

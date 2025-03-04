@@ -153,6 +153,5 @@ private:
   //   this, "MaxCachedFrames", 0, "Maximum number of frames cached from background files"};
 
 private:
-  inline static thread_local std::mt19937 m_engine;
   SmartIF<IUniqueIDGenSvc> m_uidSvc;
 };
