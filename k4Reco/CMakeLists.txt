@@ -21,22 +21,72 @@ set(sources
   DDPlanarDigi/components/DDPlanarDigi.cpp
   Overlay/components/OverlayTiming.cpp
 )
+
+set(libs
+        podio::podioIO
+        EDM4HEP::edm4hep
+        k4FWCore::k4FWCore
+        k4FWCore::k4Interface
+        Gaudi::GaudiKernel
+        DD4hep::DDRec
+        DD4hep::DDCore
+        ROOT::Core
+        ROOT::MathCore
+        ROOT::Tree
+)
+
+if(BUILD_CONFORMAL_TRACKING)
+
+  find_package(LCIO REQUIRED)
+  find_package(KalTest REQUIRED)
+  find_package(DDKalTest REQUIRED)
+
+  list(APPEND sources
+       ConformalTracking/components/ConformalTracking.cpp
+       ConformalTracking/src/GaudiDDKalTest.cpp
+       ConformalTracking/src/GaudiDDKalTestTrack.cpp
+       ConformalTracking/src/KDTrack.cpp
+       ConformalTracking/src/kdtree2.cpp
+       ConformalTracking/src/KDTree.cpp
+       ConformalTracking/src/HelixTrack.cpp
+       ConformalTracking/src/GaudiTrkUtils.cpp
+  )
+
+  list(APPEND libs
+       LCIO::lcio
+       ${KalTest_LIBRARIES}
+       ${DDKalTest_LIBRARIES}
+  )
+
+
+  # ADD_DEFINITIONS( -D __NOT0__ )
+  # include_directories("${KalTest_INCLUDE_DIRS};${DDKalTest_INCLUDE_DIRS}")
+  # link_libraries("${KalTest_LIBRARIES};${DDKalTest_LIBRARIES}")
+
+endif()
+
+
 gaudi_add_module(k4RecoPlugins
                  SOURCES ${sources}
                  LINK
-                      podio::podioIO
-                      Gaudi::GaudiKernel
-                      k4FWCore::k4FWCore
-                      k4FWCore::k4Interface
-                      EDM4HEP::edm4hep
-                      DD4hep::DDRec
-                      DD4hep::DDCore
-                      ROOT::Core
-                      ROOT::MathCore
-                      )
+                 ${libs}
+)
 target_include_directories(k4RecoPlugins PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+if(BUILD_CONFORMAL_TRACKING)
+  # Expected by KalTest
+  target_compile_definitions(k4RecoPlugins PRIVATE __NOT0__)
+
+  target_include_directories(k4RecoPlugins PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+    ${KalTest_INCLUDE_DIRS}
+    ${DDKalTest_INCLUDE_DIRS}
+    ${streamlog_INCLUDE_DIRS}
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+endif()
 
 install(TARGETS k4RecoPlugins
   EXPORT ${CMAKE_PROJECT_NAME}Targets
@@ -44,16 +94,3 @@ install(TARGETS k4RecoPlugins
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
   PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/@{CMAKE_PROJECT_NAME}"
   COMPONENT dev)
-
-include(CTest)
-
-set(GAUDI_GENCONF_DIR "genConfDir")
-
-function(set_test_env _testname)
-  set_property(TEST ${_testname} APPEND PROPERTY ENVIRONMENT
-    LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$<TARGET_FILE_DIR:k4RecoPlugins>:$<TARGET_FILE_DIR:ROOT::Core>:$<TARGET_FILE_DIR:k4FWCore::k4FWCore>:$<TARGET_FILE_DIR:EDM4HEP::edm4hep>:$<TARGET_FILE_DIR:podio::podio>:$ENV{LD_LIBRARY_PATH}
-    PYTHONPATH=${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}/${GAUDI_GENCONF_DIR}:$<TARGET_FILE_DIR:k4FWCore::k4FWCore>/../python:$ENV{PYTHONPATH}
-    PATH=$<TARGET_FILE_DIR:k4FWCore::k4FWCore>/../bin:$ENV{PATH}
-    K4PROJECTTEMPLATE=${CMAKE_CURRENT_LIST_DIR}/
-    )
-endfunction()
