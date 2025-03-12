@@ -20,7 +20,7 @@
 
 // Remove when the warnings are fixed in KalTest
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <kaltest/THelicalTrack.h>
 #pragma GCC diagnostic pop
 

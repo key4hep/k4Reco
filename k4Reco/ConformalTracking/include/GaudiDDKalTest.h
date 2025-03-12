@@ -23,7 +23,7 @@
 
 // Remove when these warnings are fixed in KalTest
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include <kaltest/TKalDetCradle.h>
 #pragma GCC diagnostic pop

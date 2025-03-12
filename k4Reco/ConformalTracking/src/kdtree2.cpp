@@ -620,7 +620,6 @@ namespace kdtree2 {
     bool               rearrange = sr.rearrange;
     const KDTreeArray& data      = *sr.data;
 
-
     // const bool debug = false;
     // if (debug) {
     //   printf("Processing terminal node %d, %d\n", l, u);
