@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "ConformalTracking.h"
 
 #include "GaudiDDKalTest.h"
@@ -314,8 +332,8 @@ StatusCode ConformalTracking::initialize() {
 
 edm4hep::TrackCollection ConformalTracking::operator()(
 
-    const TrackerHitPlaneCollection& trackerHits, const std::vector<const edm4hep::MCParticleCollection*>& MCParticles,
-    const Association& simTrackerHitAssociation) const {
+    const TrackerHitPlaneCollection& trackerHits, const std::vector<const edm4hep::MCParticleCollection*>&,
+    const Association&) const {
   //------------------------------------------------------------------------------------------------------------------
   // This pattern recognition algorithm is based on two concepts: conformal mapping and cellular automaton. Broadly
   // speaking, the 2D xy projection of all hits is transformed such that circles (helix projections) become straight
@@ -1331,12 +1349,12 @@ void ConformalTracking::fitWithPoint(KDTrack kdTrack, SKDCluster& hit, double& d
   double chi2   = kdTrack.chi2ndof();
   double chi2zs = kdTrack.chi2ndofZS();
   /*if(m_debugPlots){
-    
+
     double xMeasured = hit->getU();
     double yMeasured = hit->getV();
     double dx = hit->getErrorU();
     double dv = hit->getErrorV();
-    
+
     if(kdTrack.m_rotated){
       double newxMeasured = yMeasured;
       double newyMeasured = -1. * xMeasured;
@@ -1351,9 +1369,9 @@ void ConformalTracking::fitWithPoint(KDTrack kdTrack, SKDCluster& hit, double& d
     // Get the error on the hit position
     double term = kdTrack.m_gradient + 2. * kdTrack.m_quadratic * xMeasured;
     double dy2  = (dv * dv) + (term * term * dx * dx);
-    
+
     streamlog_out(DEBUG7)<<"- hit has delta chi2 of "<<(residualY * residualY) / (dy2)<<std::endl;
-    
+
   }*/
   kdTrack.add(hit);
   kdTrack.linearRegression();
@@ -1388,7 +1406,7 @@ void ConformalTracking::extendTracks(UniqueKDTracks& conformalTracks, SharedKDCl
       thisCluster->used(true);
 
   //index just for debug
-  int debug_idxTrack = 0;
+  [[maybe_unused]] int debug_idxTrack = 0;
 
   for (const auto& track : conformalTracks) {
     // Make sure that track hits are ordered from largest to smallest radius
@@ -2045,7 +2063,7 @@ void ConformalTracking::buildNewTracks(UniqueKDTracks& conformalTracks, SharedKD
 
     // Objects to hold cells
     SharedCells cells;
-    bool        isFirst = true;
+    [[maybe_unused]] bool        isFirst = true;
 
     // Make seed cells pointing inwards/outwards (conformal space)
     for (unsigned int neighbour = 0; neighbour < results.size(); neighbour++) {

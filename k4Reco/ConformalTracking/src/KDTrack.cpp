@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "KDTrack.h"
 
 #include <TH2F.h>
@@ -7,11 +25,7 @@
 
 // Constructor
 KDTrack::KDTrack(Parameters const& par)
-    : m_gradient(0.),
-      m_intercept(0.),
-      m_rotated(false),
-      fillFit(false),
-      m_kalmanFitForward(par.m_kalmanFitForward) {}
+    : m_gradient(0.), m_intercept(0.), m_rotated(false), fillFit(false), m_kalmanFitForward(par.m_kalmanFitForward) {}
 
 // Function to calculate the chi2
 double KDTrack::calculateChi2() {
@@ -149,7 +163,7 @@ double KDTrack::calculateChi2SZ(TH2F*, bool) {
     prevPhi = phi;
 
     /*if(phi < 0.) phi=(2.*M_PI-fabs(phi));
-    
+
     if(fabs(phi-prevPhi) > M_PI){
       if(prevPhi > M_PI) phi += (2.*M_PI);
       else phi = (2.*M_PI) - phi;
@@ -232,9 +246,8 @@ void KDTrack::linearRegression(bool highPTfit) {
   // those close to the y-axis should be rotated.
 
   // Quick fix: sort hits from outside in
-  std::sort(m_clusters.begin(), m_clusters.end(), [](const SKDCluster& a, const SKDCluster& b) {
-    return a->getR() > b->getR();
-  });
+  std::sort(m_clusters.begin(), m_clusters.end(),
+            [](const SKDCluster& a, const SKDCluster& b) { return a->getR() > b->getR(); });
 
   // If track has not yet been fitted
   if (m_gradient == 0.) {
@@ -245,7 +258,7 @@ void KDTrack::linearRegression(bool highPTfit) {
   }
 
   // Initialise variables for the linear regression
-  std::array<double, 3> vecx{};
+  std::array<double, 3>                vecx{};
   std::array<std::array<double, 3>, 3> matx{};
 
   // Loop over all hits and fill the matrices
@@ -329,7 +342,7 @@ void KDTrack::linearRegression(bool highPTfit) {
 // Fit the track in sz (linear regression)
 void KDTrack::linearRegressionConformal(bool) {
   // Initialise variables for the linear regression
-  std::array<double, 2> vecx{};
+  std::array<double, 2>                vecx{};
   std::array<std::array<double, 2>, 2> matx{};
 
   // Calculate a and b from the conformal fit

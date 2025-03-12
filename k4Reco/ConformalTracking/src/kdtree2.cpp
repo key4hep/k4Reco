@@ -1,8 +1,21 @@
-//
-// (c) Matthew B. Kennel, Institute for Nonlinear Science, UCSD (2004)
-//
-// Licensed under the Academic Free License version 1.1 found in file LICENSE
-// with additional provisions in that same file.
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "kdtree2.h"
 
@@ -367,7 +380,7 @@ namespace kdtree2 {
           ballsize(infinity),
           result(result_in),
           data(tree_in.data),
-          ind(tree_in.ind){};
+          ind(tree_in.ind) {};
   };
 
   void KDTree::n_nearest_brute_force(std::vector<double>& qv, KDTreeResultVector& result) {
@@ -607,8 +620,8 @@ namespace kdtree2 {
     bool               rearrange = sr.rearrange;
     const KDTreeArray& data      = *sr.data;
 
-    const bool debug = false;
 
+    // const bool debug = false;
     // if (debug) {
     //   printf("Processing terminal node %d, %d\n", l, u);
     //   streamlog_out(DEBUG) << "Query vector = [";
@@ -659,7 +672,7 @@ namespace kdtree2 {
         }
         if (early_exit)
           continue;  // next iteration of mainloop
-      }              // end if rearrange.
+      }  // end if rearrange.
 
       if (centeridx > 0) {
         // we are doing decorrelation interval
@@ -758,7 +771,7 @@ namespace kdtree2 {
         }
         if (early_exit)
           continue;  // next iteration of mainloop
-      }              // end if rearrange.
+      }  // end if rearrange.
 
       if (centeridx > 0) {
         // we are doing decorrelation interval
