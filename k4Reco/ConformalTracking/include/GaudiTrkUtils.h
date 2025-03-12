@@ -1,0 +1,62 @@
+#include "GaudiDDKalTest.h"
+#include "GaudiDDKalTestTrack.h"
+
+#include <edm4hep/CovMatrix6f.h>
+#include <edm4hep/Track.h>
+#include <edm4hep/TrackState.h>
+#include <edm4hep/TrackerHitPlane.h>
+
+#include <k4Interface/IGeoSvc.h>
+
+#include <Gaudi/Algorithm.h>
+#include <GaudiKernel/SmartIF.h>
+
+#include <string>
+#include <vector>
+
+// Simple class to wrap functions from MarlinTrkUtils
+// and hold a few objects that are needed for the functions
+class GaudiTrkUtils {
+public:
+  GaudiTrkUtils() = delete;
+  GaudiTrkUtils(const Gaudi::Algorithm* thisAlg, const GaudiDDKalTest& ddKalTest, SmartIF<IGeoSvc> geoSvc,
+                const std::string encodingStringVariable)
+      : m_thisAlg(thisAlg),
+        m_ddkaltest(ddKalTest),
+        m_geoSvc(geoSvc),
+        m_encodingStringVariable(encodingStringVariable) {}
+
+  GaudiTrkUtils(const GaudiTrkUtils&)            = delete;
+  GaudiTrkUtils& operator=(const GaudiTrkUtils&) = delete;
+  GaudiTrkUtils(GaudiTrkUtils&&)                 = delete;
+  GaudiTrkUtils& operator=(GaudiTrkUtils&&)      = delete;
+
+  int createFinalisedLCIOTrack(GaudiDDKalTestTrack&                                marlinTrk,
+                               const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
+                               edm4hep::MutableTrack& track, bool fit_direction,
+                               const edm4hep::CovMatrix6f& initial_cov_for_prefit, float bfield_z,
+                               double maxChi2Increment);
+
+  int createFinalisedLCIOTrack(GaudiDDKalTestTrack&                                marlinTrk,
+                               const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
+                               edm4hep::MutableTrack& track, bool fit_direction, edm4hep::TrackState& pre_fit,
+                               double maxChi2Increment);
+
+  int createPrefit(const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, edm4hep::TrackState& pre_fit,
+                   float bfield_z);
+
+  int createFit(const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, GaudiDDKalTestTrack& marlinTrk,
+                edm4hep::TrackState& pre_fit, bool fit_direction, double maxChi2Increment);
+
+  int finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::MutableTrack& track,
+                        const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool fit_direction);
+
+  int createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
+                                 const edm4hep::TrackerHitPlane* trkhit, bool tanL_is_positive);
+
+private:
+  const Gaudi::Algorithm* m_thisAlg;
+  const GaudiDDKalTest&   m_ddkaltest;
+  SmartIF<IGeoSvc>        m_geoSvc;
+  const std::string       m_encodingStringVariable;
+};
