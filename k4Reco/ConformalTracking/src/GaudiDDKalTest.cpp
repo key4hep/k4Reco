@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "GaudiDDKalTest.h"
 
 #include <DD4hep/DetElement.h>
@@ -213,7 +231,7 @@ void GaudiDDKalTest::storeActiveMeasurementModuleIDs(const TVKalDetector* detect
 
     if (!ml) {
       std::stringstream errorMsg;
-      errorMsg << "GaudiDDKalTest::storeActiveMeasurementLayerIDs dynamic_cast to DDVMeasLayer* failed " << endmsg;
+      errorMsg << "GaudiDDKalTest::storeActiveMeasurementLayerIDs dynamic_cast to DDVMeasLayer* failed ";
       throw std::runtime_error(errorMsg.str());
     }
 
@@ -334,8 +352,7 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
 
       if (!surf) {
         std::stringstream errorMsg;
-        errorMsg << "GaudiDDKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << detElementID
-                 << endmsg;
+        errorMsg << "GaudiDDKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << detElementID;
         throw std::runtime_error(errorMsg.str());
       }
 
@@ -348,8 +365,7 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
       } else if (surf_found && hit_on_surface) {  // only one surface should be found, if not throw
 
         std::stringstream errorMsg;
-        errorMsg << "GaudiDDKalTest::findMeasLayer point found to be on two surfaces: moduleID = " << detElementID
-                 << endmsg;
+        errorMsg << "GaudiDDKalTest::findMeasLayer point found to be on two surfaces: moduleID = " << detElementID;
         throw std::runtime_error(errorMsg.str());
       }
     }
