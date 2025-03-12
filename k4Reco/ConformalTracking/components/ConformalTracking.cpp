@@ -2062,8 +2062,8 @@ void ConformalTracking::buildNewTracks(UniqueKDTracks& conformalTracks, SharedKD
     std::ranges::sort(results, vertexToTracker ? sort_by_radiusKD : sort_by_lower_radiusKD);
 
     // Objects to hold cells
-    SharedCells cells;
-    [[maybe_unused]] bool        isFirst = true;
+    SharedCells           cells;
+    [[maybe_unused]] bool isFirst = true;
 
     // Make seed cells pointing inwards/outwards (conformal space)
     for (unsigned int neighbour = 0; neighbour < results.size(); neighbour++) {

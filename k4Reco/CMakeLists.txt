@@ -38,6 +38,7 @@ set(libs
 if(BUILD_CONFORMAL_TRACKING)
 
   find_package(LCIO REQUIRED)
+  find_package(iLCUtil REQUIRED)
   find_package(KalTest REQUIRED)
   find_package(DDKalTest REQUIRED)
 
