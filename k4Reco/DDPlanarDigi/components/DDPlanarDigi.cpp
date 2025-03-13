@@ -118,17 +118,17 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
       continue;
     }
 
-    const auto cellID0 = hit.getCellID();
+    const std::uint64_t cellID = hit.getCellID();
 
     // get the measurement surface for this hit using the CellID
-    dd4hep::rec::SurfaceMap::const_iterator sI = surfaceMap->find(cellID0);
+    dd4hep::rec::SurfaceMap::const_iterator sI = surfaceMap->find(cellID);
 
     if (sI == surfaceMap->end()) {
-      throw std::runtime_error(fmt::format("DDPlanarDigi::processEvent(): no surface found for cellID : {}", cellID0));
+      throw std::runtime_error(fmt::format("DDPlanarDigi::processEvent(): no surface found for cellID : {}", cellID));
     }
 
     const dd4hep::rec::ISurface* surf  = sI->second;
-    int                          layer = bitFieldCoder.get(cellID0, "layer");
+    int                         layer = bitFieldCoder.get(cellID, "layer");
 
     dd4hep::rec::Vector3D oldPos(hit.getPosition()[0], hit.getPosition()[1], hit.getPosition()[2]);
     dd4hep::rec::Vector3D newPos;
@@ -268,7 +268,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
 
     auto trkHit = trkhitVec.create();
 
-    trkHit.setCellID(cellID0);
+    trkHit.setCellID(cellID);
 
     trkHit.setPosition(newPos.const_array());
     trkHit.setTime(hitT);
