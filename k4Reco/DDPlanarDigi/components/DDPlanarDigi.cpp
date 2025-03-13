@@ -118,7 +118,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
       continue;
     }
 
-    const int cellID0 = hit.getCellID();
+    const auto cellID0 = hit.getCellID();
 
     // get the measurement surface for this hit using the CellID
     dd4hep::rec::SurfaceMap::const_iterator sI = surfaceMap->find(cellID0);
