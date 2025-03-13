@@ -128,7 +128,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
     }
 
     const dd4hep::rec::ISurface* surf  = sI->second;
-    int                         layer = bitFieldCoder.get(cellID, "layer");
+    int                          layer = bitFieldCoder.get(cellID, "layer");
 
     dd4hep::rec::Vector3D oldPos(hit.getPosition()[0], hit.getPosition()[1], hit.getPosition()[2]);
     dd4hep::rec::Vector3D newPos;
