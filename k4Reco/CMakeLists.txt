@@ -58,12 +58,6 @@ if(BUILD_CONFORMAL_TRACKING)
        ${KalTest_LIBRARIES}
        ${DDKalTest_LIBRARIES}
   )
-
-
-  # ADD_DEFINITIONS( -D __NOT0__ )
-  # include_directories("${KalTest_INCLUDE_DIRS};${DDKalTest_INCLUDE_DIRS}")
-  # link_libraries("${KalTest_LIBRARIES};${DDKalTest_LIBRARIES}")
-
 endif()
 
 
