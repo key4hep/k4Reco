@@ -109,6 +109,8 @@ private:
   std::multimap<int, const DDVMeasLayer*> m_active_measurement_modules_by_layer{};
   std::vector<DDKalDetector*>             m_detectors{};
 
+  // Originally not present in MarlinDDKalTest, this is needed to be able to use
+  // logging from Gaudi
   const Gaudi::Algorithm* m_thisAlg;
 };
 
