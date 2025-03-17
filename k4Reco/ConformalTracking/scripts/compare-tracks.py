@@ -14,7 +14,7 @@ parser.add_argument(
     "--gaudi-tracks", default="NewSiTracks", help="Gaudi tracks collection"
 )
 parser.add_argument(
-    "--marlin-tracks", default="SiTracks", help="Marlin tracks collection"
+    "--marlin-tracks", default="SiTracksCT", help="Marlin tracks collection"
 )
 
 args = parser.parse_args()

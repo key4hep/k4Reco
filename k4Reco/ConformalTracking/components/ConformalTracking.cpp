@@ -78,7 +78,6 @@ ConformalTracking::ConformalTracking(const std::string& name, ISvcLocator* svcLo
                   {
                       KeyValues("SiTrackCollectionName", {"CATracks"}),
                   }) {
-  m_geoSvc = serviceLocator()->service(m_geoSvcName);
 }
 
 StatusCode ConformalTracking::initialize() {
@@ -88,6 +87,8 @@ StatusCode ConformalTracking::initialize() {
   streamlog::out.init(std::cout, "");
   streamlog::logscope* scope = new streamlog::logscope(streamlog::out);
   scope->setLevel<streamlog::MESSAGE0>();
+
+  m_geoSvc = serviceLocator()->service(m_geoSvcName);
 
   const auto& locs = inputLocations(0);
 

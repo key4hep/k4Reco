@@ -16,6 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#ifndef K4RECO_GAUDITRKUTILS_H
+#define K4RECO_GAUDITRKUTILS_H
+
 #include "GaudiDDKalTest.h"
 #include "GaudiDDKalTestTrack.h"
 
@@ -78,3 +82,5 @@ private:
   SmartIF<IGeoSvc>        m_geoSvc;
   const std::string       m_encodingStringVariable;
 };
+
+#endif  // K4RECO_GAUDITRKUTILS_H

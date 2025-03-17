@@ -224,6 +224,8 @@ public:
   // vector to store the chi-sqaure increment for measurement sites
   std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>> m_outlier_chi2_values{};
 
+  // Originally not present in MarlinDDKalTest, this is needed to be able to use
+  // logging from Gaudi
   const Gaudi::Algorithm* m_thisAlg;
 };
 
