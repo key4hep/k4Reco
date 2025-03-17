@@ -88,6 +88,10 @@ StatusCode DDPlanarDigi::initialize() {
   // Get and store the name for a debug message later
   (void)this->getProperty("SimTrackerHitCollectionName", m_collName);
 
+  if (m_cellIDBits != 64) {
+    m_mask = (static_cast<std::uint64_t>(1) << m_cellIDBits) - 1;
+  }
+
   return StatusCode::SUCCESS;
 }
 
@@ -118,7 +122,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
       continue;
     }
 
-    const std::uint64_t cellID = hit.getCellID();
+    const std::uint64_t cellID = hit.getCellID() & m_mask;
 
     // get the measurement surface for this hit using the CellID
     dd4hep::rec::SurfaceMap::const_iterator sI = surfaceMap->find(cellID);

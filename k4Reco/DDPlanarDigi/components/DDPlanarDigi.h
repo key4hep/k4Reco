@@ -123,8 +123,8 @@ private:
       this, "EncodingStringParameterName", "GlobalTrackerReadoutID",
       "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
-  Gaudi::Property<int> m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
-
+  Gaudi::Property<int>    m_maxTries{this, "MaxTries", 10, "Maximum number of tries to find a valid surface for a hit"};
+  Gaudi::Property<size_t> m_cellIDBits{this, "CellIDBits", 64, "Number of bits to use for the cellID of the hits"};
   const dd4hep::rec::SurfaceMap*                                                  surfaceMap;
   std::array<std::unique_ptr<Gaudi::Accumulators::StaticRootHistogram<1>>, hSize> m_histograms;
   std::string                                                                     m_collName;
@@ -132,6 +132,8 @@ private:
   inline static thread_local TRandom2 m_engine;
   SmartIF<IGeoSvc>                    m_geoSvc;
   SmartIF<IUniqueIDGenSvc>            m_uidSvc;
+
+  std::uint64_t m_mask{static_cast<std::uint64_t>(-1)};
 };
 
 DECLARE_COMPONENT(DDPlanarDigi)
