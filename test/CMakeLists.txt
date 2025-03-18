@@ -23,11 +23,11 @@ include(CTest)
 
 function(set_test_env testname)
   set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}:${PROJECT_BINARY_DIR}/${PROJECT_NAME}:${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir/${PROJECT_NAME}:${PROJECT_BINARY_DIR}/test/k4FWCoreTest:${PROJECT_BINARY_DIR}/test/k4FWCoreTest/genConfDir/k4FWCoreTest:$<$<TARGET_EXISTS:ROOT::Core>:$<TARGET_FILE_DIR:ROOT::Core>>:$<$<TARGET_EXISTS:EDM4HEP::edm4hep>:$<TARGET_FILE_DIR:EDM4HEP::edm4hep>>:$<$<TARGET_EXISTS:podio::podio>:$<TARGET_FILE_DIR:podio::podio>>:$ENV{LD_LIBRARY_PATH}")
-  set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT "PYTHONPATH=${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir:${PROJECT_BINARY_DIR}/CLDConfig/CLDConfig:$ENV{PYTHONPATH}")
+  set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT "PYTHONPATH=${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir:$ENV{PYTHONPATH}")
 endfunction()
 
 add_test(NAME "Clone CLDConfig"
-  COMMAND git clone https://github.com/key4hep/CLDConfig.git
+  COMMAND bash -c "git clone https://github.com/key4hep/CLDConfig.git && cp -r CLDConfig/CLDConfig/* ."
 )
 set_test_env("Clone CLDConfig")
 

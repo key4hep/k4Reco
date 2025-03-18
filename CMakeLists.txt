@@ -39,7 +39,6 @@ find_package(k4SimGeant4 REQUIRED)
 include(cmake/Key4hepConfig.cmake)
 
 include(GNUInstallDirs)
-include(CTest)
 
 add_subdirectory(k4Reco)
 add_subdirectory(test)
