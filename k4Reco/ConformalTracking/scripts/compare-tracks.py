@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # A simple script to compare the tracks from the Gaudi and Marlin output
 import argparse
 from podio.root_io import Reader

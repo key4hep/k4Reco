@@ -8,7 +8,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,3 +19,41 @@ limitations under the License.
 
 
 find_package(k4geo REQUIRED)
+include(CTest)
+
+function(set_test_env testname)
+  set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}:${PROJECT_BINARY_DIR}/${PROJECT_NAME}:${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir/${PROJECT_NAME}:${PROJECT_BINARY_DIR}/test/k4FWCoreTest:${PROJECT_BINARY_DIR}/test/k4FWCoreTest/genConfDir/k4FWCoreTest:$<$<TARGET_EXISTS:ROOT::Core>:$<TARGET_FILE_DIR:ROOT::Core>>:$<$<TARGET_EXISTS:EDM4HEP::edm4hep>:$<TARGET_FILE_DIR:EDM4HEP::edm4hep>>:$<$<TARGET_EXISTS:podio::podio>:$<TARGET_FILE_DIR:podio::podio>>:$ENV{LD_LIBRARY_PATH}")
+  set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT "PYTHONPATH=${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir:${PROJECT_BINARY_DIR}/test/k4FWCoreTest/genConfDir:$ENV{PYTHONPATH}")
+endfunction()
+
+add_test(NAME "Clone CLDConfig"
+  COMMAND git clone https://github.com/key4hep/CLDConfig.git
+)
+set_test_env("Clone CLDConfig")
+
+add_test(NAME "Run ddsim"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim.edm4hep.root --gun.energy 10 --gun.particle 'mu-' --gun.distribution uniform --gun.multiplicity 10"
+  )
+set_test_env("Run ddsim")
+
+add_test(NAME "Run the Marlin wrapper"
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root
+)
+set_test_env("Run the Marlin wrapper")
+set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
+
+if(BUILD_CONFORMAL_TRACKING)
+
+  add_test(NAME "Run the ConformalTracking algorithm"
+    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/options/runConformalTracking.py
+  )
+  set_test_env("Run the ConformalTracking algorithm")
+  set_tests_properties("Run the ConformalTracking algorithm" PROPERTIES DEPENDS "Run the Marlin wrapper")
+
+  add_test(NAME "Compare ConformalTracking between Marlin and Gaudi"
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py"
+  )
+  set_test_env("Compare ConformalTracking between Marlin and Gaudi")
+  set_tests_properties("Compare ConformalTracking between Marlin and Gaudi" PROPERTIES DEPENDS "Run the ConformalTracking algorithm")
+
+endif()
