@@ -41,6 +41,9 @@ include(cmake/Key4hepConfig.cmake)
 include(GNUInstallDirs)
 
 add_subdirectory(k4Reco)
-add_subdirectory(test)
+if(BUILD_TESTING)
+  include(CTest)
+  add_subdirectory(test)
+endif()
 
 # include(cmake/CreateProjectConfig.cmake)
