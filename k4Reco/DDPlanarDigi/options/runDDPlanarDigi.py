@@ -43,8 +43,8 @@ digi.SimTrkHitRelCollection = ["VXDTrackerHitRelations"]
 digi.TrackerHitCollectionName = ["VXDTrackerHits"]
 
 iosvc = IOSvc()
-iosvc.input = "input.root"
-iosvc.output = "output_digi.root"
+iosvc.Input = "input.root"
+iosvc.Output = "output_digi.root"
 
 # inp.collections = [
 #     "VertexBarrelCollection",
