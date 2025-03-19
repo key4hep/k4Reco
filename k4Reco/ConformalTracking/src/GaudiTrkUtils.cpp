@@ -488,6 +488,37 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   return return_error;
 }
 
+void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>&                               subdetectorHitNumbers,
+                                         const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
+                                         dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const {
+  // Because in EDM4hep for vector members only hits can be added, we need the whole
+  // vector before starting to assign
+  std::map<int64_t, int32_t> hitNumbers;
+
+  for (const auto& hit : hit_list) {
+    // cellID_encoder.setValue(hit->getCellID());
+    // int detID = cellID_encoder[UTIL::LCTrackerCellID::subdet()];
+    int64_t detID = cellID_encoder.get(hit->getCellID(), 0);
+    ++hitNumbers[detID];
+  }
+
+  int offset = 2;
+  if (!hits_in_fit) {  // all hit atributed by patrec
+    offset = 1;
+  }
+
+  // this assumes that there is no tracker with an index larger than the ecal ...
+
+  // subdetectorHitNumbers.resize(2 * lcio::ILDDetID::ECAL);
+  subdetectorHitNumbers.resize(2 * 20);
+
+  // for (std::map<int, int>::iterator it = hitNumbers.begin(); it != hitNumbers.end(); ++it) {
+  for (const auto& [detIndex, hitNumber] : hitNumbers) {
+    // track.subdetectorHitNumbers().at(2 * detIndex - offset) = it->second;
+    subdetectorHitNumbers.at(2 * detIndex - offset) = hitNumber;
+  }
+}
+
 int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
                                               const edm4hep::TrackerHitPlane* trkhit, bool tanL_is_positive) {
   int return_error        = 0;

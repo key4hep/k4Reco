@@ -28,6 +28,8 @@
 #include <edm4hep/TrackState.h>
 #include <edm4hep/TrackerHitPlane.h>
 
+#include <DD4hep/BitFieldCoder.h>
+
 #include <k4Interface/IGeoSvc.h>
 
 #include <Gaudi/Algorithm.h>
@@ -72,6 +74,10 @@ public:
 
   int finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::MutableTrack& track,
                         const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool fit_direction);
+
+  void addHitNumbersToTrack(std::vector<int32_t>&                               subdetectorHitNumbers,
+                            const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
+                            dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const;
 
   int createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
                                  const edm4hep::TrackerHitPlane* trkhit, bool tanL_is_positive);
