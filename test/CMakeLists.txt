@@ -31,7 +31,7 @@ add_test(NAME "Clone CLDConfig"
 set_test_env("Clone CLDConfig")
 
 add_test(NAME "Run ddsim"
-  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim.edm4hep.root --gun.energy 10 --gun.particle 'mu-' --gun.distribution uniform --gun.multiplicity 10"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim.edm4hep.root --gun.energy "10*GeV" --gun.particle 'mu-' --gun.distribution uniform --gun.multiplicity 10"
   )
 set_test_env("Run ddsim")
 
