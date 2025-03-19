@@ -51,6 +51,8 @@ if(BUILD_CONFORMAL_TRACKING)
        ConformalTracking/src/KDTree.cpp
        ConformalTracking/src/HelixTrack.cpp
        ConformalTracking/src/GaudiTrkUtils.cpp
+       Tracking/src/ClonesAndSplitTracksFinder.cpp
+       Tracking/src/RefitFinal.cpp
   )
 
   list(APPEND libs
@@ -68,6 +70,7 @@ gaudi_add_module(k4RecoPlugins
 )
 target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if(BUILD_CONFORMAL_TRACKING)
