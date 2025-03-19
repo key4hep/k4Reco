@@ -77,8 +77,7 @@ ConformalTracking::ConformalTracking(const std::string& name, ISvcLocator* svcLo
                   },
                   {
                       KeyValues("SiTrackCollectionName", {"CATracks"}),
-                  }) {
-}
+                  }) {}
 
 StatusCode ConformalTracking::initialize() {
   // Setting the streamlog output is necessary to avoid lots of overhead.

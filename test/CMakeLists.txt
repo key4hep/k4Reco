@@ -55,4 +55,30 @@ if(BUILD_CONFORMAL_TRACKING)
   set_test_env("Compare ConformalTracking between Marlin and Gaudi")
   set_tests_properties("Compare ConformalTracking between Marlin and Gaudi" PROPERTIES DEPENDS "Run the ConformalTracking algorithm")
 
+
+  add_test(NAME "Run the ClonesAndSplitTrackFinder algorithm"
+    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runClonesAndSplitTrackFinder.py
+  )
+  set_test_env("Run the ClonesAndSplitTrackFinder algorithm")
+  set_tests_properties("Run the ClonesAndSplitTrackFinder algorithm" PROPERTIES DEPENDS "Run the Marlin wrapper")
+
+  add_test(NAME "Compare ClonesAndSplitTrackFinder between Marlin and Gaudi"
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file "output_clones_and_split_tracks_finder.root" --marlin-tracks "SiTracks" --gaudi-tracks "GaudiSiTracks"
+  )
+  set_test_env("Compare ClonesAndSplitTrackFinder between Marlin and Gaudi")
+  set_tests_properties("Compare ClonesAndSplitTrackFinder between Marlin and Gaudi" PROPERTIES DEPENDS "Run the ConformalTracking algorithm")
+
+
+  add_test(NAME "Run the RefitFinal algorithm"
+    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runRefitFinal.py
+  )
+  set_test_env("Run the RefitFinal algorithm")
+  set_tests_properties("Run the RefitFinal algorithm" PROPERTIES DEPENDS "Run the Marlin wrapper")
+
+  add_test(NAME "Compare RefitFinal between Marlin and Gaudi"
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file "output_refit_final.root" --marlin-tracks "SiTracks_Refitted" --gaudi-tracks "GaudiSiTracks_Refitted"
+  )
+  set_test_env("Compare RefitFinal between Marlin and Gaudi")
+  set_tests_properties("Compare RefitFinal between Marlin and Gaudi" PROPERTIES DEPENDS "Run the ConformalTracking algorithm")
+
 endif()
