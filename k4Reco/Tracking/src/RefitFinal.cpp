@@ -3,6 +3,8 @@
 #include "GaudiDDKalTestTrack.h"
 #include "GaudiTrkUtils.h"
 
+#include <DD4hep/BitFieldCoder.h>
+
 #include <edm4hep/TrackCollection.h>
 #include <edm4hep/TrackMCParticleLinkCollection.h>
 
@@ -74,7 +76,7 @@ std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> Ref
     const auto&                           track   = input_track_col.at(iTrack);
     const auto&                           trkHits = track.getTrackerHits();
     std::vector<edm4hep::TrackerHitPlane> hits;
-    // TODO: Don't create a copy because finaliseLCIOTrack needs pointers
+    // TODO: Don't create a copy because finaliseLCIOTrack and marlin_trk need pointers
     for (const auto& hit : trkHits) {
       hits.push_back(hit.as<edm4hep::TrackerHitPlane>());
     }
@@ -83,12 +85,10 @@ std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> Ref
       trkHitsPtr.push_back(&hit);
     }
 
-    // auto marlin_trk = std::unique_ptr<MarlinTrk::IMarlinTrack>(_trksystem->createTrack());
     auto marlin_trk = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
 
     debug() << "---- track n = " << iTrack << "  n hits = " << trkHits.size() << endmsg;
 
-    // TODO:
     for (const auto& ptr : trkHitsPtr) {
       marlin_trk.addHit(ptr);
     }
@@ -142,21 +142,26 @@ std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> Ref
     const auto outliers = marlin_trk.getOutliers();
 
     std::vector<const edm4hep::TrackerHitPlane*> all_hits;
+    std::vector<const edm4hep::TrackerHitPlane*> hits_in_fit_ptr;
     all_hits.reserve(hits_in_fit.size() + outliers.size());
 
     for (unsigned ihit = 0; ihit < hits_in_fit.size(); ++ihit) {
       all_hits.push_back(hits_in_fit[ihit].first);
+      hits_in_fit_ptr.push_back(hits_in_fit[ihit].first);
     }
 
     for (unsigned ihit = 0; ihit < outliers.size(); ++ihit) {
       all_hits.push_back(outliers[ihit].first);
     }
 
-    // TODO:
-    // UTIL::BitField64 encoder2(lcio::LCTrackerCellID::encoding_string());
-    // encoder2.reset();  // reset to 0
-    // MarlinTrk::addHitNumbersToTrack(lcio_trk.get(), all_hits, false, encoder2);
-    // MarlinTrk::addHitNumbersToTrack(lcio_trk.get(), hits_in_fit, true, encoder2);
+    std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
+    dd4hep::DDSegmentation::BitFieldCoder encoder2(cellIDEncodingString);
+    std::vector<int32_t>                  subdetectorHitNumbers;
+    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, all_hits, false, encoder2);
+    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, hits_in_fit_ptr, true, encoder2);
+    for (const auto num : subdetectorHitNumbers) {
+      lcio_trk.addToSubdetectorHitNumbers(num);
+    }
 
     // debug() << "processEvent: Hit numbers for track " << lcio_trk.id() << ":  " << endmsg;
     int detID = 0;
@@ -166,7 +171,7 @@ std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> Ref
               << " , nhits in fit = " << lcio_trk.getSubdetectorHitNumbers()[ip + 1] << endmsg;
       if (lcio_trk.getSubdetectorHitNumbers()[ip] > 0)
         // TODO: is detID - 1 correct?
-        lcio_trk.setType(lcio_trk.getType() | (1 << (detID - 1)));
+        lcio_trk.setType(lcio_trk.getType() | (1 << detID));
     }
 
     // TODO:
