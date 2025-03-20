@@ -70,6 +70,37 @@ for i, frame_gaudi in enumerate(events_gaudi):
         assert len(track_gaudi.getTrackerHits()) == len(
             track_marlin.getTrackerHits()
         ), f"Number of hits differ for track {j}: {len(track_gaudi.getTrackerHits())} vs {len(track_marlin.getTrackerHits())}"
+
+
+        assert len(track_gaudi.getSubdetectorHitNumbers()) == len(
+            track_marlin.getSubdetectorHitNumbers()
+        ), f"Number of subdetector hit numbers differ for track {j}: {len(track_gaudi.getSubdetectorHitNumbers())} vs {len(track_marlin.getSubdetectorHitNumbers())}"
+
+        assert all(
+            [
+                a == b
+                for a, b in zip(
+                    track_gaudi.getSubdetectorHitNumbers(),
+                    track_marlin.getSubdetectorHitNumbers(),
+                )
+            ]
+        ), f"Subdetector hit numbers differ for track {j}: {track_gaudi.getSubdetectorHitNumbers()} vs {track_marlin.getSubdetectorHitNumbers()}"
+
+
+        assert len(track_gaudi.getSubdetectorHoleNumbers()) == len(
+                track_marlin.getSubdetectorHoleNumbers()
+                ), f"Number of subdetector hole numbers differ for track {j}: {len(track_gaudi.getSubdetectorHoleNumbers())} vs {len(track_marlin.getSubdetectorHoleNumbers())}"
+        assert all(
+                [
+                        a == b
+                        for a, b in zip(
+                        track_gaudi.getSubdetectorHoleNumbers(),
+                        track_marlin.getSubdetectorHoleNumbers(),
+                        )
+                ]
+                ), f"Subdetector hole numbers differ for track {j}: {track_gaudi.getSubdetectorHoleNumbers()} vs {track_marlin.getSubdetectorHoleNumbers()}"
+
+
         assert len(track_gaudi.getTrackStates()) == len(
             track_marlin.getTrackStates()
         ), f"Number of states differ for track {j}: {len(track_gaudi.getTrackStates())} vs {len(track_marlin.getTrackStates())}"
