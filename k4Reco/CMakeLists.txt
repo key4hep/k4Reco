@@ -53,6 +53,7 @@ if(BUILD_CONFORMAL_TRACKING)
        ConformalTracking/src/GaudiTrkUtils.cpp
        Tracking/src/ClonesAndSplitTracksFinder.cpp
        Tracking/src/RefitFinal.cpp
+       Tracking/src/TruthTrackFinder.cpp
   )
 
   list(APPEND libs
