@@ -8,7 +8,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,13 +36,13 @@ add_test(NAME "Run ddsim"
 set_test_env("Run ddsim")
 
 add_test(NAME "Run the Marlin wrapper"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles --onlyTracking sim.edm4hep.root
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --onlyTracking 
 )
 set_test_env("Run the Marlin wrapper")
 set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
 
 add_test(NAME "Run the Marlin wrapper with Truth Tracking"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles --onlyTracking --truthTracking sim.edm4hep.root --outputBasename output_truth_tracking
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --onlyTracking --truthTracking --outputBasename output_truth_tracking
 )
 set_test_env("Run the Marlin wrapper with Truth Tracking")
 set_tests_properties("Run the Marlin wrapper with Truth Tracking" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
