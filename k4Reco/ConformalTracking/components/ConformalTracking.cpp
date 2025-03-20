@@ -690,10 +690,15 @@ edm4hep::TrackCollection ConformalTracking::operator()(
     }
 
     // Add hit information TODO: this is just a fudge for the moment, since we only use vertex hits. Should do for each subdetector once enabled
-
-    // TODO:
-    // track->getSubdetectorHitNumbers().resize(2 * lcio::ILDDetID::ETD);
-    // track->getSubdetectorHitNumbers()[2 * lcio::ILDDetID::VXD - 2] = trackHits.size();
+    // This is kept for compatibility with the original code in ConformalTracking.cc
+    std::vector<int32_t> hitNumbers;
+    // hitNumbers.resize(2 * lcio::ILDDetID::ETD);
+    hitNumbers.resize(2 * 6);
+    // hitNumbers[2 * lcio::ILDDetID::VXD - 2] = trackHits.size();
+    hitNumbers[2 * 1 - 2] = trackHits.size();
+    for (const auto num : hitNumbers) {
+      track.addToSubdetectorHitNumbers(num);
+    }
 
     // calculate purities and check if track has been reconstructed
     // if (m_debugPlots) {
