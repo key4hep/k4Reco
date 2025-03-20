@@ -36,13 +36,13 @@ add_test(NAME "Run ddsim"
 set_test_env("Run ddsim")
 
 add_test(NAME "Run the Marlin wrapper"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --onlyTracking 
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
 )
 set_test_env("Run the Marlin wrapper")
 set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
 
 add_test(NAME "Run the Marlin wrapper with Truth Tracking"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --onlyTracking --truthTracking --outputBasename output_truth_tracking
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
 )
 set_test_env("Run the Marlin wrapper with Truth Tracking")
 set_tests_properties("Run the Marlin wrapper with Truth Tracking" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
