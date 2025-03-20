@@ -36,10 +36,16 @@ add_test(NAME "Run ddsim"
 set_test_env("Run ddsim")
 
 add_test(NAME "Run the Marlin wrapper"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles --onlyTracking sim.edm4hep.root
 )
 set_test_env("Run the Marlin wrapper")
 set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
+
+add_test(NAME "Run the Marlin wrapper with Truth Tracking"
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles --onlyTracking --truthTracking sim.edm4hep.root --outputBasename output_truth_tracking
+)
+set_test_env("Run the Marlin wrapper with Truth Tracking")
+set_tests_properties("Run the Marlin wrapper with Truth Tracking" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
 
 if(BUILD_CONFORMAL_TRACKING)
 
@@ -63,7 +69,7 @@ if(BUILD_CONFORMAL_TRACKING)
   set_tests_properties("Run the ClonesAndSplitTracksFinder algorithm" PROPERTIES DEPENDS "Run the Marlin wrapper")
 
   add_test(NAME "Compare ClonesAndSplitTracksFinder between Marlin and Gaudi"
-    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file "output_clones_and_split_tracks_finder.root" --marlin-tracks "SiTracks" --gaudi-tracks "GaudiSiTracks"
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file output_clones_and_split_tracks_finder.root --marlin-tracks SiTracks --gaudi-tracks GaudiSiTracks
   )
   set_test_env("Compare ClonesAndSplitTracksFinder between Marlin and Gaudi")
   set_tests_properties("Compare ClonesAndSplitTracksFinder between Marlin and Gaudi" PROPERTIES DEPENDS "Run the ConformalTracking algorithm")
@@ -76,9 +82,21 @@ if(BUILD_CONFORMAL_TRACKING)
   set_tests_properties("Run the RefitFinal algorithm" PROPERTIES DEPENDS "Run the Marlin wrapper")
 
   add_test(NAME "Compare RefitFinal between Marlin and Gaudi"
-    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file "output_refit_final.root" --marlin-tracks "SiTracks_Refitted" --gaudi-tracks "GaudiSiTracks_Refitted"
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file output_refit_final.root --marlin-tracks SiTracks_Refitted --gaudi-tracks GaudiSiTracks_Refitted
   )
   set_test_env("Compare RefitFinal between Marlin and Gaudi")
   set_tests_properties("Compare RefitFinal between Marlin and Gaudi" PROPERTIES DEPENDS "Run the ConformalTracking algorithm")
+
+  add_test(NAME "Run the TruthTrackFinder algorithm"
+    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runTruthTrackFinder.py
+  )
+  set_test_env("Run the TruthTrackFinder algorithm")
+  set_tests_properties("Run the TruthTrackFinder algorithm" PROPERTIES DEPENDS "Run the Marlin wrapper with Truth Tracking")
+
+  add_test(NAME "Compare TruthTrackFinder between Marlin and Gaudi"
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --marlin-file output_truth_tracking_REC.edm4hep.root --gaudi-file output_truth_track_finder.root --marlin-tracks SiTracks --gaudi-tracks GaudiSiTracks
+  )
+  set_test_env("Compare TruthTrackFinder between Marlin and Gaudi")
+  set_tests_properties("Compare TruthTrackFinder between Marlin and Gaudi" PROPERTIES DEPENDS "Run the ConformalTracking algorithm")
 
 endif()

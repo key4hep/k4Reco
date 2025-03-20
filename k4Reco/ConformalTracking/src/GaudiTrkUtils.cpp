@@ -490,7 +490,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
 
 void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>&                               subdetectorHitNumbers,
                                          const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
-                                         dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const {
+                                         const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const {
   // Because in EDM4hep for vector members only hits can be added, we need the whole
   // vector before starting to assign
   std::map<int64_t, int32_t> hitNumbers;

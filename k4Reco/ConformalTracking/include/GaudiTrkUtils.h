@@ -77,7 +77,7 @@ public:
 
   void addHitNumbersToTrack(std::vector<int32_t>&                               subdetectorHitNumbers,
                             const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
-                            dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const;
+                            const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const;
 
   int createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
                                  const edm4hep::TrackerHitPlane* trkhit, bool tanL_is_positive);
