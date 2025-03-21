@@ -92,6 +92,10 @@ StatusCode DDPlanarDigi::initialize() {
     m_mask = (static_cast<std::uint64_t>(1) << m_cellIDBits) - 1;
   }
 
+  if (m_efficiency > 1.0) {
+    throw std::runtime_error(fmt::format("DDPlanarDigi Error: Efficiency cannot be greater than 1.0 (provided: {})", m_efficiency.value()));
+  }
+
   return StatusCode::SUCCESS;
 }
 
@@ -104,6 +108,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
 
   int nCreatedHits   = 0;
   int nDismissedHits = 0;
+  int nEfficiencyCutHits = 0;
 
   auto trkhitVec = edm4hep::TrackerHitPlaneCollection();
   auto thsthcol  = edm4hep::TrackerHitSimTrackerHitLinkCollection();
@@ -116,6 +121,11 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
 
   for (const auto& hit : simTrackerHits) {
     ++(*m_histograms[hitE])[hit.getEDep() * (dd4hep::GeV / dd4hep::keV)];
+
+    double rand_num = m_engine.Uniform(0.0, 1.0);
+    if (rand_num > m_efficiency) {
+      continue; //skip (1-efficiency) of the hits "Eficiency cut".
+    }
 
     if (hit.getEDep() < m_minEnergy) {
       debug() << "Hit with insufficient energy " << hit.getEDep() * (dd4hep::GeV / dd4hep::keV) << " keV" << endmsg;
@@ -315,7 +325,7 @@ std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::TrackerHitSimTrackerHitL
   float accFraction = nSimHits > 0 ? float(nCreatedHits) / float(nSimHits) * 100.0 : 0.0;
   ++(*m_histograms[hitsAccepted])[accFraction];
 
-  debug() << "Created " << nCreatedHits << " hits, " << nDismissedHits << " hits  dismissed" << endmsg;
+  debug() << "Created " << nCreatedHits << " hits, " << nDismissedHits << " hits  dismissed, " << nEfficiencyCutHits << " hits dropped due to efficiency cut." << endmsg;
 
   return std::make_tuple(std::move(trkhitVec), std::move(thsthcol));
 }

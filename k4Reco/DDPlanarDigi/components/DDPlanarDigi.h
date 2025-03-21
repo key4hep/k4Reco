@@ -105,6 +105,8 @@ private:
       {-1},
       "Resolution in the direction of t; either one per layer or one for all layers. If the single entry is negative, "
       "disable time smearing. "};
+  Gaudi::Property<double> m_efficiency{
+      this, "Efficiency", 1.00, "Efficiency of the chamber to detect the charged particle"};    
   Gaudi::Property<bool>   m_forceHitsOntoSurface{this, "ForceHitsOntoSurface", false,
                                                "Project hits onto the surfoce in case they are not yet on the surface"};
   Gaudi::Property<double> m_minEnergy{this, "MinEnergy", 0.0, "Minimum energy (GeV) of SimTrackerHit to be digitized"};
