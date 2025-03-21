@@ -227,6 +227,7 @@ MC particle at the end and get all of the hits, before making a track.
 
     // TODO: Implement code for running when m_useTruthInPrefit is true
     if (m_useTruthInPrefit) {
+      throw std::runtime_error("UseTruthInPrefit not implemented yet");
       //   HelixTrack helix(mcParticle->getVertex(), mcParticle->getMomentum(), mcParticle->getCharge(), m_magneticField);
 
       //   double trueD0        = helix.getD0();

@@ -47,8 +47,8 @@ struct ClonesAndSplitTracksFinder final
 
   // // Removes doubles (from clone treatments and track merging) and filters multiple connections (clones and mergeable
   // // tracks treated differently)
-  void filterClonesAndMergedTracks(std::multimap<int, std::pair<int, edm4hep::Track>>&, const edm4hep::TrackCollection&,
-                                   edm4hep::TrackCollection&, bool) const;
+  void filterClonesAndMergedTracks(std::multimap<size_t, std::pair<size_t, edm4hep::Track>>&,
+                                   const edm4hep::TrackCollection&, edm4hep::TrackCollection&, bool) const;
 
   // // Contains the whole merging procedure (calls filterClonesAndMergedTracks(bool false) and mergeAndFit)
   // void mergeSplitTracks(std::unique_ptr<LCCollectionVec>&, LCCollection*&, EVENT::TrackVec&);
@@ -69,25 +69,18 @@ struct ClonesAndSplitTracksFinder final
   // // Contains the whole clone skimming procedure (calls bestInClones and filterClonesAndMergedTracks(bool true))
   edm4hep::TrackCollection removeClones(const edm4hep::TrackCollection&) const;
 
-  // lcio::LCCollection* GetCollection(lcio::LCEvent* evt, std::string colName);
-
-  // std::string _input_track_col_name{};
-  // std::string _output_track_col_name{};
-
-  // // MarlinTrk::IMarlinTrkSystem* _trksystem = nullptr;
-
   // int _n_run = -1;
 
   // double _magneticField = 0.0;
   // bool _extrapolateForward = true;
 
   // // Track fit parameters
-  double m_initialTrackError_d0{};
-  double m_initialTrackError_phi0{};
-  double m_initialTrackError_omega{};
-  double m_initialTrackError_z0{};
-  double m_initialTrackError_tanL{};
-  double m_maxChi2perHit{};
+  // double m_initialTrackError_d0{};
+  // double m_initialTrackError_phi0{};
+  // double m_initialTrackError_omega{};
+  // double m_initialTrackError_z0{};
+  // double m_initialTrackError_tanL{};
+  // double m_maxChi2perHit{};
 
   // std::shared_ptr<UTIL::BitField64> _encoder{};
 
