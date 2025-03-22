@@ -20,6 +20,9 @@
 #include "GaudiDDKalTestTrack.h"
 #include "GaudiTrkUtils.h"
 
+#include <streamlog/logstream.h>
+#include <streamlog/streamlog.h>
+
 #include <DDSegmentation/BitFieldCoder.h>
 #include <edm4hep/TrackCollection.h>
 #include <edm4hep/TrackMCParticleLinkCollection.h>
@@ -92,6 +95,13 @@ TruthTrackFinder::TruthTrackFinder(const std::string& name, ISvcLocator* svcLoc)
                        }) {}
 
 StatusCode TruthTrackFinder::initialize() {
+  // Setting the streamlog output is necessary to avoid lots of overhead.
+  // Otherwise it would be equivalent to running with every debug message
+  // being computed
+  streamlog::out.init(std::cout, "");
+  streamlog::logscope* scope = new streamlog::logscope(streamlog::out);
+  scope->setLevel<streamlog::MESSAGE0>();
+
   m_geoSvc                         = serviceLocator()->service(m_geoSvcName);
   std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
   m_encoder                        = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(cellIDEncodingString);

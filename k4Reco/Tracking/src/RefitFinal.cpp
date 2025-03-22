@@ -21,6 +21,9 @@
 #include "GaudiDDKalTestTrack.h"
 #include "GaudiTrkUtils.h"
 
+#include <streamlog/logstream.h>
+#include <streamlog/streamlog.h>
+
 #include <DD4hep/BitFieldCoder.h>
 
 #include <edm4hep/TrackCollection.h>
@@ -42,6 +45,13 @@ RefitFinal::RefitFinal(const std::string& name, ISvcLocator* svcLoc)
                        }) {}
 
 StatusCode RefitFinal::initialize() {
+  // Setting the streamlog output is necessary to avoid lots of overhead.
+  // Otherwise it would be equivalent to running with every debug message
+  // being computed
+  streamlog::out.init(std::cout, "");
+  streamlog::logscope* scope = new streamlog::logscope(streamlog::out);
+  scope->setLevel<streamlog::MESSAGE0>();
+
   // usually a good idea to
   // printParameters();
 
