@@ -19,6 +19,9 @@
 #include "ClonesAndSplitTracksFinder.h"
 // #include "HitsSorterAndDebugger.h"
 
+#include <streamlog/logstream.h>
+#include <streamlog/streamlog.h>
+
 #include <edm4hep/MutableTrack.h>
 #include <edm4hep/Track.h>
 #include <edm4hep/TrackCollection.h>
@@ -41,6 +44,13 @@ ClonesAndSplitTracksFinder::ClonesAndSplitTracksFinder(const std::string& name, 
                   }) {}
 
 StatusCode ClonesAndSplitTracksFinder::initialize() {
+  // Setting the streamlog output is necessary to avoid lots of overhead.
+  // Otherwise it would be equivalent to running with every debug message
+  // being computed
+  streamlog::out.init(std::cout, "");
+  streamlog::logscope* scope = new streamlog::logscope(streamlog::out);
+  scope->setLevel<streamlog::MESSAGE0>();
+
   // // usually a good idea to
   // printParameters();
 
