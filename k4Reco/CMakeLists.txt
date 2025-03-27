@@ -35,17 +35,42 @@ set(libs
         ROOT::Tree
 )
 
-if(BUILD_CONFORMAL_TRACKING)
+if(BUILD_TRACKING)
 
   find_package(LCIO REQUIRED)
   find_package(ILCUTIL COMPONENTS streamlog REQUIRED)
   find_package(KalTest REQUIRED)
   find_package(DDKalTest REQUIRED)
 
+  gaudi_add_library(GaudiTrkUtils
+    SOURCES
+    GaudiTrkUtils/src/GaudiDDKalTest.cpp
+    GaudiTrkUtils/src/GaudiDDKalTestTrack.cpp
+    LINK PRIVATE
+    LCIO::lcio EDM4HEP::edm4hep DD4hep::DDRec Gaudi::GaudiKernel
+  )
+
+  target_sources(GaudiTrkUtils
+    PUBLIC FILE_SET headers
+    TYPE HEADERS FILES
+    GaudiTrkUtils/include/GaudiDDKalTest.h
+    GaudiTrkUtils/include/GaudiDDKalTestTrack.h
+  )
+
+  target_include_directories(GaudiTrkUtils PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiTrkUtils/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE
+    ${KalTest_INCLUDE_DIRS}
+    ${DDKalTest_INCLUDE_DIRS}
+    ${streamlog_INCLUDE_DIRS}
+  )
+
+  # Expected by KalTest
+  target_compile_definitions(GaudiTrkUtils PRIVATE __NOT0__)
+
   list(APPEND sources
        ConformalTracking/components/ConformalTracking.cpp
-       ConformalTracking/src/GaudiDDKalTest.cpp
-       ConformalTracking/src/GaudiDDKalTestTrack.cpp
        ConformalTracking/src/KDTrack.cpp
        ConformalTracking/src/kdtree2.cpp
        ConformalTracking/src/KDTree.cpp
@@ -57,9 +82,9 @@ if(BUILD_CONFORMAL_TRACKING)
   )
 
   list(APPEND libs
-       LCIO::lcio
        ${KalTest_LIBRARIES}
        ${DDKalTest_LIBRARIES}
+       GaudiTrkUtils
   )
 endif()
 
@@ -74,9 +99,7 @@ target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-if(BUILD_CONFORMAL_TRACKING)
-  # Expected by KalTest
-  target_compile_definitions(k4RecoPlugins PRIVATE __NOT0__)
+if(BUILD_TRACKING)
 
   target_include_directories(k4RecoPlugins PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
@@ -87,9 +110,11 @@ if(BUILD_CONFORMAL_TRACKING)
 
 endif()
 
-install(TARGETS k4RecoPlugins
-  EXPORT ${CMAKE_PROJECT_NAME}Targets
+install(TARGETS GaudiTrkUtils k4RecoPlugins
+  EXPORT k4RecoTargets
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
-  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/@{CMAKE_PROJECT_NAME}"
+  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  FILE_SET headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/k4Reco"
+  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   COMPONENT dev)

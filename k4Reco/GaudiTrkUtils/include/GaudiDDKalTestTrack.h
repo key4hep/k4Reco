@@ -21,11 +21,11 @@
 
 #include "GaudiDDKalTest.h"
 
-#include <TMatrixD.h>
-#include <TObjArray.h>
-
 #include <edm4hep/TrackState.h>
 #include <edm4hep/TrackerHitPlane.h>
+
+#include <TMatrixD.h>
+#include <TObjArray.h>
 
 #include <cmath>
 
