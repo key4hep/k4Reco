@@ -36,7 +36,7 @@
 DDPlanarDigi::DDPlanarDigi(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {
-                           KeyValues("SimTrackerHitCollectionName", {"SimTrackerHits"}),
+                           KeyValues("SimTrackHitCollectionName", {"SimTrackerHits"}),
                            KeyValues("HeaderName", {"EventHeader"}),
                        },
                        {KeyValues("TrackerHitCollectionName", {"VTXTrackerHits"}),
@@ -86,7 +86,7 @@ StatusCode DDPlanarDigi::initialize() {
   }
 
   // Get and store the name for a debug message later
-  (void)this->getProperty("SimTrackerHitCollectionName", m_collName);
+  (void)this->getProperty("SimTrackHitCollectionName", m_collName);
 
   if (m_cellIDBits != 64) {
     m_mask = (static_cast<std::uint64_t>(1) << m_cellIDBits) - 1;
