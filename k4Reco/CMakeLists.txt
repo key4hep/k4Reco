@@ -48,6 +48,8 @@ if(BUILD_TRACKING)
     GaudiTrkUtils/src/GaudiDDKalTestTrack.cpp
     LINK PRIVATE
     LCIO::lcio EDM4HEP::edm4hep DD4hep::DDRec Gaudi::GaudiKernel
+    ${KalTest_LIBRARIES}
+    ${DDKalTest_LIBRARIES}
   )
 
   target_sources(GaudiTrkUtils
