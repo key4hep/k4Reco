@@ -52,6 +52,9 @@ if(BUILD_TRACKING)
     ${DDKalTest_LIBRARIES}
   )
 
+  # Needed for the warnings in KalTest
+  target_compile_options(GaudiTrkUtils PRIVATE "-Wno-error=deprecated-copy")
+
   target_sources(GaudiTrkUtils
     PUBLIC FILE_SET headers
     TYPE HEADERS FILES
