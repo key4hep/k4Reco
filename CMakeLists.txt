@@ -27,7 +27,7 @@ set(PACKAGE_VERSION_PATCH 0)
 
 set(PACKAGE_VERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE_VERSION_PATCH}")
 
-option(BUILD_CONFORMAL_TRACKING "Build conformal tracking" ON)
+option(BUILD_TRACKING "Build conformal tracking" ON)
 
 find_package(DD4hep REQUIRED)
 find_package(EDM4HEP REQUIRED)

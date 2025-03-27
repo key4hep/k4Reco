@@ -47,7 +47,7 @@ add_test(NAME "Run the Marlin wrapper with Truth Tracking"
 set_test_env("Run the Marlin wrapper with Truth Tracking")
 set_tests_properties("Run the Marlin wrapper with Truth Tracking" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
 
-if(BUILD_CONFORMAL_TRACKING)
+if(BUILD_TRACKING)
 
   add_test(NAME "Run the ConformalTracking algorithm"
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/options/runConformalTracking.py
