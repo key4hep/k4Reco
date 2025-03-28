@@ -91,203 +91,107 @@ tracking.ThetaRange = 0.05
 tracking.TooManyTracks = 100000
 tracking.trackPurity = 0.7
 
-CT_MAX_DIST = "0.05;"
+CT_MAX_DIST = 0.05
 
-collections = [
-    ["VXDTrackerHits"],
-    ["VXDEndcapTrackerHits"],
-    ["VXDTrackerHits", "VXDEndcapTrackerHits"],
-    [],
-    ["ITrackerHits", "OTrackerHits", "ITrackerEndcapHits", "OTrackerEndcapHits"],
-    [
-        "VXDTrackerHits",
-        "VXDEndcapTrackerHits",
-        "ITrackerHits",
-        "OTrackerHits",
-        "ITrackerEndcapHits",
-        "OTrackerEndcapHits",
-    ],
-]
-params = [
-    [
-        "MaxCellAngle",
-        ":",
-        "0.01;",
-        "MaxCellAngleRZ",
-        ":",
-        "0.01;",
-        "Chi2Cut",
-        ":",
-        "100;",
-        "MinClustersOnTrack",
-        ":",
-        "4;",
-        "MaxDistance",
-        ":",
-        CT_MAX_DIST,
-        "SlopeZRange",
-        "10.0;",
-        "HighPTCut",
-        "10.0;",
-    ],
-    [
-        "MaxCellAngle",
-        ":",
-        "0.01;",
-        "MaxCellAngleRZ",
-        ":",
-        "0.01;",
-        "Chi2Cut",
-        ":",
-        "100;",
-        "MinClustersOnTrack",
-        ":",
-        "4;",
-        "MaxDistance",
-        ":",
-        CT_MAX_DIST,
-        "SlopeZRange",
-        "10.0;",
-        "HighPTCut",
-        "10.0;",
-    ],
-    [
-        "MaxCellAngle",
-        ":",
-        "0.05;",
-        "MaxCellAngleRZ",
-        ":",
-        "0.05;",
-        "Chi2Cut",
-        ":",
-        "100;",
-        "MinClustersOnTrack",
-        ":",
-        "4;",
-        "MaxDistance",
-        ":",
-        CT_MAX_DIST,
-        "SlopeZRange",
-        "10.0;",
-        "HighPTCut",
-        "10.0;",
-    ],
-    [
-        "MaxCellAngle",
-        ":",
-        "0.1;",
-        "MaxCellAngleRZ",
-        ":",
-        "0.1;",
-        "Chi2Cut",
-        ":",
-        "2000;",
-        "MinClustersOnTrack",
-        ":",
-        "4;",
-        "MaxDistance",
-        ":",
-        CT_MAX_DIST,
-        "SlopeZRange",
-        "10.0;",
-        "HighPTCut",
-        "10.0;",
-    ],
-    [
-        "MaxCellAngle",
-        ":",
-        "0.1;",
-        "MaxCellAngleRZ",
-        ":",
-        "0.1;",
-        "Chi2Cut",
-        ":",
-        "2000;",
-        "MinClustersOnTrack",
-        ":",
-        "4;",
-        "MaxDistance",
-        ":",
-        CT_MAX_DIST,
-        "SlopeZRange",
-        "10.0;",
-        "HighPTCut",
-        "1.0;",
-    ],
-    [
-        "MaxCellAngle",
-        ":",
-        "0.1;",
-        "MaxCellAngleRZ",
-        ":",
-        "0.1;",
-        "Chi2Cut",
-        ":",
-        "1000;",
-        "MinClustersOnTrack",
-        ":",
-        "5;",
-        "MaxDistance",
-        ":",
-        "0.015;",
-        "SlopeZRange",
-        "10.0;",
-        "HighPTCut",
-        "10.0;",
-    ],
-]
-flags = [
-    ["HighPTFit", "VertexToTracker"],
-    ["HighPTFit", "VertexToTracker"],
-    ["HighPTFit", "VertexToTracker", "RadialSearch"],
-    ["HighPTFit", "VertexToTracker", "RadialSearch"],
-    ["HighPTFit", "VertexToTracker", "RadialSearch"],
-    ["OnlyZSchi2cut", "RadialSearch"],
-]
-functions = [
-    [
-        "CombineCollections",
-        "BuildNewTracks",
-    ],
-    [
-        "CombineCollections",
-        "ExtendTracks",
-    ],
-    [
-        "CombineCollections",
-        "BuildNewTracks",
-    ],
-    [
-        "BuildNewTracks",
-        "SortTracks",
-    ],
-    [
-        "CombineCollections",
-        "ExtendTracks",
-    ],
-    [
-        "CombineCollections",
-        "BuildNewTracks",
-    ],
-]
+parameters = {
+        # VXDBarrel
+        ("VXDTrackerHits",): {
+            "params": {
+                "MaxCellAngle": 0.01,
+                "MaxCellAngleRZ": 0.01,
+                "Chi2Cut": 100,
+                "MinClustersOnTrack": 4,
+                "MaxDistance": CT_MAX_DIST,
+                "SlopeZRange": 10.0,
+                "HighPTCut": 10.0,
+            },
+            "flags": ["HighPTFit", "VertexToTracker"],
+            "functions": ["CombineCollections", "BuildNewTracks"],
+        },
+        # VXDEncap
+        ("VXDEndcapTrackerHits",): {
+            "params": {
+                "MaxCellAngle": 0.01,
+                "MaxCellAngleRZ": 0.01,
+                "Chi2Cut": 100,
+                "MinClustersOnTrack": 4,
+                "MaxDistance": CT_MAX_DIST,
+                "SlopeZRange": 10.0,
+                "HighPTCut": 10.0,
+            },
+            "flags": ["HighPTFit", "VertexToTracker"],
+            "functions": ["CombineCollections", "ExtendTracks"],
+        },
+        # LowerCellAngle1
+        ("VXDTrackerHits", "VXDEndcapTrackerHits"): {
+            "params": {
+                "MaxCellAngle": 0.05,
+                "MaxCellAngleRZ": 0.05,
+                "Chi2Cut": 100,
+                "MinClustersOnTrack": 4,
+                "MaxDistance": CT_MAX_DIST,
+                "SlopeZRange": 10.0,
+                "HighPTCut": 10.0,
+            },
+            "flags": ["HighPTFit", "VertexToTracker", "RadialSearch"],
+            "functions": ["CombineCollections", "BuildNewTracks"],
+        },
+        # LowerCellAngle2
+        (): {
+            "params": {
+                "MaxCellAngle": 0.1,
+                "MaxCellAngleRZ": 0.1,
+                "Chi2Cut": 2000,
+                "MinClustersOnTrack": 4,
+                "MaxDistance": CT_MAX_DIST,
+                "SlopeZRange": 10.0,
+                "HighPTCut": 10.0,
+            },
+            "flags": ["HighPTFit", "VertexToTracker", "RadialSearch"],
+            "functions": ["BuildNewTracks", "SortTracks"],
+        },
+        # Tracker
+        ("ITrackerHits", "OTrackerHits", "ITrackerEndcapHits", "OTrackerEndcapHits"): {
+            "params": {
+                "MaxCellAngle": 0.1,
+                "MaxCellAngleRZ": 0.1,
+                "Chi2Cut": 2000,
+                "MinClustersOnTrack": 4,
+                "MaxDistance": CT_MAX_DIST,
+                "SlopeZRange": 10.0,
+                "HighPTCut": 1.0,
+            },
+            "flags": ["HighPTFit", "VertexToTracker", "RadialSearch"],
+            "functions": ["CombineCollections", "ExtendTracks"],
+        },
+        # Displaced
+        (
+            "VXDTrackerHits",
+            "VXDEndcapTrackerHits",
+            "ITrackerHits",
+            "OTrackerHits",
+            "ITrackerEndcapHits",
+            "OTrackerEndcapHits",
+        ): {
+            "params": {
+                "MaxCellAngle": 0.1,
+                "MaxCellAngleRZ": 0.1,
+                "Chi2Cut": 1000,
+                "MinClustersOnTrack": 5,
+                "MaxDistance": 0.015,
+                "SlopeZRange": 10.0,
+                "HighPTCut": 10.0,
+            },
+            "flags": ["OnlyZSchi2cut", "RadialSearch"],
+            "functions": ["CombineCollections", "BuildNewTracks"],
+        },
+    }
 
-names = []
-values = []
-for ls in params:
-    current_names = []
-    current_values = []
-    ls = [x for x in ls if x != ":"]
-    for i in range(0, len(ls), 2):
-        current_names.append(ls[i])
-        current_values.append(float(ls[i + 1].replace(";", "")))
-    names.append(current_names)
-    values.append(current_values)
-
-tracking.stepCollections = collections
-tracking.stepParametersNames = names
-tracking.stepParametersValues = values
-tracking.stepParametersFlags = flags
-tracking.stepParametersFunctions = functions
+tracking.stepCollections = [list(elem) for elem in parameters.keys()]
+tracking.stepParametersNames = [list(elem["params"].keys()) for elem in parameters.values()]
+tracking.stepParametersValues = [list(elem["params"].values()) for elem in parameters.values()]
+tracking.stepParametersFlags = [elem["flags"] for elem in parameters.values()]
+tracking.stepParametersFunctions = [elem["functions"] for elem in parameters.values()]
 
 hps = RootHistSvc("HistogramPersistencySvc")
 root_hist_svc = RootHistoSink("RootHistoSink")
