@@ -93,9 +93,10 @@ tracking.trackPurity = 0.7
 
 CT_MAX_DIST = 0.05
 
+# The keys are simply a name are not passed to ConformalTracking
 parameters = {
-        # VXDBarrel
-        ("VXDTrackerHits",): {
+        "VXDBarrel": {
+            "collections": ["VXDTrackerHits"],
             "params": {
                 "MaxCellAngle": 0.01,
                 "MaxCellAngleRZ": 0.01,
@@ -108,8 +109,8 @@ parameters = {
             "flags": ["HighPTFit", "VertexToTracker"],
             "functions": ["CombineCollections", "BuildNewTracks"],
         },
-        # VXDEncap
-        ("VXDEndcapTrackerHits",): {
+        "VXDEncap": {
+            "collections": ["VXDEndcapTrackerHits"],
             "params": {
                 "MaxCellAngle": 0.01,
                 "MaxCellAngleRZ": 0.01,
@@ -122,8 +123,8 @@ parameters = {
             "flags": ["HighPTFit", "VertexToTracker"],
             "functions": ["CombineCollections", "ExtendTracks"],
         },
-        # LowerCellAngle1
-        ("VXDTrackerHits", "VXDEndcapTrackerHits"): {
+        "LowerCellAngle1": {
+            "collections": ["VXDTrackerHits", "VXDEndcapTrackerHits"],
             "params": {
                 "MaxCellAngle": 0.05,
                 "MaxCellAngleRZ": 0.05,
@@ -136,8 +137,8 @@ parameters = {
             "flags": ["HighPTFit", "VertexToTracker", "RadialSearch"],
             "functions": ["CombineCollections", "BuildNewTracks"],
         },
-        # LowerCellAngle2
-        (): {
+        "LowerCellAngle2": {
+            "collections": [],
             "params": {
                 "MaxCellAngle": 0.1,
                 "MaxCellAngleRZ": 0.1,
@@ -150,8 +151,8 @@ parameters = {
             "flags": ["HighPTFit", "VertexToTracker", "RadialSearch"],
             "functions": ["BuildNewTracks", "SortTracks"],
         },
-        # Tracker
-        ("ITrackerHits", "OTrackerHits", "ITrackerEndcapHits", "OTrackerEndcapHits"): {
+        "Tracker": {
+            "collections": ["ITrackerHits", "OTrackerHits", "ITrackerEndcapHits", "OTrackerEndcapHits"],
             "params": {
                 "MaxCellAngle": 0.1,
                 "MaxCellAngleRZ": 0.1,
@@ -164,15 +165,8 @@ parameters = {
             "flags": ["HighPTFit", "VertexToTracker", "RadialSearch"],
             "functions": ["CombineCollections", "ExtendTracks"],
         },
-        # Displaced
-        (
-            "VXDTrackerHits",
-            "VXDEndcapTrackerHits",
-            "ITrackerHits",
-            "OTrackerHits",
-            "ITrackerEndcapHits",
-            "OTrackerEndcapHits",
-        ): {
+        "Displaced": {
+            "collections": ["VXDTrackerHits", "VXDEndcapTrackerHits", "ITrackerHits", "OTrackerHits", "ITrackerEndcapHits", "OTrackerEndcapHits"],
             "params": {
                 "MaxCellAngle": 0.1,
                 "MaxCellAngleRZ": 0.1,
@@ -187,7 +181,7 @@ parameters = {
         },
     }
 
-tracking.stepCollections = [list(elem) for elem in parameters.keys()]
+tracking.stepCollections = [elem["collections"] for elem in parameters.values()]
 tracking.stepParametersNames = [list(elem["params"].keys()) for elem in parameters.values()]
 tracking.stepParametersValues = [list(elem["params"].values()) for elem in parameters.values()]
 tracking.stepParametersFlags = [elem["flags"] for elem in parameters.values()]
