@@ -47,7 +47,7 @@
 class IGeoSvc;
 
 using TrackerHitPlaneCollection = std::vector<const edm4hep::TrackerHitPlaneCollection*>;
-using Association               = std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>;
+using Association = std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>;
 
 struct ConformalTracking final : k4FWCore::Transformer<edm4hep::TrackCollection(
                                      const TrackerHitPlaneCollection&,
@@ -64,8 +64,8 @@ struct ConformalTracking final : k4FWCore::Transformer<edm4hep::TrackCollection(
 private:
   // Cell creation
   SKDCluster extrapolateCell(Cell::SCell const&, double) const;
-  void       extendSeedCells(SharedCells&, UKDTree&, bool, const SharedKDClusters&, Parameters const&,
-                             bool vertexToTracker = true) const;
+  void extendSeedCells(SharedCells&, UKDTree&, bool, const SharedKDClusters&, Parameters const&,
+                       bool vertexToTracker = true) const;
 
   void runStep(SharedKDClusters&, UKDTree&, UniqueKDTracks&, std::map<size_t, SharedKDClusters> const&,
                Parameters const&) const;
@@ -84,15 +84,15 @@ private:
                             bool vertexToTracker = true) const;
 
   UniqueCellularTracks createTracksNew(const Cell::SCell&) const;
-  bool                 toBeUpdated(UniqueCellularTracks const&) const;
-  void                 updateCell(Cell::SCell const&) const;
+  bool toBeUpdated(UniqueCellularTracks const&) const;
+  void updateCell(Cell::SCell const&) const;
 
   // Track fitting
   void getFittedTracks(UniqueKDTracks&, UniqueCellularTracks&, Parameters const&) const;
   void getLowestChi2(UniqueKDTracks&, UniqueKDTracks&) const;
 
   double fitWithoutPoint(KDTrack, int) const;
-  int    overlappingHits(const UKDTrack&, const UKDTrack&) const;
+  int overlappingHits(const UKDTrack&, const UKDTrack&) const;
 
   void fitWithPoint(KDTrack kdTrack, SKDCluster& hit, double& deltaChi2, double& deltaChi2zs) const;
 
@@ -108,24 +108,24 @@ private:
   Gaudi::Property<double> m_highPTcut{this, "HighPTCut", 10.0,
                                       "pT threshold (in GeV) for enabling extendHighPT in extendTracks"};
   Gaudi::Property<double> m_chi2cut{this, "MaxChi2", 300., "Maximum chi2/ndof for linear conformal tracks"};
-  Gaudi::Property<int>    m_minClustersOnTrack{this, "MinClustersOnTrack", 6,
+  Gaudi::Property<int> m_minClustersOnTrack{this, "MinClustersOnTrack", 6,
                                             "Minimum number of clusters to create a track in pattern recognition"};
-  Gaudi::Property<bool>   m_enableTCVC{this, "EnableTightCutsVertexCombined", true,
+  Gaudi::Property<bool> m_enableTCVC{this, "EnableTightCutsVertexCombined", true,
                                      "Enabled tight cuts as first step of reconstruction in vertex b+e [TMP!!]"};
 
   Gaudi::Property<bool> m_debugPlots{this, "DebugPlots", false, "Plots for debugging the tracking"};
   Gaudi::Property<bool> m_debugTime{this, "DebugTiming", false, "Print out time profile"};
 
-  Gaudi::Property<bool>   m_retryTooManyTracks{this, "RetryTooManyTracks", true,
+  Gaudi::Property<bool> m_retryTooManyTracks{this, "RetryTooManyTracks", true,
                                              "retry with tightened parameters, when too many tracks are being created"};
-  Gaudi::Property<int>    m_tooManyTracks{this, "TooManyTracks", 1000, "Number of tracks that is considered too many"};
-  Gaudi::Property<bool>   m_sortTreeResults{this, "SortTreeResults", true, "sort results from kdtree search"};
+  Gaudi::Property<size_t> m_tooManyTracks{this, "TooManyTracks", 1000, "Number of tracks that is considered too many"};
+  Gaudi::Property<bool> m_sortTreeResults{this, "SortTreeResults", true, "sort results from kdtree search"};
   Gaudi::Property<double> m_purity{this, "trackPurity", 0.75,
                                    "Purity value used for checking if tracks are real or not"};
   Gaudi::Property<double> m_thetaRange{this, "ThetaRange", 0.1, "Angular range for initial cell seeding"};
-  Gaudi::Property<int>    m_minClustersOnTrackAfterFit{this, "MinClustersOnTrackAfterFit", 4,
+  Gaudi::Property<int> m_minClustersOnTrackAfterFit{this, "MinClustersOnTrackAfterFit", 4,
                                                     "Final minimum number of track clusters"};
-  Gaudi::Property<int>    m_maxHitsInvFit{this, "MaxHitInvertedFit", 0,
+  Gaudi::Property<int> m_maxHitsInvFit{this, "MaxHitInvertedFit", 0,
                                        "Maximum number of track hits to try the inverted fit"};
 
   Gaudi::Property<std::string> m_encodingStringVariable{
@@ -155,81 +155,81 @@ private:
   SmartIF<IGeoSvc> m_geoSvc;
 
   // Track fit parameters
-  mutable double m_initialTrackError_d0    = 0.0;
-  mutable double m_initialTrackError_phi0  = 0.0;
+  mutable double m_initialTrackError_d0 = 0.0;
+  mutable double m_initialTrackError_phi0 = 0.0;
   mutable double m_initialTrackError_omega = 0.0;
-  mutable double m_initialTrackError_z0    = 0.0;
-  mutable double m_initialTrackError_tanL  = 0.0;
-  mutable double m_maxChi2perHit           = 0.0;
-  mutable double m_magneticField           = 0.0;
+  mutable double m_initialTrackError_z0 = 0.0;
+  mutable double m_initialTrackError_tanL = 0.0;
+  mutable double m_maxChi2perHit = 0.0;
+  mutable double m_magneticField = 0.0;
 
   // Histograms
   mutable Gaudi::Accumulators::StaticRootHistogram<1> m_X{this, "m_X", "m_X", {500, -1500, 1500}};
   mutable Gaudi::Accumulators::StaticRootHistogram<1> m_Y{this, "m_Y", "m_Y", {500, -1500, 1500}};
   mutable Gaudi::Accumulators::StaticRootHistogram<1> m_Z{this, "m_Z", "m_Z", {500, -2500, 2500}};
 
-  TH1F* m_neighX            = nullptr;
-  TH1F* m_neighY            = nullptr;
-  TH1F* m_neighZ            = nullptr;
-  TH1F* m_slopeZ            = nullptr;
-  TH1F* m_slopeZ_true       = nullptr;
+  TH1F* m_neighX = nullptr;
+  TH1F* m_neighY = nullptr;
+  TH1F* m_neighZ = nullptr;
+  TH1F* m_slopeZ = nullptr;
+  TH1F* m_slopeZ_true = nullptr;
   TH1F* m_slopeZ_true_first = nullptr;
   TH2F* m_slopeZ_vs_pt_true = nullptr;
 
-  TH1F* m_cellAngle           = nullptr;
-  TH1F* m_cellDOCA            = nullptr;
-  TH2F* m_cellAngleRadius     = nullptr;
-  TH2F* m_cellLengthRadius    = nullptr;
-  TH2F* m_cellAngleLength     = nullptr;
-  TH1F* m_conformalChi2       = nullptr;
-  TH1F* m_conformalChi2real   = nullptr;
-  TH1F* m_conformalChi2fake   = nullptr;
+  TH1F* m_cellAngle = nullptr;
+  TH1F* m_cellDOCA = nullptr;
+  TH2F* m_cellAngleRadius = nullptr;
+  TH2F* m_cellLengthRadius = nullptr;
+  TH2F* m_cellAngleLength = nullptr;
+  TH1F* m_conformalChi2 = nullptr;
+  TH1F* m_conformalChi2real = nullptr;
+  TH1F* m_conformalChi2fake = nullptr;
   TH2F* m_conformalChi2Purity = nullptr;
 
   TH1F* m_absZ = nullptr;
 
-  TH1F* m_conformalChi2MC        = nullptr;
-  TH2F* m_conformalChi2PtMC      = nullptr;
+  TH1F* m_conformalChi2MC = nullptr;
+  TH2F* m_conformalChi2PtMC = nullptr;
   TH2F* m_conformalChi2VertexRMC = nullptr;
 
-  TH1F* m_conformalChi2SzMC        = nullptr;
-  TH2F* m_conformalChi2SzPtMC      = nullptr;
+  TH1F* m_conformalChi2SzMC = nullptr;
+  TH2F* m_conformalChi2SzPtMC = nullptr;
   TH2F* m_conformalChi2SzVertexRMC = nullptr;
 
-  TH1F* m_cellAngleMC        = nullptr;
-  TH1F* m_cellDOCAMC         = nullptr;
-  TH1F* m_cellAngleRZMC      = nullptr;
-  TH2F* m_cellAngleRadiusMC  = nullptr;
+  TH1F* m_cellAngleMC = nullptr;
+  TH1F* m_cellDOCAMC = nullptr;
+  TH1F* m_cellAngleRZMC = nullptr;
+  TH2F* m_cellAngleRadiusMC = nullptr;
   TH2F* m_cellLengthRadiusMC = nullptr;
-  TH2F* m_cellAngleLengthMC  = nullptr;
+  TH2F* m_cellAngleLengthMC = nullptr;
 
-  TH2F* m_conformalEvents       = nullptr;
-  TH2F* m_nonconformalEvents    = nullptr;
+  TH2F* m_conformalEvents = nullptr;
+  TH2F* m_nonconformalEvents = nullptr;
   TH2F* m_conformalEventsRTheta = nullptr;
-  TH2F* m_conformalEventsMC     = nullptr;
+  TH2F* m_conformalEventsMC = nullptr;
 
-  TCanvas* m_canvConformalEventDisplay                  = nullptr;
-  TCanvas* m_canvConformalEventDisplayAllCells          = nullptr;
-  TCanvas* m_canvConformalEventDisplayAcceptedCells     = nullptr;
-  TCanvas* m_canvConformalEventDisplayMC                = nullptr;
+  TCanvas* m_canvConformalEventDisplay = nullptr;
+  TCanvas* m_canvConformalEventDisplayAllCells = nullptr;
+  TCanvas* m_canvConformalEventDisplayAcceptedCells = nullptr;
+  TCanvas* m_canvConformalEventDisplayMC = nullptr;
   TCanvas* m_canvConformalEventDisplayMCunreconstructed = nullptr;
 
-  TH2F* m_szDistribution  = nullptr;
-  TH2F* m_uvDistribution  = nullptr;
-  TH2F* m_xyDistribution  = nullptr;
+  TH2F* m_szDistribution = nullptr;
+  TH2F* m_uvDistribution = nullptr;
+  TH2F* m_xyDistribution = nullptr;
   TH3F* m_xyzDistribution = nullptr;
 
   // Other constants
-  SKDCluster debugSeed     = nullptr;
-  double     m_slopeZRange = 1000.0;
+  SKDCluster debugSeed = nullptr;
+  double m_slopeZRange = 1000.0;
   // ConformalDebugger                    m_debugger{};
-  std::map<SKDCluster, edm4hep::MCParticle*>    kdParticles{};  // Link from conformal hit to MC particle
-  std::map<SKDCluster, edm4hep::SimTrackerHit*> kdSimHits{};    // Link from conformal hit to SimHit
+  std::map<SKDCluster, edm4hep::MCParticle*> kdParticles{};  // Link from conformal hit to MC particle
+  std::map<SKDCluster, edm4hep::SimTrackerHit*> kdSimHits{}; // Link from conformal hit to SimHit
 
   std::vector<Parameters> m_stepParameters;
 
   GaudiDDKalTest m_ddkaltest{this};
-  mutable int    m_eventNumber = 0;
+  mutable int m_eventNumber = 0;
 };
 
 DECLARE_COMPONENT(ConformalTracking)
