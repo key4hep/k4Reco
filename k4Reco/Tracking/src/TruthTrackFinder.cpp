@@ -55,29 +55,29 @@ inline bool sort_by_z(const edm4hep::TrackerHitPlane* hit1, const edm4hep::Track
   return z1 < z2;
 }
 
-std::vector<const edm4hep::TrackerHitPlane*> TruthTrackFinder::removeHitsSameLayer(
-    const std::vector<const edm4hep::TrackerHitPlane*>& trackHits) const {
+std::vector<const edm4hep::TrackerHitPlane*>
+TruthTrackFinder::removeHitsSameLayer(const std::vector<const edm4hep::TrackerHitPlane*>& trackHits) const {
   std::vector<const edm4hep::TrackerHitPlane*> trackFilteredHits;
 
   trackFilteredHits.push_back(*(trackHits.begin()));
 
   auto cellID = trackHits[0]->getCellID();
   // originally "subdet" was used, which translates to 0
-  auto subdet = m_encoder->get(cellID, 0);
+  auto subdet = m_encoder.get(cellID, 0);
   // originall "layer" was used, which translates to
-  auto layer = m_encoder->get(cellID, "layer");
+  auto layer = m_encoder.get(cellID, "layer");
 
   for (auto it = trackHits.begin() + 1; it != trackHits.end(); ++it) {
     auto currentCellID = (*it)->getCellID();
-    auto currentSubdet = m_encoder->get(currentCellID, 0);
-    auto currentLayer  = m_encoder->get(currentCellID, "layer");
+    auto currentSubdet = m_encoder.get(currentCellID, 0);
+    auto currentLayer = m_encoder.get(currentCellID, "layer");
     if (subdet != currentSubdet) {
       trackFilteredHits.push_back(*it);
     } else if (layer != currentLayer) {
       trackFilteredHits.push_back(*it);
     }
     subdet = currentSubdet;
-    layer  = currentLayer;
+    layer = currentLayer;
   }
   return trackFilteredHits;
 }
@@ -102,32 +102,37 @@ StatusCode TruthTrackFinder::initialize() {
   streamlog::logscope* scope = new streamlog::logscope(streamlog::out);
   scope->setLevel<streamlog::MESSAGE0>();
 
-  m_geoSvc                         = serviceLocator()->service(m_geoSvcName);
+  m_geoSvc = serviceLocator()->service(m_geoSvcName);
+  if (!m_geoSvc) {
+    error() << "Unable to retrieve GeoSvc" << endmsg;
+    return StatusCode::FAILURE;
+  }
   std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
-  m_encoder                        = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(cellIDEncodingString);
+  m_encoder = dd4hep::DDSegmentation::BitFieldCoder(cellIDEncodingString);
 
   m_ddkaltest.init();
+  m_ddkaltest.setEncoder(m_encoder);
 
   // // Get the magnetic field
-  dd4hep::Detector* lcdd        = m_geoSvc->getDetector();
-  const double      position[3] = {0, 0, 0};  // position to calculate magnetic field at (the origin in this case)
-  double            magneticFieldVector[3] = {0, 0, 0};        // initialise object to hold magnetic field
-  lcdd->field().magneticField(position, magneticFieldVector);  // get the magnetic field vector from DD4hep
-  m_magneticField = static_cast<float>(magneticFieldVector[2] / dd4hep::tesla);  // z component at (0,0,0)
+  dd4hep::Detector* lcdd = m_geoSvc->getDetector();
+  const double position[3] = {0, 0, 0};      // position to calculate magnetic field at (the origin in this case)
+  double magneticFieldVector[3] = {0, 0, 0}; // initialise object to hold magnetic field
+  lcdd->field().magneticField(position, magneticFieldVector); // get the magnetic field vector from DD4hep
+  m_magneticField = static_cast<float>(magneticFieldVector[2] / dd4hep::tesla); // z component at (0,0,0)
 
   return StatusCode::SUCCESS;
 }
 
-std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> TruthTrackFinder::operator()(
-    const std::vector<const edm4hep::TrackerHitPlaneCollection*>&             trackerHitCollections,
-    const std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>& relations,
-    const std::vector<const edm4hep::MCParticleCollection*>&                  particleCollections) const {
+std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection>
+TruthTrackFinder::operator()(const std::vector<const edm4hep::TrackerHitPlaneCollection*>& trackerHitCollections,
+                             const std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>& relations,
+                             const std::vector<const edm4hep::MCParticleCollection*>& particleCollections) const {
   // // set the correct configuration for the tracking system for this event
   // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::useQMS> mson(trackFactory, true);
   // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::usedEdx> elosson(trackFactory, true);
   // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing> smoothon(trackFactory, false);
 
-  edm4hep::TrackCollection               trackCollection;
+  edm4hep::TrackCollection trackCollection;
   edm4hep::TrackMCParticleLinkCollection trackRelationCollection;
 
   if (particleCollections.size() == 0)
@@ -142,7 +147,7 @@ MC particle at the end and get all of the hits, before making a track.
 
   // Make the container
   std::map<size_t, std::vector<const edm4hep::TrackerHitPlane*>> particleHits;
-  std::vector<edm4hep::TrackerHitPlane>                          hits;
+  std::vector<edm4hep::TrackerHitPlane> hits;
   hits.reserve(std::accumulate(trackerHitCollections.begin(), trackerHitCollections.end(), 0u,
                                [](size_t sum, const auto& collection) { return sum + collection->size(); }));
 
@@ -152,8 +157,9 @@ MC particle at the end and get all of the hits, before making a track.
   //   info() << "TruthTrackFinder: relations[collection].size(): " << relations[collection]->size() << endmsg;
   //   for (size_t itHit = 0; itHit < trackerHitCollection->size(); itHit++) {
   //     info() << "TruthTrackFinder: hit cellID: " << (*trackerHitCollection)[itHit].getCellID() << endmsg;
-  //     info() << "TruthTrackFinder: simHit cellID: " << relations[collection]->at(itHit).getTo().getCellID() << endmsg;
-  //     if (relations[collection]->at(itHit).getFrom().getCellID() != (*trackerHitCollection)[itHit].getCellID())
+  //     info() << "TruthTrackFinder: simHit cellID: " << relations[collection]->at(itHit).getTo().getCellID() <<
+  //     endmsg; if (relations[collection]->at(itHit).getFrom().getCellID() !=
+  //     (*trackerHitCollection)[itHit].getCellID())
   //       throw std::runtime_error("CellID mismatch between TrackerHit and SimTrackerHit");
   //     hits.push_back({(*trackerHitCollection)[itHit], relations[collection]->at(itHit).getTo()});
   //   }
@@ -163,7 +169,7 @@ MC particle at the end and get all of the hits, before making a track.
   for (size_t collection = 0; collection < relations.size(); collection++) {
     const auto& rel = relations[collection];
     for (unsigned int itRel = 0; itRel < rel->size(); itRel++) {
-      const auto& hit    = rel->at(itRel).getFrom();
+      const auto& hit = rel->at(itRel).getFrom();
       const auto& simHit = rel->at(itRel).getTo();
       // If the hit was produced by a secondary which was not saved to the MCParticle collection
       if (simHit.isProducedBySecondary())
@@ -211,7 +217,7 @@ MC particle at the end and get all of the hits, before making a track.
     edm4hep::MutableTrack track;
 
     // IMarlinTrk used to fit track - IMarlinTrk interface to separete pattern recogition from fit implementation
-    auto marlinTrack      = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
+    auto marlinTrack = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
     auto marlinTrackZSort = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
 
     // Save a vector of the hits to be used (why is this not attached to the track directly?? MarlinTrkUtils to be
@@ -222,11 +228,11 @@ MC particle at the end and get all of the hits, before making a track.
 
     // Make an initial covariance matrix with very broad default values
     edm4hep::CovMatrix6f covMatrix{};
-    covMatrix[0]  = m_initialTrackError_d0;     //sigma_d0^2
-    covMatrix[2]  = m_initialTrackError_phi0;   //sigma_phi0^2
-    covMatrix[5]  = m_initialTrackError_omega;  //sigma_omega^2
-    covMatrix[9]  = m_initialTrackError_z0;     //sigma_z0^2
-    covMatrix[14] = m_initialTrackError_tanL;   //sigma_tanl^2
+    covMatrix[0] = m_initialTrackError_d0;    // sigma_d0^2
+    covMatrix[2] = m_initialTrackError_phi0;  // sigma_phi0^2
+    covMatrix[5] = m_initialTrackError_omega; // sigma_omega^2
+    covMatrix[9] = m_initialTrackError_z0;    // sigma_z0^2
+    covMatrix[14] = m_initialTrackError_tanL; // sigma_tanl^2
 
     bool direction = ((m_fitForward) ? true : false);
 
@@ -238,7 +244,8 @@ MC particle at the end and get all of the hits, before making a track.
     // TODO: Implement code for running when m_useTruthInPrefit is true
     if (m_useTruthInPrefit) {
       throw std::runtime_error("UseTruthInPrefit not implemented yet");
-      //   HelixTrack helix(mcParticle->getVertex(), mcParticle->getMomentum(), mcParticle->getCharge(), m_magneticField);
+      //   HelixTrack helix(mcParticle->getVertex(), mcParticle->getMomentum(), mcParticle->getCharge(),
+      //   m_magneticField);
 
       //   double trueD0        = helix.getD0();
       //   double truePhi       = helix.getPhi0();
@@ -251,7 +258,8 @@ MC particle at the end and get all of the hits, before making a track.
       //                      trackfitHits.at(0)->getPosition()[2]);
       //   float ref_point[3] = {float(helix.getRefPointX()), float(helix.getRefPointY()), float(helix.getRefPointZ())};
       //   TrackStateImpl* trkState =
-      //       new TrackStateImpl(TrackState::AtIP, trueD0, truePhi, trueOmega, trueZ0, trueTanLambda, covMatrix, ref_point);
+      //       new TrackStateImpl(TrackState::AtIP, trueD0, truePhi, trueOmega, trueZ0, trueTanLambda, covMatrix,
+      //       ref_point);
 
       //   // int prefitError =  createFit(trackfitHits, marlinTrack, trkState, m_magneticField,  direction,
       //   // m_maxChi2perHit); streamlog_out(DEBUG2) << "---- createFit - error_fit = " << error_fit << endmsg;
@@ -287,7 +295,7 @@ MC particle at the end and get all of the hits, before making a track.
 
       //   ////////////////////////
 
-    }  // end: helical prefit initialised with info from truth and then track fitted and saved as a lcio track
+    } // end: helical prefit initialised with info from truth and then track fitted and saved as a lcio track
 
     else {
       // DEFAULT procedure: Try to fit
@@ -314,7 +322,7 @@ MC particle at the end and get all of the hits, before making a track.
                                                      m_magneticField, m_maxChi2perHit);
       }
 
-    }  // end: track fitted (prefit from fit from 3 hits) and saved as a lcio track
+    } // end: track fitted (prefit from fit from 3 hits) and saved as a lcio track
 
     /////////////////////////////////////////////
 
@@ -325,7 +333,7 @@ MC particle at the end and get all of the hits, before making a track.
       continue;
     }
 
-    const auto                                   hits_in_fit = marlinTrack.getHitsInFit();
+    const auto hits_in_fit = marlinTrack.getHitsInFit();
     std::vector<const edm4hep::TrackerHitPlane*> hits_in_fit_ptr;
 
     for (const auto& hit : hits_in_fit) {
@@ -334,8 +342,8 @@ MC particle at the end and get all of the hits, before making a track.
 
     /// Fill hits associated to the track by pattern recognition and hits in fit
     std::vector<int32_t> subdetectorHitNumbers;
-    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, trackHits, false, *m_encoder);
-    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, hits_in_fit_ptr, true, *m_encoder);
+    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, trackHits, false, m_encoder);
+    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, hits_in_fit_ptr, true, m_encoder);
     for (const auto num : subdetectorHitNumbers) {
       track.addToSubdetectorHitNumbers(num);
     }

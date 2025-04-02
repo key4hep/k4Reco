@@ -146,7 +146,6 @@ void GaudiDDKalTest::init() {
 
   m_thisAlg->debug() << "  GaudiDDKalTest - number of layers = " << m_det.GetEntriesFast() << endmsg;
 
-  // TODO:
   // if (streamlog_level(DEBUG)) {
   //   lcio::BitField64 bf(UTIL::LCTrackerCellID::encoding_string());
 
@@ -209,10 +208,9 @@ std::vector<const DDVMeasLayer*> GaudiDDKalTest::getSensitiveMeasurementModulesF
   // set the module and sensor bit ranges to zero as these are not used in the map
   // TODO: Pass the encoding string from Gaudi
   // TODO: Check if correct
-  dd4hep::DDSegmentation::BitFieldCoder bf("system:5,side:-2,layer:6,module:11,sensor:8");
-  bf.set(layerID, "module", 0);
-  bf.set(layerID, "sensor", 0);
-  layerID = bf.lowWord(layerID);
+  m_encoder.set(layerID, "module", 0);
+  m_encoder.set(layerID, "sensor", 0);
+  layerID = m_encoder.lowWord(layerID);
 
   auto ii = this->m_active_measurement_modules_by_layer.equal_range(layerID);  // set the first and last entry in ii;
 
@@ -237,7 +235,7 @@ void GaudiDDKalTest::storeActiveMeasurementModuleIDs(const TVKalDetector* detect
 
     if (ml->IsActive()) {
       // then get all the sensitive element id's assosiated with this DDVMeasLayer and store them in the map
-      std::vector<int>::const_iterator it = ml->getCellIDs().begin();
+      auto it = ml->getCellIDs().begin();
 
       while (it != ml->getCellIDs().end()) {
         int sensitive_element_id = *it;
@@ -329,14 +327,8 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
 
   if (meas_modules.size() == 0) {  // no measurement layers found
 
-    // TODO:
-    // UTIL::BitField64 encoder(UTIL::LCTrackerCellID::encoding_string());
-    // encoder.setValue(detElementID);
-
-    // std::stringstream errorMsg;
-    // errorMsg << "GaudiDDKalTest::findMeasLayer module id unkown: moduleID = " << detElementID << " ["
-    //          << encoder.valueString() << "]" << endmsg;
-    throw std::runtime_error("GaudiDDKalTest::findMeasLayer module id unkown");
+    throw std::runtime_error("GaudiDDKalTest::findMeasLayer module id "+ std::to_string(detElementID) +
+                             " not found in active measurement modules");
 
   } else if (meas_modules.size() == 1) {  // one to one mapping
 
@@ -344,16 +336,15 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
 
   } else {  // layer has been split
 
-    bool surf_found(false);
+    bool surf_found = false;
 
     // loop over the measurement layers associated with this CellID and find the correct one using the position of the hit
     for (const auto& module : meas_modules) {
       const auto* surf = dynamic_cast<const TVSurface*>(module);
 
       if (!surf) {
-        std::stringstream errorMsg;
-        errorMsg << "GaudiDDKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " << detElementID;
-        throw std::runtime_error(errorMsg.str());
+        throw std::runtime_error("GaudiDDKalTest::findMeasLayer dynamic_cast failed for surface type: moduleID = " +
+                                 std::to_string(detElementID));
       }
 
       bool hit_on_surface = surf->IsOnSurface(point);
