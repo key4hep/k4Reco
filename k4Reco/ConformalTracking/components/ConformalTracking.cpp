@@ -59,7 +59,6 @@
 #include <iostream>
 #include <stdexcept>
 
-double getBzAtOrigin();
 bool sort_by_radius(const edm4hep::TrackerHitPlane& hit1, const edm4hep::TrackerHitPlane& hit2);
 bool sort_by_radius(const edm4hep::TrackerHitPlane* hit1, const edm4hep::TrackerHitPlane* hit2);
 
@@ -910,24 +909,6 @@ StatusCode ConformalTracking::finalize() {
   return StatusCode::SUCCESS;
 }
 
-// Function not to have to initialize dd4hep for faster testing
-double getBzAtOrigin() { return 4.0; }
-
-// double getBzAtOrigin() {
-//   double bfield(0.0);
-
-//   dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
-//   if (!(theDetector.state() == dd4hep::Detector::READY)) {
-//     throw std::runtime_error("Detector geometry not initialised, cannot get bfield");
-//   }
-//   const double position[3] = {0,0,0}; // position to calculate magnetic field at (the origin in this case)
-//   double magneticFieldVector[3] = {0,0,0}; // initialise object to hold magnetic field
-//   theDetector.field().magneticField(position,magneticFieldVector); // get the magnetic field vector from DD4hep
-//   bfield = magneticFieldVector[2]/dd4hep::tesla; // z component at (0,0,0)
-//   // throw std::runtime_error("bfield = " + std::to_string(bfield));
-//   return bfield;
-// }
-
 // Sort tracker hits from smaller to larger radius
 inline bool sort_by_radius(const edm4hep::TrackerHitPlane& hit1, const edm4hep::TrackerHitPlane& hit2) {
   return edm4hep::utils::magnitudeTransverse(hit1.getPosition()) <
@@ -980,6 +961,17 @@ bool ConformalTracking::neighbourIsCompatible(const SKDCluster& neighbourHit, co
   }
 
   return true;
+}
+
+double ConformalTracking::getBzAtOrigin() const {
+  double bfield(0.0);
+
+  const dd4hep::Detector* theDetector = m_geoSvc->getDetector();
+  const double position[3] = {0, 0, 0};      // position to calculate magnetic field at (the origin in this case)
+  double magneticFieldVector[3] = {0, 0, 0}; // initialise object to hold magnetic field
+  theDetector->field().magneticField(position, magneticFieldVector); // get the magnetic field vector from DD4hep
+  bfield = magneticFieldVector[2] / dd4hep::tesla;                   // z component at (0,0,0)
+  return bfield;
 }
 
 // Combine collections

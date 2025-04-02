@@ -99,6 +99,8 @@ private:
   // Used for debugging
   void drawline(const SKDCluster&, const SKDCluster&, int, int style = 1) const;
 
+  double getBzAtOrigin() const;
+
   Gaudi::Property<double> m_maxCellAngle{this, "MaxCellAngle", 0.035,
                                          "Cut on angle between two cells for cell to be valid"};
   Gaudi::Property<double> m_maxCellAngleRZ{this, "MaxCellAngleRZ", 0.035,
