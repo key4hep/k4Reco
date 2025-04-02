@@ -41,7 +41,7 @@
 #include <stdexcept>
 
 const int site_fails_chi2_cut = 3;
-const int no_intersection     = 4;
+const int no_intersection = 4;
 
 /** Helper class for defining a filter condition based on the delta chi2 in the AddAndFilter step.
  */
@@ -67,7 +67,7 @@ public:
 
 protected:
   double m_maxDeltaChi2;
-  bool   m_passed_last_filter_step;
+  bool m_passed_last_filter_step;
 };
 
 // //---------------------------------------------------------------------------------------------------------------
@@ -80,9 +80,9 @@ GaudiDDKalTestTrack::GaudiDDKalTestTrack(
   m_kalhits = new TObjArray();
   m_kalhits->SetOwner();
 
-  m_initialised  = false;
+  m_initialised = false;
   m_fitDirection = false;
-  m_smoothed     = false;
+  m_smoothed = false;
 
   m_trackHitAtPositiveNDF = nullptr;
   m_hitIndexAtPositiveNDF = 0;
@@ -106,7 +106,7 @@ int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit, const DD
 
   if (trkhit && ml) {
     // TODO: a LCIO hit has to be created because it's needed downstream
-    auto   hit    = IMPL::TrackerHitPlaneImpl();
+    auto hit = IMPL::TrackerHitPlaneImpl();
     double pos[3] = {trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]};
     hit.setPosition(pos);
     hit.setCellID0(trkhit->getCellID());
@@ -136,9 +136,9 @@ int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit, const DD
 
 int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit, DDVTrackHit* kalhit, const DDVMeasLayer* ml) {
   if (kalhit && ml) {
-    m_kalhits->Add(kalhit);                              // Add hit and set surface found
-    m_kaltest_hits_to_edm4hep_hits[kalhit]    = trkhit;  // add hit to map relating lcio and kaltest hits
-    (*m_edm4hep_hits_to_kaltest_hits)[trkhit] = kalhit;  // add hit to map relating lcio and kaltest hits
+    m_kalhits->Add(kalhit);                             // Add hit and set surface found
+    m_kaltest_hits_to_edm4hep_hits[kalhit] = trkhit;    // add hit to map relating lcio and kaltest hits
+    (*m_edm4hep_hits_to_kaltest_hits)[trkhit] = kalhit; // add hit to map relating lcio and kaltest hits
   } else {
     delete kalhit;
     return 1;
@@ -157,8 +157,8 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
     return 1;
   }
 
-  //SJA:FIXME: check here if the track is already initialised, and for now don't allow it to be re-initialised
-  //           if the track is going to be re-initialised then we would need to do it directly on the first site
+  // SJA:FIXME: check here if the track is already initialised, and for now don't allow it to be re-initialised
+  //            if the track is going to be re-initialised then we would need to do it directly on the first site
   if (m_initialised) {
     throw std::runtime_error("Track fit already initialised");
   }
@@ -177,7 +177,7 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
 
   // get Bz from first hit
   TVTrackHit& h1 = *dynamic_cast<TVTrackHit*>(m_kalhits->At(0));
-  double      Bz = h1.GetBfield();
+  double Bz = h1.GetBfield();
 
   // for GeV, Tesla, R in mm
   double alpha = Bz * 2.99792458E-4;
@@ -189,37 +189,35 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
 
   TMatrixD cov(kSdim, kSdim);
 
-  const auto& covLCIO = ts.covMatrix;
+  cov(0, 0) = ts.covMatrix[0];          //   d0, d0
+  cov(0, 1) = -ts.covMatrix[1];         //   d0, phi
+  cov(0, 2) = -ts.covMatrix[3] / alpha; //   d0, kappa
+  cov(0, 3) = -ts.covMatrix[6];         //   d0, z0
+  cov(0, 4) = -ts.covMatrix[10];        //   d0, tanl
 
-  cov(0, 0) = covLCIO[0];           //   d0, d0
-  cov(0, 1) = -covLCIO[1];          //   d0, phi
-  cov(0, 2) = -covLCIO[3] / alpha;  //   d0, kappa
-  cov(0, 3) = -covLCIO[6];          //   d0, z0
-  cov(0, 4) = -covLCIO[10];         //   d0, tanl
+  cov(1, 0) = -ts.covMatrix[1];        //   phi, d0
+  cov(1, 1) = ts.covMatrix[2];         //   phi, phi
+  cov(1, 2) = ts.covMatrix[4] / alpha; //   phi, kappa
+  cov(1, 3) = ts.covMatrix[7];         //   phi, z0
+  cov(1, 4) = ts.covMatrix[11];        //   tanl, phi
 
-  cov(1, 0) = -covLCIO[1];         //   phi, d0
-  cov(1, 1) = covLCIO[2];          //   phi, phi
-  cov(1, 2) = covLCIO[4] / alpha;  //   phi, kappa
-  cov(1, 3) = covLCIO[7];          //   phi, z0
-  cov(1, 4) = covLCIO[11];         //   tanl, phi
+  cov(2, 0) = -ts.covMatrix[3] / alpha;          //   kappa, d0
+  cov(2, 1) = ts.covMatrix[4] / alpha;           //   kappa, phi
+  cov(2, 2) = ts.covMatrix[5] / (alpha * alpha); //   kappa, kappa
+  cov(2, 3) = ts.covMatrix[8] / alpha;           //   kappa, z0
+  cov(2, 4) = ts.covMatrix[12] / alpha;          //   kappa, tanl
 
-  cov(2, 0) = -covLCIO[3] / alpha;           //   kappa, d0
-  cov(2, 1) = covLCIO[4] / alpha;            //   kappa, phi
-  cov(2, 2) = covLCIO[5] / (alpha * alpha);  //   kappa, kappa
-  cov(2, 3) = covLCIO[8] / alpha;            //   kappa, z0
-  cov(2, 4) = covLCIO[12] / alpha;           //   kappa, tanl
+  cov(3, 0) = -ts.covMatrix[6];        //   z0, d0
+  cov(3, 1) = ts.covMatrix[7];         //   z0, phi
+  cov(3, 2) = ts.covMatrix[8] / alpha; //   z0, kappa
+  cov(3, 3) = ts.covMatrix[9];         //   z0, z0
+  cov(3, 4) = ts.covMatrix[13];        //   z0, tanl
 
-  cov(3, 0) = -covLCIO[6];         //   z0, d0
-  cov(3, 1) = covLCIO[7];          //   z0, phi
-  cov(3, 2) = covLCIO[8] / alpha;  //   z0, kappa
-  cov(3, 3) = covLCIO[9];          //   z0, z0
-  cov(3, 4) = covLCIO[13];         //   z0, tanl
-
-  cov(4, 0) = -covLCIO[10];         //   tanl, d0
-  cov(4, 1) = covLCIO[11];          //   tanl, phi
-  cov(4, 2) = covLCIO[12] / alpha;  //   tanl, kappa
-  cov(4, 3) = covLCIO[13];          //   tanl, z0
-  cov(4, 4) = covLCIO[14];          //   tanl, tanl
+  cov(4, 0) = -ts.covMatrix[10];        //   tanl, d0
+  cov(4, 1) = ts.covMatrix[11];         //   tanl, phi
+  cov(4, 2) = ts.covMatrix[12] / alpha; //   tanl, kappa
+  cov(4, 3) = ts.covMatrix[13];         //   tanl, z0
+  cov(4, 4) = ts.covMatrix[14];         //   tanl, tanl
 
   //    cov.Print();
 
@@ -258,8 +256,8 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
   } else if ((pDummyHit = dynamic_cast<DDPlanarHit*>(kalhit))) {
     pDummyHit = (new DDPlanarHit(*static_cast<DDPlanarHit*>(kalhit)));
     //}
-    //else if ( (pDummyHit = dynamic_cast<DDPlanarStripHit *>( kalhit )) ) {
-    //pDummyHit = (new DDPlanarStripHit(*static_cast<DDPlanarStripHit*>( kalhit )));
+    // else if ( (pDummyHit = dynamic_cast<DDPlanarStripHit *>( kalhit )) ) {
+    // pDummyHit = (new DDPlanarStripHit(*static_cast<DDPlanarStripHit*>( kalhit )));
     if (pDummyHit->GetDimension() == 1) {
       const TVMeasLayer* ml = &pDummyHit->GetMeasLayer();
 
@@ -285,18 +283,18 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
 
   TVTrackHit& dummyHit = *pDummyHit;
 
-  //SJA:FIXME: this constants should go in a header file
-  // give the dummy hit huge errors so that it does not contribute to the fit
-  dummyHit(0, 1) = 1.e16;  // give a huge error to d
+  // SJA:FIXME: this constants should go in a header file
+  //  give the dummy hit huge errors so that it does not contribute to the fit
+  dummyHit(0, 1) = 1.e16; // give a huge error to d
 
   if (dummyHit.GetDimension() > 1)
-    dummyHit(1, 1) = 1.e16;  // give a huge error to z
+    dummyHit(1, 1) = 1.e16; // give a huge error to z
 
   // use dummy hit to create initial site
   TKalTrackSite& initialSite = *new TKalTrackSite(dummyHit);
 
-  initialSite.SetHitOwner();  // site owns hit
-  initialSite.SetOwner();     // site owns states
+  initialSite.SetHitOwner(); // site owns hit
+  initialSite.SetOwner();    // site owns states
 
   // ---------------------------
   //  Set up initial track state
@@ -305,13 +303,13 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
   helix.MoveTo(initial_pivot, dphi, nullptr, &cov);
 
   static TKalMatrix initialState(kSdim, 1);
-  initialState(0, 0) = helix.GetDrho();       // d0
-  initialState(1, 0) = helix.GetPhi0();       // phi0
-  initialState(2, 0) = helix.GetKappa();      // kappa
-  initialState(3, 0) = helix.GetDz();         // dz
-  initialState(4, 0) = helix.GetTanLambda();  // tan(lambda)
+  initialState(0, 0) = helix.GetDrho();      // d0
+  initialState(1, 0) = helix.GetPhi0();      // phi0
+  initialState(2, 0) = helix.GetKappa();     // kappa
+  initialState(3, 0) = helix.GetDz();        // dz
+  initialState(4, 0) = helix.GetTanLambda(); // tan(lambda)
   if (kSdim == 6)
-    initialState(5, 0) = 0.;  // t0
+    initialState(5, 0) = 0.; // t0
 
   // make sure that the pivot is in the right place
   initialSite.SetPivot(initial_pivot);
@@ -327,7 +325,7 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
     }
   }
   if (kSdim == 6)
-    covK(5, 5) = 1.e6;  // t0
+    covK(5, 5) = 1.e6; // t0
 
   //    covK.Print();
 
@@ -365,7 +363,7 @@ int GaudiDDKalTestTrack::addAndFit(DDVTrackHit* kalhit, double& chi2increment, T
     m_thisAlg->debug() << endmsg;
   }
 
-  TKalTrackSite* temp_site = new TKalTrackSite(*kalhit);  // create new site for this hit
+  TKalTrackSite* temp_site = new TKalTrackSite(*kalhit); // create new site for this hit
 
   KalTrackFilter filter(maxChi2Increment);
   filter.resetFilterStatus();
@@ -391,7 +389,7 @@ int GaudiDDKalTestTrack::addAndFit(DDVTrackHit* kalhit, double& chi2increment, T
                          << dynamic_cast<const DDVMeasLayer*>(&(kalhit->GetMeasLayer()))->getCellIDs()[i] << endmsg;
     }
 
-    delete temp_site;  // delete site if filter step failed
+    delete temp_site; // delete site if filter step failed
 
     // and this also works..
     m_thisAlg->debug() << " addAndFit : Site passed Chi2 filter step ? " << filter.passedLastFilterStep() << endmsg;
@@ -403,7 +401,7 @@ int GaudiDDKalTestTrack::addAndFit(DDVTrackHit* kalhit, double& chi2increment, T
     }
   }
 
-  site          = temp_site;
+  site = temp_site;
   chi2increment = site->GetDeltaChi2();
 
   return 0;
@@ -432,12 +430,12 @@ int GaudiDDKalTestTrack::addAndFit(const edm4hep::TrackerHitPlane* trkhit, doubl
 
   auto* kalhit = (*m_edm4hep_hits_to_kaltest_hits)[trkhit];
 
-  if (!kalhit) {  //fg: ml->ConvertLCIOTrkHit returns 0 if hit not on surface !!!
+  if (!kalhit) { // fg: ml->ConvertLCIOTrkHit returns 0 if hit not on surface !!!
     return 1;
   }
 
-  TKalTrackSite* site       = nullptr;
-  int            error_code = this->addAndFit(kalhit, chi2increment, site, maxChi2Increment);
+  TKalTrackSite* site = nullptr;
+  int error_code = this->addAndFit(kalhit, chi2increment, site, maxChi2Increment);
 
   if (error_code != 0) {
     delete kalhit;
@@ -497,13 +495,13 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
   DDVTrackHit* kalhit = nullptr;
 
   while ((kalhit = dynamic_cast<DDVTrackHit*>(next()))) {
-    double         chi2increment;
-    TKalTrackSite* site       = nullptr;
-    int            error_code = this->addAndFit(kalhit, chi2increment, site, maxChi2Increment);
+    double chi2increment;
+    TKalTrackSite* site = nullptr;
+    int error_code = this->addAndFit(kalhit, chi2increment, site, maxChi2Increment);
 
     const edm4hep::TrackerHitPlane* trkhit = m_kaltest_hits_to_edm4hep_hits[kalhit];
 
-    if (error_code == 0) {  // add trkhit to map associating trkhits and sites
+    if (error_code == 0) { // add trkhit to map associating trkhits and sites
       m_hit_used_for_sites[trkhit] = site;
       m_hit_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
 
@@ -518,7 +516,7 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
                            << endmsg;
       }
 
-    } else {  // hit rejected by the filter, so store in the list of rejected hits
+    } else { // hit rejected by the filter, so store in the list of rejected hits
 
       // if the hit fails for any reason other than the Chi2 cut record the Chi2 contibution as DBL_MAX
       if (error_code != site_fails_chi2_cut) {
@@ -531,7 +529,7 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
       m_hit_not_used_for_sites.push_back(trkhit);
     }
 
-  }  // end of Kalman filter
+  } // end of Kalman filter
 
   // if (m_ktest->getOption(MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing)) {
   //   m_thisAlg->debug() << "Perform Smoothing for All Previous Measurement Sites " << endmsg;
@@ -541,7 +539,7 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
   //     return error;
   // }
 
-  //return m_hit_used_for_sites.empty() == false ? success : all_sites_fail_fit ;
+  // return m_hit_used_for_sites.empty() == false ? success : all_sites_fail_fit ;
   if (m_hit_used_for_sites.empty() == false) {
     return 0;
   } else {
@@ -550,7 +548,7 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
 }
 
 /** smooth track states from the last filtered hit back to the measurement site associated with the given hit
-   */
+ */
 int GaudiDDKalTestTrack::smooth(const edm4hep::TrackerHitPlane* trkhit) {
   m_thisAlg->debug() << "GaudiDDKalTestTrack::smooth( EVENT::TrackerHit* " << trkhit << "  ) " << endmsg;
 
@@ -560,8 +558,8 @@ int GaudiDDKalTestTrack::smooth(const edm4hep::TrackerHitPlane* trkhit) {
 
   std::map<EVENT::TrackerHit*, TKalTrackSite*>::const_iterator it;
 
-  TKalTrackSite* site       = nullptr;
-  int            error_code = getSiteFromLCIOHit(trkhit, site);
+  TKalTrackSite* site = nullptr;
+  int error_code = getSiteFromLCIOHit(trkhit, site);
 
   if (error_code != 0)
     return error_code;
@@ -581,8 +579,8 @@ int GaudiDDKalTestTrack::getTrackState(const edm4hep::TrackerHitPlane* trkhit, e
       << "GaudiDDKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: "
       << trkhit << " with cellID0 = " << trkhit->getCellID() << endmsg;
 
-  TKalTrackSite* site       = nullptr;
-  int            error_code = getSiteFromLCIOHit(trkhit, site);
+  TKalTrackSite* site = nullptr;
+  int error_code = getSiteFromLCIOHit(trkhit, site);
 
   if (error_code != 0)
     return error_code;
@@ -618,7 +616,8 @@ const std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>>& GaudiDDKa
   //    // not in the order of time
   //
   //    if( m_fitDirection == IMarlinTrack::backward ){
-  //      std::reverse_copy( m_outlier_chi2_values.begin() , m_outlier_chi2_values.end() , std::back_inserter(  hits  )  ) ;
+  //      std::reverse_copy( m_outlier_chi2_values.begin() , m_outlier_chi2_values.end() , std::back_inserter(  hits  )
+  //      ) ;
   //    } else {
   //      std::copy( m_outlier_chi2_values.begin() , m_outlier_chi2_values.end() , std::back_inserter(  hits  )  ) ;
   //    }
@@ -637,8 +636,8 @@ const edm4hep::TrackerHitPlane* GaudiDDKalTestTrack::getTrackerHitAtPositiveNDF(
 
 int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHitPlane* trkhit,
                                    edm4hep::TrackState& ts, double& chi2, int& ndf) {
-  TKalTrackSite* site       = nullptr;
-  int            error_code = getSiteFromLCIOHit(trkhit, site);
+  TKalTrackSite* site = nullptr;
+  int error_code = getSiteFromLCIOHit(trkhit, site);
 
   if (error_code != 0)
     return error_code;
@@ -662,20 +661,20 @@ int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const TKalTra
 
   const TVector3 tpoint(point.x, point.y, point.z);
 
-  TKalTrackState& trkState = (TKalTrackState&)site.GetCurState();  // this segfaults if no hits are present
+  TKalTrackState& trkState = (TKalTrackState&)site.GetCurState(); // this segfaults if no hits are present
 
   THelicalTrack helix = trkState.GetHelix();
-  double        dPhi  = 0.0;
+  double dPhi = 0.0;
 
-  Int_t      sdim = trkState.GetDimension();  // dimensions of the track state, it will be 5 or 6
+  Int_t sdim = trkState.GetDimension(); // dimensions of the track state, it will be 5 or 6
   TKalMatrix sv(sdim, 1);
 
-  TKalMatrix F(sdim, sdim);  // propagator matrix to be returned by transport function
-  F.UnitMatrix();            // set the propagator matrix to the unit matrix
+  TKalMatrix F(sdim, sdim); // propagator matrix to be returned by transport function
+  F.UnitMatrix();           // set the propagator matrix to the unit matrix
 
-  TKalMatrix Q(sdim, sdim);  // noise matrix to be returned by transport function
+  TKalMatrix Q(sdim, sdim); // noise matrix to be returned by transport function
   Q.Zero();
-  TVector3 x0;  // intersection point to be returned by transport
+  TVector3 x0; // intersection point to be returned by transport
 
   TMatrixD c0(trkState.GetCovMat());
 
@@ -685,42 +684,42 @@ int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const TKalTra
   }
 
   if (ml) {
-    m_ktest->m_det.Transport(site, *ml, x0, sv, F, Q);  // transport to last layer cross before point
+    m_ktest->m_det.Transport(site, *ml, x0, sv, F, Q); // transport to last layer cross before point
 
-    // given that we are sure to have intersected the layer ml as this was provided via getLastMeasLayer, x0 will lie on the layer
-    // this could be checked with the method isOnSurface
-    // so F will be the propagation matrix from the current location to the last surface and Q will be the noise matrix up to this point
+    // given that we are sure to have intersected the layer ml as this was provided via getLastMeasLayer, x0 will lie on
+    // the layer this could be checked with the method isOnSurface so F will be the propagation matrix from the current
+    // location to the last surface and Q will be the noise matrix up to this point
 
     TKalMatrix Ft = TKalMatrix(TMatrixD::kTransposed, F);
-    c0            = F * c0 * Ft + Q;  // update covaraince matrix and add the MS assosiated with moving to tvml
+    c0 = F * c0 * Ft + Q; // update covaraince matrix and add the MS assosiated with moving to tvml
 
-    helix.MoveTo(x0, dPhi, nullptr, nullptr);  // move the helix to tvml
+    helix.MoveTo(x0, dPhi, nullptr, nullptr); // move the helix to tvml
 
-  } else {  // the current site is at the last surface before the point to propagate to
+  } else { // the current site is at the last surface before the point to propagate to
     ml = dynamic_cast<const DDVMeasLayer*>(&(site.GetHit().GetMeasLayer()));
   }
 
   // get whether the track is incomming or outgoing at the last surface
-  const TVSurface* sfp = dynamic_cast<const TVSurface*>(ml);  // last surface
+  const TVSurface* sfp = dynamic_cast<const TVSurface*>(ml); // last surface
 
-  TMatrixD dxdphi = helix.CalcDxDphi(0);                       // tangent vector at last surface
-  TVector3 dxdphiv(dxdphi(0, 0), dxdphi(1, 0), dxdphi(2, 0));  // convert matirix diagonal to vector
+  TMatrixD dxdphi = helix.CalcDxDphi(0);                      // tangent vector at last surface
+  TVector3 dxdphiv(dxdphi(0, 0), dxdphi(1, 0), dxdphi(2, 0)); // convert matirix diagonal to vector
   //    Double_t cpa = helix.GetKappa();                              // get pt
 
   Bool_t isout = -dPhi * dxdphiv.Dot(sfp->GetOutwardNormal(x0)) < 0
                      ? kTRUE
-                     : kFALSE;  // out-going or in-coming at the destination surface
+                     : kFALSE; // out-going or in-coming at the destination surface
 
   // now move to the point
   TKalMatrix DF(sdim, sdim);
   DF.UnitMatrix();
-  helix.MoveTo(tpoint, dPhi, &DF, nullptr);  // move helix to desired point, and get propagator matrix
+  helix.MoveTo(tpoint, dPhi, &DF, nullptr); // move helix to desired point, and get propagator matrix
 
   TKalMatrix Qms(sdim, sdim);
-  ml->CalcQms(isout, helix, dPhi, Qms);  // calculate MS for the final step through the present material
+  ml->CalcQms(isout, helix, dPhi, Qms); // calculate MS for the final step through the present material
 
   TKalMatrix DFt = TKalMatrix(TMatrixD::kTransposed, DF);
-  c0             = DF * c0 * DFt + Qms;  // update the covariance matrix
+  c0 = DF * c0 * DFt + Qms; // update the covariance matrix
 
   this->ToLCIOTrackState(helix, c0, ts, chi2, ndf);
 
@@ -729,8 +728,8 @@ int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const TKalTra
 
 int GaudiDDKalTestTrack::propagateToLayer(int layerID, const edm4hep::TrackerHitPlane* trkhit, edm4hep::TrackState& ts,
                                           double& chi2, int& ndf, int& detElementID, int mode) {
-  TKalTrackSite* site       = nullptr;
-  int            error_code = getSiteFromLCIOHit(trkhit, site);
+  TKalTrackSite* site = nullptr;
+  int error_code = getSiteFromLCIOHit(trkhit, site);
 
   if (error_code != 0)
     return error_code;
@@ -744,7 +743,7 @@ int GaudiDDKalTestTrack::propagateToLayer(int layerID, const TKalTrackSite& site
                         "IMPL::TrackStateImpl& ts, double& chi2, int& ndf, int& detElementID ) called "
                      << endmsg;
 
-  edm4hep::Vector3d   crossing_point;
+  edm4hep::Vector3d crossing_point;
   const DDVMeasLayer* ml = nullptr;
 
   int error_code = this->intersectionWithLayer(layerID, site, crossing_point, detElementID, ml, mode);
@@ -789,9 +788,9 @@ int GaudiDDKalTestTrack::intersectionWithLayer(int layerID, const TKalTrackSite&
 int GaudiDDKalTestTrack::findIntersection(const DDVMeasLayer& meas_module, const TKalTrackSite& site,
                                           edm4hep::Vector3d& point, double& dphi, int& detElementID, int mode) {
   TKalTrackState& trkState = (TKalTrackState&)site.GetCurState();
-  THelicalTrack   helix    = trkState.GetHelix();
-  TVector3        xto;  // reference point at destination to be returned by CalcXinPointWith
-  int             crossing_exist = meas_module.getIntersectionAndCellID(helix, xto, dphi, detElementID, mode);
+  THelicalTrack helix = trkState.GetHelix();
+  TVector3 xto; // reference point at destination to be returned by CalcXinPointWith
+  int crossing_exist = meas_module.getIntersectionAndCellID(helix, xto, dphi, detElementID, mode);
 
   m_thisAlg->debug() << "GaudiDDKalTestTrack::intersectionWithLayer crossing_exist = " << crossing_exist << " dphi "
                      << dphi << " with detElementIDs: " << detElementID;
@@ -811,8 +810,8 @@ int GaudiDDKalTestTrack::findIntersection(const DDVMeasLayer& meas_module, const
 int GaudiDDKalTestTrack::findIntersection(std::vector<DDVMeasLayer const*>& meas_modules, const TKalTrackSite& site,
                                           edm4hep::Vector3d& point, int& detElementID, const DDVMeasLayer*& ml,
                                           int mode) {
-  double dphi_min =
-      DBL_MAX;  // use to store the min deflection angle found so that can avoid the crossing on the far side of the layer
+  double dphi_min = DBL_MAX; // use to store the min deflection angle found so that can avoid the crossing on the far
+                             // side of the layer
   bool surf_found = false;
 
   for (size_t i = 0; i < meas_modules.size(); ++i) {
@@ -827,16 +826,15 @@ int GaudiDDKalTestTrack::findIntersection(std::vector<DDVMeasLayer const*>& meas
     if (error_code == 0) {
       // make sure we get the next crossing
       if (fabs(dphi) < dphi_min) {
-        dphi_min     = fabs(dphi);
-        surf_found   = true;
-        ml           = meas_modules[i];
+        dphi_min = fabs(dphi);
+        surf_found = true;
+        ml = meas_modules[i];
         detElementID = temp_detElementID;
-        point        = point_temp;
+        point = point_temp;
       }
 
-    } else if (
-        error_code !=
-        no_intersection) {  // in which case error_code is an error rather than simply a lack of intersection, so return
+    } else if (error_code != no_intersection) { // in which case error_code is an error rather than simply a lack of
+                                                // intersection, so return
 
       return error_code;
     }
@@ -853,7 +851,7 @@ int GaudiDDKalTestTrack::findIntersection(std::vector<DDVMeasLayer const*>& meas
 void GaudiDDKalTestTrack::ToLCIOTrackState(const THelicalTrack& helix, const TMatrixD& cov, edm4hep::TrackState& ts,
                                            double& chi2, int& ndf) const {
   chi2 = const_cast<TKalTrack&>(m_kaltrack).GetChi2();
-  ndf  = const_cast<TKalTrack&>(m_kaltrack).GetNDF();
+  ndf = const_cast<TKalTrack&>(m_kaltrack).GetNDF();
 
   //============== convert parameters to LCIO convention ====
 
@@ -864,44 +862,44 @@ void GaudiDDKalTestTrack::ToLCIOTrackState(const THelicalTrack& helix, const TMa
       covK[i][j] = cov[i][j];
 
   //  this is for incomming tracks ...
-  double phi       = toBaseRange(helix.GetPhi0() + M_PI / 2.);
-  double omega     = 1. / helix.GetRho();
-  double d0        = -helix.GetDrho();
-  double z0        = helix.GetDz();
+  double phi = toBaseRange(helix.GetPhi0() + M_PI / 2.);
+  double omega = 1. / helix.GetRho();
+  double d0 = -helix.GetDrho();
+  double z0 = helix.GetDz();
   double tanLambda = helix.GetTanLambda();
 
-  ts.D0        = d0;
-  ts.phi       = phi;  // fi0  - M_PI/2.  ) ;
-  ts.omega     = omega;
-  ts.Z0        = z0;
+  ts.D0 = d0;
+  ts.phi = phi; // fi0  - M_PI/2.  ) ;
+  ts.omega = omega;
+  ts.Z0 = z0;
   ts.tanLambda = tanLambda;
 
-  Double_t cpa   = helix.GetKappa();
-  double   alpha = omega / cpa;  // conversion factor for omega (1/R) to kappa (1/Pt)
+  Double_t cpa = helix.GetKappa();
+  double alpha = omega / cpa; // conversion factor for omega (1/R) to kappa (1/Pt)
 
   std::vector<float> covLCIO(15);
-  covLCIO[0] = covK(0, 0);  //   d0,   d0
+  covLCIO[0] = covK(0, 0); //   d0,   d0
 
-  covLCIO[1] = -covK(1, 0);  //   phi0, d0
-  covLCIO[2] = covK(1, 1);   //   phi0, phi
+  covLCIO[1] = -covK(1, 0); //   phi0, d0
+  covLCIO[2] = covK(1, 1);  //   phi0, phi
 
-  covLCIO[3] = -covK(2, 0) * alpha;         //   omega, d0
-  covLCIO[4] = covK(2, 1) * alpha;          //   omega, phi
-  covLCIO[5] = covK(2, 2) * alpha * alpha;  //   omega, omega
+  covLCIO[3] = -covK(2, 0) * alpha;        //   omega, d0
+  covLCIO[4] = covK(2, 1) * alpha;         //   omega, phi
+  covLCIO[5] = covK(2, 2) * alpha * alpha; //   omega, omega
 
-  covLCIO[6] = -covK(3, 0);         //   z0  , d0
-  covLCIO[7] = covK(3, 1);          //   z0  , phi
-  covLCIO[8] = covK(3, 2) * alpha;  //   z0  , omega
-  covLCIO[9] = covK(3, 3);          //   z0  , z0
+  covLCIO[6] = -covK(3, 0);        //   z0  , d0
+  covLCIO[7] = covK(3, 1);         //   z0  , phi
+  covLCIO[8] = covK(3, 2) * alpha; //   z0  , omega
+  covLCIO[9] = covK(3, 3);         //   z0  , z0
 
-  covLCIO[10] = -covK(4, 0);         //   tanl, d0
-  covLCIO[11] = covK(4, 1);          //   tanl, phi
-  covLCIO[12] = covK(4, 2) * alpha;  //   tanl, omega
-  covLCIO[13] = covK(4, 3);          //   tanl, z0
-  covLCIO[14] = covK(4, 4);          //   tanl, tanl
+  covLCIO[10] = -covK(4, 0);        //   tanl, d0
+  covLCIO[11] = covK(4, 1);         //   tanl, phi
+  covLCIO[12] = covK(4, 2) * alpha; //   tanl, omega
+  covLCIO[13] = covK(4, 3);         //   tanl, z0
+  covLCIO[14] = covK(4, 4);         //   tanl, tanl
 
   // TODO: Check if correct
-  for (int i = 0; i < 15; ++i)
+  for (size_t i = 0; i < 15; ++i)
     ts.covMatrix[i] = covLCIO[i];
 
   float pivot[3];
@@ -929,9 +927,9 @@ void GaudiDDKalTestTrack::ToLCIOTrackState(const THelicalTrack& helix, const TMa
 void GaudiDDKalTestTrack::ToLCIOTrackState(const TKalTrackSite& site, edm4hep::TrackState& ts, double& chi2,
                                            int& ndf) const {
   TKalTrackState& trkState =
-      (TKalTrackState&)site.GetCurState();  // GetCutState will return the last added state to this site
-                                            // Assuming everything has proceeded as expected
-                                            // this will be Predicted -> Filtered -> Smoothed
+      static_cast<TKalTrackState&>(site.GetCurState()); // GetCutState will return the last added state to this site
+                                                        // Assuming everything has proceeded as expected
+                                                        // this will be Predicted -> Filtered -> Smoothed
 
   // streamlog_out( DEBUG3 ) << " GaudiDDKalTestTrack::ToLCIOTrackState : " << endmsg ;
   // trkState.DebugPrint() ;
@@ -946,7 +944,7 @@ void GaudiDDKalTestTrack::ToLCIOTrackState(const TKalTrackSite& site, edm4hep::T
 int GaudiDDKalTestTrack::getSiteFromLCIOHit(const edm4hep::TrackerHitPlane* trkhit, TKalTrackSite*& site) const {
   auto it = m_hit_used_for_sites.find(trkhit);
 
-  if (it == m_hit_used_for_sites.end()) {  // hit not associated with any site
+  if (it == m_hit_used_for_sites.end()) { // hit not associated with any site
 
     bool found = false;
 
