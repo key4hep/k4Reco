@@ -22,6 +22,8 @@
 #include "GaudiDDKalTest.h"
 #include "GaudiDDKalTestTrack.h"
 
+#include <DDSegmentation/BitFieldCoder.h>
+
 #include <edm4hep/TrackCollection.h>
 #include <edm4hep/TrackMCParticleLinkCollection.h>
 
@@ -40,9 +42,9 @@ struct RefitFinal final
 
   StatusCode initialize() override;
 
-  std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> operator()(
-      const edm4hep::TrackCollection&,
-      const std::vector<const edm4hep::TrackMCParticleLinkCollection*>&) const override;
+  std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection>
+  operator()(const edm4hep::TrackCollection&,
+             const std::vector<const edm4hep::TrackMCParticleLinkCollection*>&) const override;
 
   int FitInit2(const edm4hep::Track& track, GaudiDDKalTestTrack& _marlinTrk) const;
 
@@ -82,15 +84,16 @@ struct RefitFinal final
 
   // std::shared_ptr<UTIL::BitField64> _encoder{};
 
-  // registerProcessorParameter("Max_Chi2_Incr", "maximum allowable chi2 increment when moving from one site to another",
+  // registerProcessorParameter("Max_Chi2_Incr", "maximum allowable chi2 increment when moving from one site to
+  // another",
   //                            _Max_Chi2_Incr, _Max_Chi2_Incr);
 
-  Gaudi::Property<bool>   m_MSOn{this, "MultipleScatteringOn", true, "Use MultipleScattering in Fit"};
-  Gaudi::Property<bool>   m_ElossOn{this, "EnergyLossOn", true, "Use Energy Loss in Fit"};
-  Gaudi::Property<bool>   m_SmoothOn{this, "SmoothOn", false, "Smooth All Mesurement Sites in Fit"};
+  Gaudi::Property<bool> m_MSOn{this, "MultipleScatteringOn", true, "Use MultipleScattering in Fit"};
+  Gaudi::Property<bool> m_ElossOn{this, "EnergyLossOn", true, "Use Energy Loss in Fit"};
+  Gaudi::Property<bool> m_SmoothOn{this, "SmoothOn", false, "Smooth All Mesurement Sites in Fit"};
   Gaudi::Property<double> m_Max_Chi2_Incr{this, "Max_Chi2_Incr", std::numeric_limits<double>::max(),
                                           "maximum allowable chi2 increment when moving from one site to another"};
-  Gaudi::Property<int>    m_refPoint{
+  Gaudi::Property<int> m_refPoint{
       this, "ReferencePoint", -1,
       "Identifier of the reference point to use for the fit initialisation, -1 means at 0 0 0"};
   Gaudi::Property<bool> m_extrapolateForward{
@@ -103,8 +106,10 @@ struct RefitFinal final
   Gaudi::Property<std::string> m_encodingStringVariable{
       this, "EncodingStringParameterName", "GlobalTrackerReadoutID",
       "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
-  GaudiDDKalTest   m_ddkaltest{this};
+  GaudiDDKalTest m_ddkaltest{this};
+
   SmartIF<IGeoSvc> m_geoSvc;
+  dd4hep::DDSegmentation::BitFieldCoder m_encoder;
 };
 
 #endif

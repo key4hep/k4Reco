@@ -58,8 +58,15 @@ StatusCode RefitFinal::initialize() {
   // _trksystem = MarlinTrk::Factory::createMarlinTrkSystem("DDKalTest", nullptr, "");
 
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
+  if (!m_geoSvc) {
+    error() << "Unable to retrieve GeoSvc" << endmsg;
+    return StatusCode::FAILURE;
+  }
+  std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
+  m_encoder = dd4hep::DDSegmentation::BitFieldCoder(cellIDEncodingString);
 
   m_ddkaltest.init();
+  m_ddkaltest.setEncoder(m_encoder);
 
   // ///////////////////////////////
 
@@ -79,16 +86,16 @@ StatusCode RefitFinal::initialize() {
   return StatusCode::SUCCESS;
 }
 
-std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> RefitFinal::operator()(
-    const edm4hep::TrackCollection&                                   input_track_col,
-    const std::vector<const edm4hep::TrackMCParticleLinkCollection*>& input_rel_col) const {
+std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection>
+RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
+                       const std::vector<const edm4hep::TrackMCParticleLinkCollection*>& input_rel_col) const {
   // // set the correct configuration for the tracking system for this event
   // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::useQMS> mson(_trksystem, _MSOn);
   // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::usedEdx> elosson(_trksystem, _ElossOn);
   // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing> smoothon(_trksystem, _SmoothOn);
 
   // establish the track collection that will be created
-  edm4hep::TrackCollection               trackVec;
+  edm4hep::TrackCollection trackVec;
   edm4hep::TrackMCParticleLinkCollection trackRelationCollection;
 
   if (input_rel_col.size() == 0) {
@@ -101,8 +108,8 @@ std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> Ref
 
   // loop over the input tracks and refit
   for (size_t iTrack = 0; iTrack < nTracks; ++iTrack) {
-    const auto&                           track   = input_track_col.at(iTrack);
-    const auto&                           trkHits = track.getTrackerHits();
+    const auto& track = input_track_col.at(iTrack);
+    const auto& trkHits = track.getTrackerHits();
     std::vector<edm4hep::TrackerHitPlane> hits;
     // TODO: Don't create a copy because finaliseLCIOTrack and marlin_trk need pointers
     for (const auto& hit : trkHits) {
@@ -184,7 +191,7 @@ std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> Ref
 
     std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
     dd4hep::DDSegmentation::BitFieldCoder encoder2(cellIDEncodingString);
-    std::vector<int32_t>                  subdetectorHitNumbers;
+    std::vector<int32_t> subdetectorHitNumbers;
     trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, all_hits, false, encoder2);
     trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, hits_in_fit_ptr, true, encoder2);
     for (const auto num : subdetectorHitNumbers) {
@@ -212,7 +219,7 @@ std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> Ref
     //   }
     // }
 
-  }  // for loop to the tracks
+  } // for loop to the tracks
 
   // TODO:
   // if (input_rel_col) {

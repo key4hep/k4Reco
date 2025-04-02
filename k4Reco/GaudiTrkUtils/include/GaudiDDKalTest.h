@@ -19,6 +19,8 @@
 #ifndef K4RECO_GAUDIDDKALTEST_H
 #define K4RECO_GAUDIDDKALTEST_H
 
+#include <DDSegmentation/BitFieldCoder.h>
+
 #include <TVector3.h>
 
 // Remove when these warnings are fixed in KalTest
@@ -74,6 +76,9 @@ public:
   /** initialise track fitter system */
   void init();
 
+  // Copy the encoder
+  void setEncoder(const dd4hep::DDSegmentation::BitFieldCoder& encoder) { m_encoder = encoder; }
+
 private:
   /** take multiple scattering into account during the fit */
   void includeMultipleScattering(bool on);
@@ -112,6 +117,8 @@ private:
   // Originally not present in MarlinDDKalTest, this is needed to be able to use
   // logging from Gaudi
   const Gaudi::Algorithm* m_thisAlg;
+
+  dd4hep::DDSegmentation::BitFieldCoder m_encoder;
 };
 
 #endif

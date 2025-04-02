@@ -87,6 +87,12 @@ StatusCode ConformalTracking::initialize() {
   scope->setLevel<streamlog::MESSAGE0>();
 
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
+  if (!m_geoSvc) {
+    error() << "Unable to retrieve GeoSvc" << endmsg;
+    return StatusCode::FAILURE;
+  }
+  std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
+  m_encoder = dd4hep::DDSegmentation::BitFieldCoder(cellIDEncodingString);
 
   const auto& locs = inputLocations(0);
 
@@ -254,6 +260,7 @@ StatusCode ConformalTracking::initialize() {
   }
 
   m_ddkaltest.init();
+  m_ddkaltest.setEncoder(m_encoder);
 
   // Default values for track fitting
   m_initialTrackError_d0 = 1e6;
@@ -350,9 +357,6 @@ edm4hep::TrackCollection ConformalTracking::operator()(
   // Where several paths are possible back to the seed position, the candidate with lowest chi2/ndof is chosen.
   //------------------------------------------------------------------------------------------------------------------
 
-  std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
-  dd4hep::DDSegmentation::BitFieldCoder bitFieldCoder(cellIDEncodingString);
-
   auto outputTrackCollection = edm4hep::TrackCollection();
   auto debugHitCollection = edm4hep::TrackerHitPlaneCollection();
   debugHitCollection.setSubsetCollection();
@@ -386,11 +390,11 @@ edm4hep::TrackCollection ConformalTracking::operator()(
       // int  module   = m_encoder[lcio::LCTrackerCellID::module()];
       // int  sensor   = m_encoder[lcio::LCTrackerCellID::sensor()];
       const int celId = hit.getCellID();
-      const int subdet = bitFieldCoder.get(celId, 0);
-      const int side = bitFieldCoder.get(celId, 1);
-      const int layer = bitFieldCoder.get(celId, 2);
-      const int module = bitFieldCoder.get(celId, 3);
-      const int sensor = bitFieldCoder.get(celId, 4);
+      const int subdet = m_encoder.get(celId, 0);
+      const int side = m_encoder.get(celId, 1);
+      const int layer = m_encoder.get(celId, 2);
+      const int module = m_encoder.get(celId, 3);
+      const int sensor = m_encoder.get(celId, 4);
       bool isEndcap = false;
       bool forward = false;
 

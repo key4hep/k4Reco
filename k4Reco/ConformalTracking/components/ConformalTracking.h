@@ -24,6 +24,8 @@
 
 #include "GaudiDDKalTest.h"
 
+#include <DDSegmentation/BitFieldCoder.h>
+
 #include <edm4hep/MCParticleCollection.h>
 #include <edm4hep/TrackCollection.h>
 #include <edm4hep/TrackerHitPlaneCollection.h>
@@ -232,6 +234,8 @@ private:
 
   GaudiDDKalTest m_ddkaltest{this};
   mutable int m_eventNumber = 0;
+
+  dd4hep::DDSegmentation::BitFieldCoder m_encoder;
 };
 
 DECLARE_COMPONENT(ConformalTracking)
