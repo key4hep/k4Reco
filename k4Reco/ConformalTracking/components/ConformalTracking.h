@@ -88,7 +88,7 @@ private:
   void updateCell(Cell::SCell const&) const;
 
   // Track fitting
-  void getFittedTracks(UniqueKDTracks&, UniqueCellularTracks&, Parameters const&) const;
+  UniqueKDTracks getFittedTracks(UniqueCellularTracks&, const Parameters&) const;
   void getLowestChi2(UniqueKDTracks&, UniqueKDTracks&) const;
 
   double fitWithoutPoint(KDTrack, int) const;

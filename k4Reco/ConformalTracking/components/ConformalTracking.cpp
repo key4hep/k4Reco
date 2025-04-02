@@ -1002,9 +1002,11 @@ UKDTree ConformalTracking::combineCollections(SharedKDClusters& kdClusters, cons
 // sharing of hits) then return all of them. Given that there is no material scattering taken into account this helps
 // retain low pt tracks, which may have worse chi2/ndof than ghosts/real tracks with an additional unrelated hit from
 // the low pt track.
-void ConformalTracking::getFittedTracks(UniqueKDTracks& finalTracks, UniqueCellularTracks& candidateTracks,
-                                        Parameters const& parameters) const {
+UniqueKDTracks ConformalTracking::getFittedTracks(UniqueCellularTracks& candidateTracks,
+                                                  const Parameters& parameters) const {
   debug() << "***** getFittedTracks" << endmsg;
+
+  UniqueKDTracks finalTracks;
 
   // Make a container for all tracks being considered, initialise variables
   UniqueKDTracks trackContainer;
@@ -1087,7 +1089,7 @@ void ConformalTracking::getFittedTracks(UniqueKDTracks& finalTracks, UniqueCellu
   debug() << "getFittedTracks *****" << endmsg;
 
   // Send back the final set of tracks
-  return;
+  return finalTracks;
 }
 
 // Pick the lowest chi2/ndof KDTrack from a list of possible tracks, and additionally return other tracks in the
@@ -1406,7 +1408,7 @@ void ConformalTracking::extendTracks(UniqueKDTracks& conformalTracks, SharedKDCl
   // the track and do a nearest neighbours search, but this seemed to fail for some reason, TODO!
 
   debug() << "EXTENDING " << conformalTracks.size() << " tracks, into " << collection.size() << " hits" << endmsg;
-  if (collection.size() == 0)
+  if (collection.empty())
     return;
 
   // Sort the hit collection by layer
@@ -2181,11 +2183,7 @@ void ConformalTracking::buildNewTracks(UniqueKDTracks& conformalTracks, SharedKD
 
     // All seed cells have been created, now try create all "downstream" cells until no more can be added
     SharedKDClusters debugHits;
-    if (debugSeed && kdhit == debugSeed) {
-      extendSeedCells(cells, nearestNeighbours, true, debugHits, parameters, vertexToTracker);
-    } else {
-      extendSeedCells(cells, nearestNeighbours, true, debugHits, parameters, vertexToTracker);
-    }
+    extendSeedCells(cells, nearestNeighbours, true, debugHits, parameters, vertexToTracker);
 
     if (m_debugTime)
       debug() << "  Time report: Extending " << cells.size() << " seed cells took " << stopwatch_hit.RealTime() * 1000
@@ -2271,13 +2269,13 @@ void ConformalTracking::buildNewTracks(UniqueKDTracks& conformalTracks, SharedKD
       if (candidateTracks.size() == 0)
         continue;
       std::vector<double> chi2ndof;
-      UniqueKDTracks bestTracks;
 
       // Temporary check of how many track candidates should not strictly have been allowed
       // checkUnallowedTracks(candidateTracks, parameters);
 
-      getFittedTracks(bestTracks, candidateTracks,
-                      parameters); // Returns all tracks at the moment, not lowest chi2 CHANGE ME
+      UniqueKDTracks bestTracks =
+          getFittedTracks(candidateTracks,
+                          parameters); // Returns all tracks at the moment, not lowest chi2 CHANGE ME
 
       // Store track(s) for later
       cellTracks.insert(cellTracks.end(), std::make_move_iterator(bestTracks.begin()),

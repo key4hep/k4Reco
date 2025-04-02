@@ -56,6 +56,14 @@ The following files have been reimplemented from `MarlinTrk`:
          int intersectionWithDetElement( int detElementID, EVENT::TrackerHit* hit, Vector3D& point, int mode=modeClosest )  ;
          int intersectionWithDetElement( int detElementID, const TKalTrackSite& site, Vector3D& point, const DDVMeasLayer*& ml, int mode=modeClosest ) ;
 
+- Conformal Tracking A few places have some value hardcoded from ILD, like
+  `lcio::LCTrackerCellID::subdet()`. How to modify these is not clear since
+  there are some functions that take them. If you want to know every place where
+  those are, look for `ILD` in `ConformalTracking.cpp`.
+
+  Some functions have been
+  changed to return something instead of passing the value that is going to be
+  returned by reference
 
 - KDTrack
   Remove m_kalmanTrack that was never being set (and the corresponding code in ConformalTracking.cpp)
