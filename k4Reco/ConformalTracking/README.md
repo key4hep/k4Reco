@@ -33,3 +33,6 @@ Reimplementation of the ConformalTracking processor from iLCSoft
 
 - HelixTrack
   Remove HelixTrack(const double* position, const double* p, double charge, double Bz);
+
+- KDCluster
+  Remove a few members and their corresponding setters and getters that were not used

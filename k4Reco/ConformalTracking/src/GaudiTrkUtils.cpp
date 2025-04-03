@@ -40,6 +40,27 @@
 const int MIN_NDF         = 6;
 const int no_intersection = 4;
 
+void setStreamlogOutputLevel(const Gaudi::Algorithm* thisAlg, streamlog::logscope* scope) {
+  MSG::Level outputLevel = thisAlg->msgLevel();
+  switch (outputLevel) {
+  case MSG::ERROR:
+    scope->setLevel<streamlog::ERROR>();
+    break;
+  case MSG::WARNING:
+    scope->setLevel<streamlog::WARNING>();
+    break;
+  case MSG::INFO:
+    scope->setLevel<streamlog::MESSAGE>();
+    break;
+  case MSG::DEBUG:
+    scope->setLevel<streamlog::DEBUG>();
+    break;
+  default:
+    scope->setLevel<streamlog::MESSAGE>();
+    break;
+  }
+}
+
 int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack&                                marlinTrk,
                                             const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
                                             edm4hep::MutableTrack& track, bool fit_direction,

@@ -100,7 +100,7 @@ StatusCode TruthTrackFinder::initialize() {
   // being computed
   streamlog::out.init(std::cout, "");
   streamlog::logscope* scope = new streamlog::logscope(streamlog::out);
-  scope->setLevel<streamlog::MESSAGE0>();
+  setStreamlogOutputLevel(this, scope);
 
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
   if (!m_geoSvc) {
