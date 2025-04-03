@@ -617,15 +617,12 @@ edm4hep::TrackCollection ConformalTracking::operator()(
   // possibility that clones/fakes are still present. Try to remove them by looking at overlapping hits. Turned off at
   // the moment
 
-  // if the conformalTracks objects needs to be used, this needs to be changed a lot
-  UniqueKDTracks conformalTracksFinal = std::move(conformalTracks);
-
   // Now make "real" tracks from all of the conformal tracks
-  info() << "*** CA has made " << conformalTracksFinal.size()
-         << (conformalTracksFinal.size() == 1 ? " track ***" : " tracks ***") << endmsg;
+  info() << "*** CA has made " << conformalTracks.size() << (conformalTracks.size() == 1 ? " track ***" : " tracks ***")
+         << endmsg;
 
   // Loop over all track candidates
-  for (const auto& conformalTrack : conformalTracksFinal) {
+  for (const auto& conformalTrack : conformalTracks) {
     info() << "- Fitting track " << &conformalTrack << endmsg;
 
     // Make the LCIO track hit vector
@@ -740,7 +737,7 @@ edm4hep::TrackCollection ConformalTracking::operator()(
   // Draw the cells for all produced tracks
   if (m_debugPlots && m_eventNumber == 0) {
     m_canvConformalEventDisplay->cd();
-    for (auto& debugTrack : conformalTracksFinal) {
+    for (auto& debugTrack : conformalTracks) {
       SharedKDClusters clusters = debugTrack->m_clusters;
       std::sort(clusters.begin(), clusters.end(), sort_by_lower_radiusKD);
       for (size_t itCluster = 1; itCluster < clusters.size(); itCluster++)
