@@ -661,7 +661,7 @@ int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const TKalTra
 
   const TVector3 tpoint(point.x, point.y, point.z);
 
-  TKalTrackState& trkState = (TKalTrackState&)site.GetCurState(); // this segfaults if no hits are present
+  TKalTrackState& trkState = static_cast<TKalTrackState&>(site.GetCurState()); // this segfaults if no hits are present
 
   THelicalTrack helix = trkState.GetHelix();
   double dPhi = 0.0;
@@ -787,7 +787,7 @@ int GaudiDDKalTestTrack::intersectionWithLayer(int layerID, const TKalTrackSite&
 
 int GaudiDDKalTestTrack::findIntersection(const DDVMeasLayer& meas_module, const TKalTrackSite& site,
                                           edm4hep::Vector3d& point, double& dphi, int& detElementID, int mode) {
-  TKalTrackState& trkState = (TKalTrackState&)site.GetCurState();
+  TKalTrackState& trkState = static_cast<TKalTrackState&>(site.GetCurState());
   THelicalTrack helix = trkState.GetHelix();
   TVector3 xto; // reference point at destination to be returned by CalcXinPointWith
   int crossing_exist = meas_module.getIntersectionAndCellID(helix, xto, dphi, detElementID, mode);
@@ -799,9 +799,7 @@ int GaudiDDKalTestTrack::findIntersection(const DDVMeasLayer& meas_module, const
   if (crossing_exist == 0) {
     return no_intersection;
   } else {
-    point.x = xto.X();
-    point.y = xto.Y();
-    point.z = xto.Z();
+    point = {xto.X(), xto.Y(), xto.Z()};
   }
 
   return 0;
@@ -825,8 +823,8 @@ int GaudiDDKalTestTrack::findIntersection(std::vector<DDVMeasLayer const*>& meas
 
     if (error_code == 0) {
       // make sure we get the next crossing
-      if (fabs(dphi) < dphi_min) {
-        dphi_min = fabs(dphi);
+      if (std::abs(dphi) < dphi_min) {
+        dphi_min = std::abs(dphi);
         surf_found = true;
         ml = meas_modules[i];
         detElementID = temp_detElementID;
@@ -855,70 +853,52 @@ void GaudiDDKalTestTrack::ToLCIOTrackState(const THelicalTrack& helix, const TMa
 
   //============== convert parameters to LCIO convention ====
 
-  // fill 5x5 covariance matrix from the 6x6 covariance matrix above
-  TMatrixD covK(5, 5);
-  for (int i = 0; i < 5; ++i)
-    for (int j = 0; j < 5; ++j)
-      covK[i][j] = cov[i][j];
-
   //  this is for incomming tracks ...
-  double phi = toBaseRange(helix.GetPhi0() + M_PI / 2.);
+  // To preserve the results from iLCSoft, omega has to be kept as a double
+  // storing it directly in ts.omega loses precision
   double omega = 1. / helix.GetRho();
-  double d0 = -helix.GetDrho();
-  double z0 = helix.GetDz();
-  double tanLambda = helix.GetTanLambda();
 
-  ts.D0 = d0;
-  ts.phi = phi; // fi0  - M_PI/2.  ) ;
+  ts.D0 = -helix.GetDrho();
+  ts.phi = toBaseRange(helix.GetPhi0() + M_PI / 2.); // fi0  - M_PI/2.  ) ;
   ts.omega = omega;
-  ts.Z0 = z0;
-  ts.tanLambda = tanLambda;
+  ts.Z0 = helix.GetDz();
+  ts.tanLambda = helix.GetTanLambda();
 
-  Double_t cpa = helix.GetKappa();
-  double alpha = omega / cpa; // conversion factor for omega (1/R) to kappa (1/Pt)
+  double alpha = omega / helix.GetKappa(); // conversion factor for omega (1/R) to kappa (1/Pt)
 
-  std::vector<float> covLCIO(15);
-  covLCIO[0] = covK(0, 0); //   d0,   d0
+  ts.covMatrix[0] = cov(0, 0); //   d0,   d0
 
-  covLCIO[1] = -covK(1, 0); //   phi0, d0
-  covLCIO[2] = covK(1, 1);  //   phi0, phi
+  ts.covMatrix[1] = -cov(1, 0); //   phi0, d0
+  ts.covMatrix[2] = cov(1, 1);  //   phi0, phi
 
-  covLCIO[3] = -covK(2, 0) * alpha;        //   omega, d0
-  covLCIO[4] = covK(2, 1) * alpha;         //   omega, phi
-  covLCIO[5] = covK(2, 2) * alpha * alpha; //   omega, omega
+  ts.covMatrix[3] = -cov(2, 0) * alpha;        //   omega, d0
+  ts.covMatrix[4] = cov(2, 1) * alpha;         //   omega, phi
+  ts.covMatrix[5] = cov(2, 2) * alpha * alpha; //   omega, omega
 
-  covLCIO[6] = -covK(3, 0);        //   z0  , d0
-  covLCIO[7] = covK(3, 1);         //   z0  , phi
-  covLCIO[8] = covK(3, 2) * alpha; //   z0  , omega
-  covLCIO[9] = covK(3, 3);         //   z0  , z0
+  ts.covMatrix[6] = -cov(3, 0);        //   z0  , d0
+  ts.covMatrix[7] = cov(3, 1);         //   z0  , phi
+  ts.covMatrix[8] = cov(3, 2) * alpha; //   z0  , omega
+  ts.covMatrix[9] = cov(3, 3);         //   z0  , z0
 
-  covLCIO[10] = -covK(4, 0);        //   tanl, d0
-  covLCIO[11] = covK(4, 1);         //   tanl, phi
-  covLCIO[12] = covK(4, 2) * alpha; //   tanl, omega
-  covLCIO[13] = covK(4, 3);         //   tanl, z0
-  covLCIO[14] = covK(4, 4);         //   tanl, tanl
+  ts.covMatrix[10] = -cov(4, 0);        //   tanl, d0
+  ts.covMatrix[11] = cov(4, 1);         //   tanl, phi
+  ts.covMatrix[12] = cov(4, 2) * alpha; //   tanl, omega
+  ts.covMatrix[13] = cov(4, 3);         //   tanl, z0
+  ts.covMatrix[14] = cov(4, 4);         //   tanl, tanl
 
-  // TODO: Check if correct
-  for (size_t i = 0; i < 15; ++i)
-    ts.covMatrix[i] = covLCIO[i];
 
-  float pivot[3];
-
-  pivot[0] = helix.GetPivot().X();
-  pivot[1] = helix.GetPivot().Y();
-  pivot[2] = helix.GetPivot().Z();
-
-  ts.referencePoint = pivot;
+  const auto& pivot = helix.GetPivot();
+  ts.referencePoint = {static_cast<float>(pivot.X()), static_cast<float>(pivot.Y()), static_cast<float>(pivot.Z())};
 
   m_thisAlg->debug() << " kaltest track parameters: "
                      << " chi2/ndf " << chi2 / ndf << " chi2 " << chi2 << " ndf " << ndf << " prob "
                      << TMath::Prob(chi2, ndf) << endmsg
 
-                     << "\t D0 " << d0 << "[+/-" << sqrt(covLCIO[0]) << "] "
-                     << "\t Phi :" << phi << "[+/-" << sqrt(covLCIO[2]) << "] "
-                     << "\t Omega " << omega << "[+/-" << sqrt(covLCIO[5]) << "] "
-                     << "\t Z0 " << z0 << "[+/-" << sqrt(covLCIO[9]) << "] "
-                     << "\t tan(Lambda) " << tanLambda << "[+/-" << sqrt(covLCIO[14]) << "] "
+                     << "\t D0 " << ts.D0 << "[+/-" << sqrt(ts.covMatrix[0]) << "] "
+                     << "\t Phi :" << ts.phi << "[+/-" << sqrt(ts.covMatrix[2]) << "] "
+                     << "\t Omega " << omega << "[+/-" << sqrt(ts.covMatrix[5]) << "] "
+                     << "\t Z0 " << ts.Z0 << "[+/-" << sqrt(ts.covMatrix[9]) << "] "
+                     << "\t tan(Lambda) " << ts.tanLambda << "[+/-" << sqrt(ts.covMatrix[14]) << "] "
 
                      << "\t pivot : [" << pivot[0] << ", " << pivot[1] << ", " << pivot[2]
                      << " - r: " << std::sqrt(pivot[0] * pivot[0] + pivot[1] * pivot[1]) << "]" << endmsg;
@@ -934,15 +914,13 @@ void GaudiDDKalTestTrack::ToLCIOTrackState(const TKalTrackSite& site, edm4hep::T
   // streamlog_out( DEBUG3 ) << " GaudiDDKalTestTrack::ToLCIOTrackState : " << endmsg ;
   // trkState.DebugPrint() ;
 
-  THelicalTrack helix = trkState.GetHelix();
+  const TMatrixD& c0(trkState.GetCovMat());
 
-  TMatrixD c0(trkState.GetCovMat());
-
-  this->ToLCIOTrackState(helix, c0, ts, chi2, ndf);
+  this->ToLCIOTrackState(trkState.GetHelix(), c0, ts, chi2, ndf);
 }
 
 int GaudiDDKalTestTrack::getSiteFromLCIOHit(const edm4hep::TrackerHitPlane* trkhit, TKalTrackSite*& site) const {
-  auto it = m_hit_used_for_sites.find(trkhit);
+  const auto it = m_hit_used_for_sites.find(trkhit);
 
   if (it == m_hit_used_for_sites.end()) { // hit not associated with any site
 
