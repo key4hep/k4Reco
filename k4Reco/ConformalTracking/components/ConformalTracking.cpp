@@ -390,12 +390,12 @@ edm4hep::TrackCollection ConformalTracking::operator()(
       // int  layer    = m_encoder[lcio::LCTrackerCellID::layer()];
       // int  module   = m_encoder[lcio::LCTrackerCellID::module()];
       // int  sensor   = m_encoder[lcio::LCTrackerCellID::sensor()];
-      const int celId = hit.getCellID();
-      const int subdet = m_encoder.get(celId, 0);
-      const int side = m_encoder.get(celId, 1);
-      const int layer = m_encoder.get(celId, 2);
-      const int module = m_encoder.get(celId, 3);
-      const int sensor = m_encoder.get(celId, 4);
+      const auto celId = hit.getCellID();
+      const auto subdet = m_encoder.get(celId, 0);
+      const auto side = m_encoder.get(celId, 1);
+      const auto layer = m_encoder.get(celId, 2);
+      const auto module = m_encoder.get(celId, 3);
+      const auto sensor = m_encoder.get(celId, 4);
       bool isEndcap = false;
       bool forward = false;
 
