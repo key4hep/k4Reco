@@ -269,27 +269,24 @@ const DDVMeasLayer* GaudiDDKalTest::getLastMeasLayer(const THelicalTrack& hel, T
                    ? true
                    : false;
 
-  int mode = isfwd ? -1 : +1;
+  const int mode = isfwd ? -1 : +1;
 
   //  streamlog_out( DEBUG4 ) << "  GaudiDDKalTest - getLastMeasLayer deflection to point = " << deflection_to_point << " kappa = " << helix.GetKappa()  << "  mode = " << mode << endmsg ;
   //  streamlog_out( DEBUG4 ) << " Point to move to:" << endmsg;
   //  point.Print();
 
-  int nsufaces = m_det.GetEntriesFast();
-
   const TVSurface* ml_retval      = nullptr;
   double           min_deflection = DBL_MAX;
 
-  for (int i = 0; i < nsufaces; ++i) {
+  for (int i = 0; i < m_det.GetEntriesFast(); ++i) {
+    const auto* sfp = static_cast<const TVSurface*>(m_det.At(i));  // surface at destination
+
     double   defection_angle = 0;
     TVector3 crossing_point;
-
-    auto* sfp = static_cast<const TVSurface*>(m_det.At(i));  // surface at destination
-
-    int does_cross = sfp->CalcXingPointWith(helix, crossing_point, defection_angle, mode);
+    const int does_cross = sfp->CalcXingPointWith(helix, crossing_point, defection_angle, mode);
 
     if (does_cross) {
-      const double deflection = fabs(deflection_to_point - defection_angle);
+      const double deflection = std::abs(deflection_to_point - defection_angle);
 
       if (deflection < min_deflection) {
         //      streamlog_out( DEBUG4 ) << "  GaudiDDKalTest - crossing found for suface = " << ml.GetMLName()
@@ -323,7 +320,7 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
   const DDVMeasLayer* ml = nullptr;
 
   // search for the list of measurement layers associated with this CellID
-  auto meas_modules = this->getSensitiveMeasurementModules(detElementID);
+  const auto meas_modules = this->getSensitiveMeasurementModules(detElementID);
 
   if (meas_modules.size() == 0) {  // no measurement layers found
 
@@ -347,7 +344,7 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
                                  std::to_string(detElementID));
       }
 
-      bool hit_on_surface = surf->IsOnSurface(point);
+      const bool hit_on_surface = surf->IsOnSurface(point);
 
       if (!surf_found && hit_on_surface) {
         ml         = module;
