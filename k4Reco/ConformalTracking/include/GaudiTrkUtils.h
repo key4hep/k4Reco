@@ -23,6 +23,9 @@
 #include "GaudiDDKalTest.h"
 #include "GaudiDDKalTestTrack.h"
 
+#include <streamlog/logstream.h>
+#include <streamlog/streamlog.h>
+
 #include <edm4hep/CovMatrix6f.h>
 #include <edm4hep/Track.h>
 #include <edm4hep/TrackState.h>
@@ -37,6 +40,8 @@
 
 #include <string>
 #include <vector>
+
+void setStreamlogOutputLevel(const Gaudi::Algorithm* thisAlg, streamlog::logscope* streamlogOutputLevel);
 
 // Simple class to wrap functions from MarlinTrkUtils
 // and hold a few objects that are needed for the functions

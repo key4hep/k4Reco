@@ -55,3 +55,8 @@ The following files have been reimplemented from `MarlinTrk`:
          int intersectionWithDetElement( int detElementID, EVENT::TrackerHit* hit, Vector3D& point, int mode=modeClosest )  ;
          int intersectionWithDetElement( int detElementID, const TKalTrackSite& site, Vector3D& point, const DDVMeasLayer*& ml, int mode=modeClosest ) ;
 
+
+- GaudiTrkUtils Add a function to set the streamlog level. This is mandatory for
+  any algorithm that uses streamlog, since otherwise the maximum debug level be
+  in place without the messages printing anywhere but doing all the computations
+  needed, leading to very bad performance.
