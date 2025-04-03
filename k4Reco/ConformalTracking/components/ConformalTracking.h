@@ -48,20 +48,19 @@
 
 class IGeoSvc;
 
-using TrackerHitPlaneCollection = std::vector<const edm4hep::TrackerHitPlaneCollection*>;
-using Association = std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>;
-
 struct ConformalTracking final : k4FWCore::Transformer<edm4hep::TrackCollection(
-                                     const TrackerHitPlaneCollection&,
-                                     const std::vector<const edm4hep::MCParticleCollection*>&, const Association&)> {
+                                     const std::vector<const edm4hep::TrackerHitPlaneCollection*>&,
+                                     const std::vector<const edm4hep::MCParticleCollection*>&,
+                                     const std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>&)> {
   ConformalTracking(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize() override;
   StatusCode finalize() override;
 
-  edm4hep::TrackCollection operator()(const TrackerHitPlaneCollection&,
-                                      const std::vector<const edm4hep::MCParticleCollection*>&,
-                                      const Association&) const override;
+  edm4hep::TrackCollection
+  operator()(const std::vector<const edm4hep::TrackerHitPlaneCollection*>&,
+             const std::vector<const edm4hep::MCParticleCollection*>&,
+             const std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>&) const override;
 
 private:
   // Cell creation

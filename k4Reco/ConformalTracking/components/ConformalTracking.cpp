@@ -338,8 +338,9 @@ StatusCode ConformalTracking::initialize() {
 
 edm4hep::TrackCollection ConformalTracking::operator()(
 
-    const TrackerHitPlaneCollection& trackerHits, const std::vector<const edm4hep::MCParticleCollection*>&,
-    const Association&) const {
+    const std::vector<const edm4hep::TrackerHitPlaneCollection*>& trackerHits,
+    const std::vector<const edm4hep::MCParticleCollection*>&,
+    const std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>&) const {
   //------------------------------------------------------------------------------------------------------------------
   // This pattern recognition algorithm is based on two concepts: conformal mapping and cellular automaton. Broadly
   // speaking, the 2D xy projection of all hits is transformed such that circles (helix projections) become straight
