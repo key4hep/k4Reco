@@ -40,33 +40,31 @@
 class Cell {
 public:
   typedef std::vector<std::weak_ptr<Cell>> WeakCells;
-  typedef std::shared_ptr<Cell>            SCell;
-  typedef std::weak_ptr<Cell>              WCell;
+  typedef std::shared_ptr<Cell> SCell;
+  typedef std::weak_ptr<Cell> WCell;
 
 public:
   // Constructors, main initialisation is with two kd hits
   Cell() { m_weight = 0; }
 
-  Cell(const Cell&)            = delete;
+  Cell(const Cell&) = delete;
   Cell& operator=(const Cell&) = delete;
-  Cell(Cell&&)                 = default;
-  Cell& operator=(Cell&&)      = default;
-  ~Cell()                      = default;
+  Cell(Cell&&) = default;
+  Cell& operator=(Cell&&) = default;
+  ~Cell() = default;
 
   Cell(SKDCluster const& hit1, SKDCluster const& hit2)
-      : m_weight(0),
-        m_gradient((hit2->getV() - hit1->getV()) / (hit2->getU() - hit1->getU())),
-        m_gradientRZ((hit2->getRadius() - hit1->getRadius()) / (hit2->getZ() - hit1->getZ())),
-        m_start(hit1),
+      : m_weight(0), m_gradient((hit2->getV() - hit1->getV()) / (hit2->getU() - hit1->getU())),
+        m_gradientRZ((hit2->getRadius() - hit1->getRadius()) / (hit2->getZ() - hit1->getZ())), m_start(hit1),
         m_end(hit2) {}
 
   // Weight of the cell (first cell in a chain has weight 0, and each subsequent link has weight +1)
-  int  getWeight() const { return m_weight; }
+  int getWeight() const { return m_weight; }
   void setWeight(int weight) { m_weight = weight; }
 
   // Gradient of the cell connecting two hits
   double getGradient() const { return m_gradient; }
-  void   setGradient(double gradient) { m_gradient = gradient; }
+  void setGradient(double gradient) { m_gradient = gradient; }
   double getGradientRZ() const { return m_gradientRZ; }
 
   // Angle between two cells. This is assumed to be less than 90 degrees
@@ -99,40 +97,40 @@ public:
       m_weight = cell2->getWeight() + 1;
   }
 
-  // The cell has a memory of all cells that connect to it, and all cells that it connects to. If several cells point to this
-  // cell, then the weight taken from the highest weighted of those (longest chain)
+  // The cell has a memory of all cells that connect to it, and all cells that it connects to. If several cells point to
+  // this cell, then the weight taken from the highest weighted of those (longest chain)
   void setFrom(SCell const& cell2) {
     m_from.push_back(WCell(cell2));
     m_weights.push_back(cell2->getWeight());
     if ((cell2->getWeight() + 1) > m_weight)
       m_weight = cell2->getWeight() + 1;
   }
-  void       setTo(SCell const& cell2) { m_to.push_back(WCell(cell2)); }
+  void setTo(SCell const& cell2) { m_to.push_back(WCell(cell2)); }
   WeakCells& getFrom() { return m_from; }
   WeakCells& getTo() { return m_to; }
 
   double doca() const {
     double intercept = m_start->getV() - m_start->getU() * m_gradient;
-    double doca      = fabs(intercept) / sqrt(m_gradient * m_gradient + 1.);
+    double doca = fabs(intercept) / sqrt(m_gradient * m_gradient + 1.);
     return doca;
   }
 
 private:
   // Each cell contains a weight, a gradient, two hits which it connects
   // and a list of cells that it connects to or from
-  int              m_weight     = 0;
-  double           m_gradient   = 0.0;
-  double           m_gradientRZ = 0.0;
-  SKDCluster       m_start      = nullptr;
-  SKDCluster       m_end        = nullptr;
-  WeakCells        m_from{};
+  int m_weight = 0;
+  double m_gradient = 0.0;
+  double m_gradientRZ = 0.0;
+  SKDCluster m_start = nullptr;
+  SKDCluster m_end = nullptr;
+  WeakCells m_from{};
   std::vector<int> m_weights{};
-  WeakCells        m_to{};
+  WeakCells m_to{};
 };
 
-using SCell                = Cell::SCell;
-using cellularTrack        = std::vector<SCell>;
-using SharedCells          = std::vector<std::shared_ptr<Cell>>;
-using UcellularTrack       = std::unique_ptr<cellularTrack>;
+using SCell = Cell::SCell;
+using cellularTrack = std::vector<SCell>;
+using SharedCells = std::vector<std::shared_ptr<Cell>>;
+using UcellularTrack = std::unique_ptr<cellularTrack>;
 using UniqueCellularTracks = std::vector<std::unique_ptr<cellularTrack>>;
 #endif

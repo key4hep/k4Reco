@@ -36,7 +36,7 @@ class TKalTrack;
 class TKalTrackSite;
 
 namespace Gaudi {
-  class Algorithm;
+class Algorithm;
 }
 
 const int modeClosest = 0;
@@ -52,11 +52,11 @@ public:
       std::shared_ptr<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>> edm4hep_hits_to_kaltest_hits = nullptr);
 
 public:
-  GaudiDDKalTestTrack(const GaudiDDKalTestTrack&)            = delete;
+  GaudiDDKalTestTrack(const GaudiDDKalTestTrack&) = delete;
   GaudiDDKalTestTrack& operator=(const GaudiDDKalTestTrack&) = delete;
-  GaudiDDKalTestTrack(GaudiDDKalTestTrack&&)                 = delete;
-  GaudiDDKalTestTrack& operator=(GaudiDDKalTestTrack&&)      = delete;
-  ~GaudiDDKalTestTrack()                                     = default;
+  GaudiDDKalTestTrack(GaudiDDKalTestTrack&&) = delete;
+  GaudiDDKalTestTrack& operator=(GaudiDDKalTestTrack&&) = delete;
+  ~GaudiDDKalTestTrack() = default;
 
   /** add hit to track - the hits have to be added ordered in time ( i.e. typically outgoing )
    *  this order will define the direction of the energy loss used in the fit
@@ -93,13 +93,13 @@ public:
    */
   int smooth(const edm4hep::TrackerHitPlane* hit);
 
-  /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from adding the hit via reference.
-   *  the given hit will not be added if chi2increment > maxChi2Increment.
+  /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from
+   * adding the hit via reference. the given hit will not be added if chi2increment > maxChi2Increment.
    */
   int addAndFit(const edm4hep::TrackerHitPlane* hit, double& chi2increment, double maxChi2Increment = DBL_MAX);
 
-  /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from adding the hit via reference.
-   *  the given hit will not be added if chi2increment > maxChi2Increment.
+  /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from
+   * adding the hit via reference. the given hit will not be added if chi2increment > maxChi2Increment.
    */
   int addAndFit(DDVTrackHit* kalhit, double& chi2increment, TKalTrackSite*& site, double maxChi2Increment = DBL_MAX);
 
@@ -129,8 +129,8 @@ public:
    */
   const edm4hep::TrackerHitPlane* getTrackerHitAtPositiveNDF() const;
 
-  /** propagate the fit at the measurement site associated with the given hit, to the point of closest approach to the given point,
-   *  returning TrackState, chi2 and ndf via reference
+  /** propagate the fit at the measurement site associated with the given hit, to the point of closest approach to the
+   * given point, returning TrackState, chi2 and ndf via reference
    */
   int propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHitPlane* hit, edm4hep::TrackState& ts,
                 double& chi2, int& ndf);
@@ -154,7 +154,8 @@ public:
                        int& detElementID, int mode = modeClosest);
 
   /** extrapolate the fit at the measurement site, to numbered sensitive layer,
-   *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element via reference
+   *  returning intersection point in global coordinates and integer ID of the intersected sensitive detector element
+   * via reference
    */
   int intersectionWithLayer(int layerID, const TKalTrackSite& site, edm4hep::Vector3d& point, int& detElementID,
                             const DDVMeasLayer*& ml, int mode = modeClosest);
@@ -196,23 +197,23 @@ public:
     return phi;
   }
 
-  TKalTrack       m_kaltrack{};
-  TObjArray*      m_kalhits = nullptr;
-  GaudiDDKalTest* m_ktest   = nullptr;
+  TKalTrack m_kaltrack{};
+  TObjArray* m_kalhits = nullptr;
+  GaudiDDKalTest* m_ktest = nullptr;
   // used to store whether initial track state has been supplied or created
   bool m_initialised = false;
   // used to store the fit direction supplied to intialise
   bool m_fitDirection = false;
   // used to store whether smoothing has been performed
-  bool                            m_smoothed              = false;
+  bool m_smoothed = false;
   const edm4hep::TrackerHitPlane* m_trackHitAtPositiveNDF = nullptr;
-  int                             m_hitIndexAtPositiveNDF = -1;
+  int m_hitIndexAtPositiveNDF = -1;
 
   // map to store relation between lcio hits and measurement sites
   std::map<const edm4hep::TrackerHitPlane*, TKalTrackSite*> m_hit_used_for_sites{};
 
   // map to store relation between lcio hits kaltest hits
-  std::map<DDVTrackHit*, const edm4hep::TrackerHitPlane*>                  m_kaltest_hits_to_edm4hep_hits{};
+  std::map<DDVTrackHit*, const edm4hep::TrackerHitPlane*> m_kaltest_hits_to_edm4hep_hits{};
   std::shared_ptr<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>> m_edm4hep_hits_to_kaltest_hits{};
 
   // vector to store lcio hits rejected for measurement sites

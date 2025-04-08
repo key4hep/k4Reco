@@ -886,7 +886,6 @@ void GaudiDDKalTestTrack::ToLCIOTrackState(const THelicalTrack& helix, const TMa
   ts.covMatrix[13] = cov(4, 3);         //   tanl, z0
   ts.covMatrix[14] = cov(4, 4);         //   tanl, tanl
 
-
   const auto& pivot = helix.GetPivot();
   ts.referencePoint = {static_cast<float>(pivot.X()), static_cast<float>(pivot.Y()), static_cast<float>(pivot.Z())};
 

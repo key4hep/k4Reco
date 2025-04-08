@@ -84,19 +84,19 @@ struct ClonesAndSplitTracksFinder final
 
   // std::shared_ptr<UTIL::BitField64> _encoder{};
 
-  Gaudi::Property<bool>   m_MSOn{this, "MultipleScatteringOn", true, "Use MultipleScattering in Fit"};
-  Gaudi::Property<bool>   m_ElossOn{this, "EnergyLossOn", true, "Use Energy Loss in Fit"};
-  Gaudi::Property<bool>   m_SmoothOn{this, "SmoothOn", false, "Smooth All Measurement Sites in Fit"};
-  Gaudi::Property<bool>   m_extrapolateForward{this, "extrapolateForward", true,
+  Gaudi::Property<bool> m_MSOn{this, "MultipleScatteringOn", true, "Use MultipleScattering in Fit"};
+  Gaudi::Property<bool> m_ElossOn{this, "EnergyLossOn", true, "Use Energy Loss in Fit"};
+  Gaudi::Property<bool> m_SmoothOn{this, "SmoothOn", false, "Smooth All Measurement Sites in Fit"};
+  Gaudi::Property<bool> m_extrapolateForward{this, "extrapolateForward", true,
                                              "if true extrapolation in the forward direction (in-out), otherwise "
-                                               "backward (out-in)"};
+                                             "backward (out-in)"};
   Gaudi::Property<double> m_minPt{this, "minTrackPt", 1.0, "minimum track pt for merging (in GeV/c)"};
   Gaudi::Property<double> m_maxSignificanceTheta{this, "maxSignificanceTheta", 3.0,
                                                  "maximum significance separation in tanLambda"};
   Gaudi::Property<double> m_maxSignificancePhi{this, "maxSignificancePhi", 3.0,
                                                "maximum significance separation in phi"};
   Gaudi::Property<double> m_maxSignificancePt{this, "maxSignificancePt", 2.0, "maximum significance separation in pt"};
-  Gaudi::Property<bool>   m_mergeSplitTracks{this, "mergeSplitTracks", false,
+  Gaudi::Property<bool> m_mergeSplitTracks{this, "mergeSplitTracks", false,
                                            "if true, the merging of split tracks is performed"};
 };
 

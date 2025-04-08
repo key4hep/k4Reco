@@ -41,10 +41,10 @@ HelixTrack::HelixTrack(const edm4hep::Vector3d& x1, const edm4hep::Vector3d& x2,
 
   // Set the track parameters and convert from the KalTest system to the lcio system
 
-  m_phi0      = toBaseRange(helicalTrack.GetPhi0() + M_PI / 2.);
-  m_omega     = 1. / helicalTrack.GetRho();
-  m_z0        = helicalTrack.GetDz();
-  m_d0        = -helicalTrack.GetDrho();
+  m_phi0 = toBaseRange(helicalTrack.GetPhi0() + M_PI / 2.);
+  m_omega = 1. / helicalTrack.GetRho();
+  m_z0 = helicalTrack.GetDz();
+  m_d0 = -helicalTrack.GetDrho();
   m_tanLambda = helicalTrack.GetTanLambda();
 
   m_ref_point_x = helicalTrack.GetPivot().X();
@@ -71,7 +71,8 @@ double HelixTrack::moveRefPoint(double x, double y, double z) {
   const double d0Prime = m_d0 + deltaX * sinPhi0 - deltaY * cosPhi0 +
                          ((deltaX * cosPhi0 + deltaY * sinPhi0) * tan((phi0Prime - m_phi0) / 2.0));
 
-  // In order to have terms which behave well as Omega->0 we make use of deltaX and deltaY to replace sin( phi0Prime - phi0 ) and cos( phi0Prime - phi0 )
+  // In order to have terms which behave well as Omega->0 we make use of deltaX and deltaY to replace sin( phi0Prime -
+  // phi0 ) and cos( phi0Prime - phi0 )
 
   const double sinDeltaPhi = (-m_omega / (1.0 - (m_omega * d0Prime))) * (deltaX * cosPhi0 + deltaY * sinPhi0);
 
@@ -85,9 +86,9 @@ double HelixTrack::moveRefPoint(double x, double y, double z) {
 
   phi0Prime = toBaseRange(phi0Prime);
 
-  m_d0   = d0Prime;
+  m_d0 = d0Prime;
   m_phi0 = phi0Prime;
-  m_z0   = z0Prime;
+  m_z0 = z0Prime;
 
   m_ref_point_x = x;
   m_ref_point_y = y;

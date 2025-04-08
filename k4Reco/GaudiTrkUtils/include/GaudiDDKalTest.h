@@ -39,16 +39,16 @@ class DDVMeasLayer;
 class THelicalTrack;
 class TVKalDetector;
 namespace edm4hep {
-  class TrackerHitPlane;
+class TrackerHitPlane;
 }
 namespace Gaudi {
-  class Algorithm;
+class Algorithm;
 }
 
 class DDCylinderMeasLayer;
 
 /** Interface to KaltTest Kalman fitter - instantiates and holds the detector geometry.
-*/
+ */
 class GaudiDDKalTest {
 public:
   friend class GaudiDDKalTestTrack;
@@ -61,10 +61,10 @@ public:
 
   GaudiDDKalTest() = delete;
   GaudiDDKalTest(const Gaudi::Algorithm* algorithm);
-  GaudiDDKalTest(const GaudiDDKalTest&)                  = delete;
+  GaudiDDKalTest(const GaudiDDKalTest&) = delete;
   GaudiDDKalTest const& operator=(const GaudiDDKalTest&) = delete;
-  GaudiDDKalTest(GaudiDDKalTest&&)                       = delete;
-  GaudiDDKalTest const& operator=(GaudiDDKalTest&&)      = delete;
+  GaudiDDKalTest(GaudiDDKalTest&&) = delete;
+  GaudiDDKalTest const& operator=(GaudiDDKalTest&&) = delete;
   ~GaudiDDKalTest();
 
   //   /** Sets the specified option ( one of the constants defined in IMarlinTrkSystem::CFG )
@@ -107,12 +107,12 @@ private:
   const DDCylinderMeasLayer* getIPLayer() const { return m_ipLayer; }
 
 private:
-  bool                                    is_initialised = false;
-  const DDCylinderMeasLayer*              m_ipLayer      = nullptr;
-  TKalDetCradle                           m_det{};  // the detector cradle
+  bool is_initialised = false;
+  const DDCylinderMeasLayer* m_ipLayer = nullptr;
+  TKalDetCradle m_det{}; // the detector cradle
   std::multimap<int, const DDVMeasLayer*> m_active_measurement_modules{};
   std::multimap<int, const DDVMeasLayer*> m_active_measurement_modules_by_layer{};
-  std::vector<DDKalDetector*>             m_detectors{};
+  std::vector<DDKalDetector*> m_detectors{};
 
   // Originally not present in MarlinDDKalTest, this is needed to be able to use
   // logging from Gaudi

@@ -50,23 +50,21 @@ public:
   GaudiTrkUtils() = delete;
   GaudiTrkUtils(const Gaudi::Algorithm* thisAlg, const GaudiDDKalTest& ddKalTest, SmartIF<IGeoSvc> geoSvc,
                 const std::string encodingStringVariable)
-      : m_thisAlg(thisAlg),
-        m_ddkaltest(ddKalTest),
-        m_geoSvc(geoSvc),
-        m_encodingStringVariable(encodingStringVariable) {}
+      : m_thisAlg(thisAlg), m_ddkaltest(ddKalTest), m_geoSvc(geoSvc), m_encodingStringVariable(encodingStringVariable) {
+  }
 
-  GaudiTrkUtils(const GaudiTrkUtils&)            = delete;
+  GaudiTrkUtils(const GaudiTrkUtils&) = delete;
   GaudiTrkUtils& operator=(const GaudiTrkUtils&) = delete;
-  GaudiTrkUtils(GaudiTrkUtils&&)                 = delete;
-  GaudiTrkUtils& operator=(GaudiTrkUtils&&)      = delete;
+  GaudiTrkUtils(GaudiTrkUtils&&) = delete;
+  GaudiTrkUtils& operator=(GaudiTrkUtils&&) = delete;
 
-  int createFinalisedLCIOTrack(GaudiDDKalTestTrack&                                marlinTrk,
+  int createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
                                const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
                                edm4hep::MutableTrack& track, bool fit_direction,
                                const edm4hep::CovMatrix6f& initial_cov_for_prefit, float bfield_z,
                                double maxChi2Increment);
 
-  int createFinalisedLCIOTrack(GaudiDDKalTestTrack&                                marlinTrk,
+  int createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
                                const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
                                edm4hep::MutableTrack& track, bool fit_direction, edm4hep::TrackState& pre_fit,
                                double maxChi2Increment);
@@ -80,7 +78,7 @@ public:
   int finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::MutableTrack& track,
                         const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool fit_direction);
 
-  void addHitNumbersToTrack(std::vector<int32_t>&                               subdetectorHitNumbers,
+  void addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNumbers,
                             const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
                             const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const;
 
@@ -89,9 +87,9 @@ public:
 
 private:
   const Gaudi::Algorithm* m_thisAlg;
-  const GaudiDDKalTest&   m_ddkaltest;
-  SmartIF<IGeoSvc>        m_geoSvc;
-  const std::string       m_encodingStringVariable;
+  const GaudiDDKalTest& m_ddkaltest;
+  SmartIF<IGeoSvc> m_geoSvc;
+  const std::string m_encodingStringVariable;
 };
 
-#endif  // K4RECO_GAUDITRKUTILS_H
+#endif // K4RECO_GAUDITRKUTILS_H

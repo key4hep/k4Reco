@@ -43,7 +43,7 @@
 #include <stdexcept>
 
 GaudiDDKalTest::GaudiDDKalTest(const Gaudi::Algorithm* algorithm) : m_thisAlg(algorithm) {
-  m_det.SetOwner(true);  // takes care of deleting subdetector in the end ...
+  m_det.SetOwner(true); // takes care of deleting subdetector in the end ...
 
   // this->registerOptions();
 }
@@ -88,14 +88,14 @@ void GaudiDDKalTest::init() {
 
   dd4hep::Detector& lcdd = dd4hep::Detector::getInstance();
 
-  double               minS    = 1.e99;
+  double minS = 1.e99;
   DDCylinderMeasLayer* ipLayer = nullptr;
 
   // for the tracking we get all tracking detectors and all passive detectors (beam pipe,...)
 
-  std::vector<dd4hep::DetElement>        detectors   = lcdd.detectors("tracker");
+  std::vector<dd4hep::DetElement> detectors = lcdd.detectors("tracker");
   const std::vector<dd4hep::DetElement>& passiveDets = lcdd.detectors("passive");
-  const std::vector<dd4hep::DetElement>& calos       = lcdd.detectors("calorimeter");
+  const std::vector<dd4hep::DetElement>& calos = lcdd.detectors("calorimeter");
 
   detectors.reserve(detectors.size() + passiveDets.size() + calos.size());
 
@@ -128,7 +128,7 @@ void GaudiDDKalTest::init() {
 
       double s = tvs->GetSortingPolicy();
       if (s < minS && dynamic_cast<DDCylinderMeasLayer*>(kalDet->At(i))) {
-        minS    = s;
+        minS = s;
         ipLayer = dynamic_cast<DDCylinderMeasLayer*>(kalDet->At(i));
       }
     }
@@ -141,8 +141,8 @@ void GaudiDDKalTest::init() {
   }
   //-------------------------------------------------------------------------------
 
-  m_det.Close();  // close the cradle
-  //done in Close()    m_det.Sort() ;           // sort meas. layers from inside to outside
+  m_det.Close(); // close the cradle
+  // done in Close()    m_det.Sort() ;           // sort meas. layers from inside to outside
 
   m_thisAlg->debug() << "  GaudiDDKalTest - number of layers = " << m_det.GetEntriesFast() << endmsg;
 
@@ -187,7 +187,7 @@ void GaudiDDKalTest::includeEnergyLoss(bool energyLossOn) {
 std::vector<const DDVMeasLayer*> GaudiDDKalTest::getSensitiveMeasurementModules(const std::uint64_t moduleID) const {
   std::vector<const DDVMeasLayer*> measmodules;
 
-  auto ii = this->m_active_measurement_modules.equal_range(moduleID);  // set the first and last entry in ii;
+  auto ii = this->m_active_measurement_modules.equal_range(moduleID); // set the first and last entry in ii;
 
   for (auto& it = ii.first; it != ii.second; ++it) {
     //      std::cout<<"Key = "<<it->first<<"    Value = "<<it->second << endmsg ;
@@ -212,7 +212,7 @@ std::vector<const DDVMeasLayer*> GaudiDDKalTest::getSensitiveMeasurementModulesF
   m_encoder.set(layerID, "sensor", 0);
   layerID = m_encoder.lowWord(layerID);
 
-  auto ii = this->m_active_measurement_modules_by_layer.equal_range(layerID);  // set the first and last entry in ii;
+  auto ii = this->m_active_measurement_modules_by_layer.equal_range(layerID); // set the first and last entry in ii;
 
   for (auto& it = ii.first; it != ii.second; ++it) {
     //    streamlog_out( DEBUG0 ) <<"Key = "<< it->first <<"    Value = "<<it->second << endmsg ;
@@ -271,17 +271,17 @@ const DDVMeasLayer* GaudiDDKalTest::getLastMeasLayer(const THelicalTrack& hel, T
 
   const int mode = isfwd ? -1 : +1;
 
-  //  streamlog_out( DEBUG4 ) << "  GaudiDDKalTest - getLastMeasLayer deflection to point = " << deflection_to_point << " kappa = " << helix.GetKappa()  << "  mode = " << mode << endmsg ;
-  //  streamlog_out( DEBUG4 ) << " Point to move to:" << endmsg;
-  //  point.Print();
+  //  streamlog_out( DEBUG4 ) << "  GaudiDDKalTest - getLastMeasLayer deflection to point = " << deflection_to_point <<
+  //  " kappa = " << helix.GetKappa()  << "  mode = " << mode << endmsg ; streamlog_out( DEBUG4 ) << " Point to move
+  //  to:" << endmsg; point.Print();
 
-  const TVSurface* ml_retval      = nullptr;
-  double           min_deflection = DBL_MAX;
+  const TVSurface* ml_retval = nullptr;
+  double min_deflection = DBL_MAX;
 
   for (int i = 0; i < m_det.GetEntriesFast(); ++i) {
-    const auto* sfp = static_cast<const TVSurface*>(m_det.At(i));  // surface at destination
+    const auto* sfp = static_cast<const TVSurface*>(m_det.At(i)); // surface at destination
 
-    double   defection_angle = 0;
+    double defection_angle = 0;
     TVector3 crossing_point;
     const int does_cross = sfp->CalcXingPointWith(helix, crossing_point, defection_angle, mode);
 
@@ -302,7 +302,7 @@ const DDVMeasLayer* GaudiDDKalTest::getLastMeasLayer(const THelicalTrack& hel, T
         //                              << endmsg ;
 
         min_deflection = deflection;
-        ml_retval      = sfp;
+        ml_retval = sfp;
       }
     }
   }
@@ -322,20 +322,21 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
   // search for the list of measurement layers associated with this CellID
   const auto meas_modules = this->getSensitiveMeasurementModules(detElementID);
 
-  if (meas_modules.size() == 0) {  // no measurement layers found
+  if (meas_modules.size() == 0) { // no measurement layers found
 
-    throw std::runtime_error("GaudiDDKalTest::findMeasLayer module id "+ std::to_string(detElementID) +
+    throw std::runtime_error("GaudiDDKalTest::findMeasLayer module id " + std::to_string(detElementID) +
                              " not found in active measurement modules");
 
-  } else if (meas_modules.size() == 1) {  // one to one mapping
+  } else if (meas_modules.size() == 1) { // one to one mapping
 
     ml = meas_modules[0];
 
-  } else {  // layer has been split
+  } else { // layer has been split
 
     bool surf_found = false;
 
-    // loop over the measurement layers associated with this CellID and find the correct one using the position of the hit
+    // loop over the measurement layers associated with this CellID and find the correct one using the position of the
+    // hit
     for (const auto& module : meas_modules) {
       const auto* surf = dynamic_cast<const TVSurface*>(module);
 
@@ -347,17 +348,17 @@ const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const std::uint64_t detElement
       const bool hit_on_surface = surf->IsOnSurface(point);
 
       if (!surf_found && hit_on_surface) {
-        ml         = module;
+        ml = module;
         surf_found = true;
 
-      } else if (surf_found && hit_on_surface) {  // only one surface should be found, if not throw
+      } else if (surf_found && hit_on_surface) { // only one surface should be found, if not throw
 
         std::stringstream errorMsg;
         errorMsg << "GaudiDDKalTest::findMeasLayer point found to be on two surfaces: moduleID = " << detElementID;
         throw std::runtime_error(errorMsg.str());
       }
     }
-    if (!surf_found) {  // print out debug info
+    if (!surf_found) { // print out debug info
       m_thisAlg->debug() << "GaudiDDKalTest::findMeasLayer point not found to be on any surface matching moduleID = "
                          << detElementID << ": x = " << point.x() << " y = " << point.y() << " z = " << point.z()
                          << endmsg;
