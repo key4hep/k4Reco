@@ -34,17 +34,17 @@ const int KDTree::k(1);
 KDTree::KDTree(const SharedKDClusters& pts, double overlapTheta, bool sort)
     : array(boost::extents[pts.size()][2]), arrayTheta(boost::extents[pts.size()][2]), det(pts), sortTreeResults(sort) {
   // Fill multi_array
-  SharedKDClusters::const_iterator       iter = det.begin();
-  const SharedKDClusters::const_iterator end  = det.end();
-  unsigned long                          idx(0);
-  unsigned long                          idtheta(0);
+  SharedKDClusters::const_iterator iter = det.begin();
+  const SharedKDClusters::const_iterator end = det.end();
+  unsigned long idx(0);
+  unsigned long idtheta(0);
 
   for (; iter != end; ++iter) {
     array[idx][0] = (*iter)->getU();
     array[idx][1] = (*iter)->getV();
     ++idx;
 
-    double theta           = (*iter)->getTheta();
+    double theta = (*iter)->getTheta();
     arrayTheta[idtheta][0] = theta;
     arrayTheta[idtheta][1] = 0;
     idtheta++;
@@ -52,21 +52,21 @@ KDTree::KDTree(const SharedKDClusters& pts, double overlapTheta, bool sort)
 
     if (theta > (2. * M_PI - overlapTheta)) {
       arrayTheta.resize(boost::extents[arrayTheta.shape()[0] + 1][2]);
-      arrayTheta[idtheta][0]         = theta - 2. * M_PI;
-      arrayTheta[idtheta][1]         = 0;
+      arrayTheta[idtheta][0] = theta - 2. * M_PI;
+      arrayTheta[idtheta][1] = 0;
       thetaLookup[theta - 2. * M_PI] = (*iter);
       idtheta++;
     } else if (theta < overlapTheta) {
       arrayTheta.resize(boost::extents[arrayTheta.shape()[0] + 1][2]);
-      arrayTheta[idtheta][0]         = theta + 2. * M_PI;
-      arrayTheta[idtheta][1]         = 0;
+      arrayTheta[idtheta][0] = theta + 2. * M_PI;
+      arrayTheta[idtheta][1] = 0;
       thetaLookup[theta + 2. * M_PI] = (*iter);
       idtheta++;
     }
   }
 
   // Build kdtree
-  tree      = new kdtree2::KDTree(array);
+  tree = new kdtree2::KDTree(array);
   treeTheta = new kdtree2::KDTree(arrayTheta);
 }
 
@@ -74,7 +74,7 @@ KDTree::KDTree(const SharedKDClusters& pts, double overlapTheta, bool sort)
 KDTree::~KDTree() {
   delete tree;
   delete treeTheta;
-  tree      = nullptr;
+  tree = nullptr;
   treeTheta = nullptr;
 }
 
@@ -83,10 +83,10 @@ bool distComparator(const kdtree2::KDTreeResult& a, const kdtree2::KDTreeResult&
 void KDTree::nearestNeighbours(SKDCluster const& pt, int N, SharedKDClusters& result,
                                std::function<bool(SKDCluster const&)> const& filter) {
   // Search kdtree for N points around query pt
-  KDTreeResultVector  vec;
+  KDTreeResultVector vec;
   std::vector<double> qv(2);
-  qv[0] = pt->getU();  //xyplane x position;
-  qv[1] = pt->getV();  //xyplane y position;
+  qv[0] = pt->getU(); // xyplane x position;
+  qv[1] = pt->getV(); // xyplane y position;
   tree->n_nearest(qv, N, vec);
 
   // Sort and transform results
@@ -96,9 +96,9 @@ void KDTree::nearestNeighbours(SKDCluster const& pt, int N, SharedKDClusters& re
 void KDTree::allNeighboursInRadius(SKDCluster const& pt, const double radius, SharedKDClusters& result,
                                    std::function<bool(SKDCluster const&)> const& filter) {
   // Search kdtree for all points in radius
-  KDTreeResultVector  vec;
-  std::vector<double> qv{float(pt->getU()), float(pt->getV())};  // should be 2 if using (x,y)-plane
-  //qv[2] = pt.z; // again remove if (x,y) plane only
+  KDTreeResultVector vec;
+  std::vector<double> qv{float(pt->getU()), float(pt->getV())}; // should be 2 if using (x,y)-plane
+  // qv[2] = pt.z; // again remove if (x,y) plane only
   tree->r_nearest(qv, radius * radius, vec);
 
   // Sort and transform results
@@ -108,11 +108,11 @@ void KDTree::allNeighboursInRadius(SKDCluster const& pt, const double radius, Sh
 void KDTree::allNeighboursInTheta(SKDCluster const& pt, const double thetaRange, SharedKDClusters& result,
                                   std::function<bool(SKDCluster const&)> const& filter) {
   // Search kdtree for all points in radius
-  KDTreeResultVector  vec;
-  std::vector<double> qv(2);  // should be 2 if using (x,y)-plane
+  KDTreeResultVector vec;
+  std::vector<double> qv(2); // should be 2 if using (x,y)-plane
   qv[0] = pt->getTheta();
   qv[1] = 0.;
-  //qv[2] = pt.z; // again remove if (x,y) plane only
+  // qv[2] = pt.z; // again remove if (x,y) plane only
   treeTheta->r_nearest(qv, thetaRange * thetaRange, vec);
 
   // Sort and transform results
@@ -122,11 +122,11 @@ void KDTree::allNeighboursInTheta(SKDCluster const& pt, const double thetaRange,
 void KDTree::allNeighboursInTheta(double theta, const double thetaRange, SharedKDClusters& result,
                                   std::function<bool(SKDCluster const&)> const& filter) {
   // Search kdtree for all points in radius
-  KDTreeResultVector  vec;
-  std::vector<double> qv(2);  // should be 2 if using (x,y)-plane
+  KDTreeResultVector vec;
+  std::vector<double> qv(2); // should be 2 if using (x,y)-plane
   qv[0] = theta;
   qv[1] = 0.;
-  //qv[2] = pt.z; // again remove if (x,y) plane only
+  // qv[2] = pt.z; // again remove if (x,y) plane only
   treeTheta->r_nearest(qv, thetaRange * thetaRange, vec);
 
   // Sort and transform results
@@ -177,21 +177,21 @@ void KDTree::transformThetaResults(KDTreeResultVector& vec, SharedKDClusters& re
   // Assign back the z value to the NN cluster
   for (auto const& entry : filtered) {
     int idx = entry.idx;
-    //res.first->globalX(array[idx][0]);
-    //res.first->globalY(array[idx][1]);
+    // res.first->globalX(array[idx][0]);
+    // res.first->globalY(array[idx][1]);
 
-    //int check(0);
-    //    for(SharedKDClusters::const_iterator it = det.begin(); it != end2; ++it)
-    //    {
-    //      if (arrayTheta[idx][0] == (*it)->getTheta())
-    //      {
-    //        //double z = it->globalZ();
-    //        res = (*it);
-    //        // once assigned no need to continue looping fo 1NN
-    //        if(k==1)break;
-    //      }
+    // int check(0);
+    //     for(SharedKDClusters::const_iterator it = det.begin(); it != end2; ++it)
+    //     {
+    //       if (arrayTheta[idx][0] == (*it)->getTheta())
+    //       {
+    //         //double z = it->globalZ();
+    //         res = (*it);
+    //         // once assigned no need to continue looping fo 1NN
+    //         if(k==1)break;
+    //       }
     //
-    //    }
+    //     }
 
     result.push_back(thetaLookup[arrayTheta[idx][0]]);
   }

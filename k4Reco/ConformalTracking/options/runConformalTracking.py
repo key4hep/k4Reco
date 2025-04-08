@@ -194,7 +194,7 @@ root_hist_svc.FileName = "conformal_tracking_hist.root"
 ApplicationMgr(
     TopAlg=[tracking],
     EvtSel="NONE",
-    EvtMax=1,
+    EvtMax=3,
     ExtSvc=[eds, geoservice, root_hist_svc],
     OutputLevel=INFO,
 )

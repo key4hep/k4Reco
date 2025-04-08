@@ -100,8 +100,8 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::operator()(const edm4hep::T
   // FIRST STEP: REMOVE CLONES
   //------------
 
-  edm4hep::TrackCollection tracksWithoutClones  = removeClones(input_track_col);
-  const size_t             ntracksWithoutClones = tracksWithoutClones.size();
+  edm4hep::TrackCollection tracksWithoutClones = removeClones(input_track_col);
+  const size_t ntracksWithoutClones = tracksWithoutClones.size();
   debug() << " >> ClonesAndSplitTracksFinder found " << ntracksWithoutClones << " tracks without clones." << endmsg;
 
   if (m_mergeSplitTracks && ntracksWithoutClones > 1) {
@@ -124,9 +124,9 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::operator()(const edm4hep::T
 
 // Function to check if two KDtracks contain several hits in common
 size_t ClonesAndSplitTracksFinder::overlappingHits(const edm4hep::Track& track1, const edm4hep::Track& track2) const {
-  size_t      nHitsInCommon = 0;
-  const auto& trackVec1     = track1.getTrackerHits();
-  const auto& trackVec2     = track2.getTrackerHits();
+  size_t nHitsInCommon = 0;
+  const auto& trackVec1 = track1.getTrackerHits();
+  const auto& trackVec2 = track2.getTrackerHits();
   for (size_t hit = 0; hit < trackVec1.size(); hit++) {
     if (std::find(trackVec2.begin(), trackVec2.end(), trackVec1.at(hit)) != trackVec2.end())
       nHitsInCommon++;
@@ -174,8 +174,8 @@ size_t ClonesAndSplitTracksFinder::overlappingHits(const edm4hep::Track& track1,
 //   trackFinal->setdEdxError(track->getdEdxError());
 // }
 
-edm4hep::TrackCollection ClonesAndSplitTracksFinder::removeClones(
-    const edm4hep::TrackCollection& input_track_col) const {
+edm4hep::TrackCollection
+ClonesAndSplitTracksFinder::removeClones(const edm4hep::TrackCollection& input_track_col) const {
   edm4hep::TrackCollection tracksWithoutClones;
   debug() << "ClonesAndSplitTracksFinder::removeClones " << endmsg;
 
@@ -184,15 +184,15 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::removeClones(
   std::multimap<size_t, std::pair<size_t, edm4hep::Track>> candidateClones;
 
   for (size_t iTrack = 0; iTrack < input_track_col.size(); ++iTrack) {
-    int                   countClones = 0;
-    const edm4hep::Track& track1      = input_track_col.at(iTrack);
+    int countClones = 0;
+    const edm4hep::Track& track1 = input_track_col.at(iTrack);
 
     for (size_t jTrack = iTrack + 1; jTrack < input_track_col.size(); ++jTrack) {
       const edm4hep::Track& track2 = input_track_col.at(jTrack);
 
       if (track1 != track2) {
         const size_t nOverlappingHits = overlappingHits(track1, track2);
-        if (nOverlappingHits >= 2) {  // clones
+        if (nOverlappingHits >= 2) { // clones
           countClones++;
           edm4hep::Track bestTrack = bestInClones(track1, track2, nOverlappingHits);
           candidateClones.emplace(iTrack, std::make_pair(jTrack, bestTrack));
@@ -201,13 +201,13 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::removeClones(
         }
       }
 
-    }  // end second track loop
+    } // end second track loop
 
     if (countClones == 0) {
       tracksWithoutClones.push_back(track1.clone());
     }
 
-  }  // end first track loop
+  } // end first track loop
 
   filterClonesAndMergedTracks(candidateClones, input_track_col, tracksWithoutClones, true);
   return tracksWithoutClones;
@@ -343,7 +343,8 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::removeClones(
 //   }
 // }
 
-// double ClonesAndSplitTracksFinder::calculateSignificancePt(const edm4hep::Track* first, const edm4hep::Track* second) {
+// double ClonesAndSplitTracksFinder::calculateSignificancePt(const edm4hep::Track* first, const edm4hep::Track* second)
+// {
 //   float omegaFirst = first->getOmega();
 //   float omegaSecond = second->getOmega();
 
@@ -360,7 +361,8 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::removeClones(
 //   return significance;
 // }
 
-// double ClonesAndSplitTracksFinder::calculateSignificancePhi(const edm4hep::Track* first, const edm4hep::Track* second) {
+// double ClonesAndSplitTracksFinder::calculateSignificancePhi(const edm4hep::Track* first, const edm4hep::Track*
+// second) {
 //   float phiFirst = first->getPhi();
 //   float phiSecond = second->getPhi();
 //   float deltaPhi = (M_PI - std::abs(std::abs(phiFirst - phiSecond) - M_PI));
@@ -373,7 +375,8 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::removeClones(
 //   return significance;
 // }
 
-// double ClonesAndSplitTracksFinder::calculateSignificanceTanLambda(const edm4hep::Track* first, const edm4hep::Track* second) {
+// double ClonesAndSplitTracksFinder::calculateSignificanceTanLambda(const edm4hep::Track* first, const edm4hep::Track*
+// second) {
 //   float tanLambdaFirst = first->getTanLambda();
 //   float tanLambdaSecond = second->getTanLambda();
 
@@ -401,24 +404,24 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
   std::vector<podio::RelationRange<edm4hep::TrackerHit>> savedHitVec;
 
   for (const auto& iter : candidates) {
-    size_t         track_a_id       = iter.first;
-    size_t         track_b_id       = iter.second.first;
-    edm4hep::Track track_final      = iter.second.second;
-    size_t         countConnections = candidates.count(track_a_id);
-    bool           multiConnection  = (countConnections > 1);
+    size_t track_a_id = iter.first;
+    size_t track_b_id = iter.second.first;
+    edm4hep::Track track_final = iter.second.second;
+    size_t countConnections = candidates.count(track_a_id);
+    bool multiConnection = (countConnections > 1);
 
-    if (!multiConnection) {  // if only 1 connection
+    if (!multiConnection) { // if only 1 connection
 
-      if (clones) {  // clones: compare the track pointers
+      if (clones) { // clones: compare the track pointers
         auto it_trk = std::find(trackVecFinal.begin(), trackVecFinal.end(), track_final);
-        if (it_trk != trackVecFinal.end()) {  // if the track is already there, do nothing
+        if (it_trk != trackVecFinal.end()) { // if the track is already there, do nothing
           continue;
         }
         trackVecFinal.push_back(track_final.clone());
-      } else {  // mergeable tracks: compare the sets of tracker hits
+      } else { // mergeable tracks: compare the sets of tracker hits
 
         const auto& track_final_hits = track_final.getTrackerHits();
-        bool        toBeSaved        = true;
+        bool toBeSaved = true;
 
         for (const auto& hitsVec : savedHitVec) {
           if (equal(hitsVec.begin(), hitsVec.end(), track_final_hits.begin())) {
@@ -433,15 +436,16 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
         }
       }
 
-    } else {  // if more than 1 connection, clones and mergeable tracks have to be treated a little different
+    } else { // if more than 1 connection, clones and mergeable tracks have to be treated a little different
 
-      if (clones) {  // clones
+      if (clones) { // clones
 
         // look at the elements with equal range. If their bestTrack is the same, store it (if not already in). If their
         // bestTrack is different, don't store it
-        auto ret = candidates.equal_range(track_a_id);  // a std::pair of iterators on the multimap [
-            // std::pair<std::multimap<edm4hep::Track*,std::pair<edm4hep::Track*,edm4hep::Track*>>::iterator,
-            // std::multimap<edm4hep::Track*,std::pair<edm4hep::Track*,edm4hep::Track*>>::iterator> ]
+        auto ret = candidates.equal_range(
+            track_a_id); // a std::pair of iterators on the multimap [
+                         // std::pair<std::multimap<edm4hep::Track*,std::pair<edm4hep::Track*,edm4hep::Track*>>::iterator,
+                         // std::multimap<edm4hep::Track*,std::pair<edm4hep::Track*,edm4hep::Track*>>::iterator> ]
         edm4hep::TrackCollection bestTracksMultiConnections;
         for (auto it = ret.first; it != ret.second; ++it) {
           edm4hep::Track track_best = it->second.second;
@@ -449,39 +453,40 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
         }
         if (std::adjacent_find(bestTracksMultiConnections.begin(), bestTracksMultiConnections.end(),
                                std::not_equal_to<edm4hep::Track>()) ==
-            bestTracksMultiConnections.end()) {  // one best track with the same track key
+            bestTracksMultiConnections.end()) { // one best track with the same track key
           auto it_trk = std::find(trackVecFinal.begin(), trackVecFinal.end(), bestTracksMultiConnections.at(0));
-          if (it_trk != trackVecFinal.end()) {  // if the track is already there, do nothing
+          if (it_trk != trackVecFinal.end()) { // if the track is already there, do nothing
             continue;
           }
           trackVecFinal.push_back(bestTracksMultiConnections.at(0));
 
-        } else {  // multiple best tracks with the same track key
+        } else { // multiple best tracks with the same track key
           continue;
         }
 
-      }  // end of clones
+      } // end of clones
 
-      else {  // mergeable tracks -- at the moment they are all stored (very rare anyways)
+      else { // mergeable tracks -- at the moment they are all stored (very rare anyways)
         const edm4hep::Track& track_a = inputTracks.at(track_a_id);
         const edm4hep::Track& track_b = inputTracks.at(track_b_id);
 
         // auto trk1 = std::find(trackVecFinal.begin(), trackVecFinal.end(), track_a);
         auto trk1 = std::find(trackVecFinal.begin(), trackVecFinal.end(), inputTracks.at(track_a_id));
 
-        if (trk1 != trackVecFinal.end()) {  // if the track1 is already there
+        if (trk1 != trackVecFinal.end()) { // if the track1 is already there
           continue;
         }
         // otherwise store the two tracks
         trackVecFinal.push_back(track_a);
         trackVecFinal.push_back(track_b);
 
-      }  // end of mergeable tracks
+      } // end of mergeable tracks
     }
   }
 }
 
-// void ClonesAndSplitTracksFinder::mergeAndFit(edm4hep::Track* track_i, edm4hep::Track* track_j, edm4hep::Track*& lcioTrkPtr) {
+// void ClonesAndSplitTracksFinder::mergeAndFit(edm4hep::Track* track_i, edm4hep::Track* track_j, edm4hep::Track*&
+// lcioTrkPtr) {
 //   debug() << "ClonesAndSplitTracksFinder::mergeAndFit " << endmsg;
 //   EVENT::TrackerHitVec trkHits_i = track_i->getTrackerHits();
 //   EVENT::TrackerHitVec trkHits_j = track_j->getTrackerHits();
@@ -584,19 +589,19 @@ edm4hep::Track ClonesAndSplitTracksFinder::bestInClones(const edm4hep::Track& tr
   float b_chi2 = track_b.getChi2() / static_cast<float>(track_b.getNdf());
   float a_chi2 = track_a.getChi2() / static_cast<float>(track_a.getNdf());
 
-  if (nOverlappingHits == trackerHit_a_size) {  // if the second track is the first track + segment
+  if (nOverlappingHits == trackerHit_a_size) { // if the second track is the first track + segment
     bestTrack = track_b;
-  } else if (nOverlappingHits == trackerHit_b_size) {  // if the second track is a subtrack of the first track
+  } else if (nOverlappingHits == trackerHit_b_size) { // if the second track is a subtrack of the first track
     bestTrack = track_a;
-  } else if (trackerHit_b_size == trackerHit_a_size) {  // if the two tracks have the same length
+  } else if (trackerHit_b_size == trackerHit_a_size) { // if the two tracks have the same length
     if (b_chi2 <= a_chi2) {
       bestTrack = track_b;
     } else {
       bestTrack = track_a;
     }
-  } else if (trackerHit_b_size > trackerHit_a_size) {  // if the second track is longer
+  } else if (trackerHit_b_size > trackerHit_a_size) { // if the second track is longer
     bestTrack = track_b;
-  } else if (trackerHit_b_size < trackerHit_a_size) {  // if the second track is shorter
+  } else if (trackerHit_b_size < trackerHit_a_size) { // if the second track is shorter
     bestTrack = track_a;
   }
   return bestTrack;

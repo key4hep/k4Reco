@@ -40,17 +40,17 @@ double KDTrack::calculateChi2() {
     // rotated for the fit, perform the rotation
     double xMeasured = cluster->getU();
     double yMeasured = cluster->getV();
-    double dx        = cluster->getErrorU();
-    double dv        = cluster->getErrorV();
+    double dx = cluster->getErrorU();
+    double dv = cluster->getErrorV();
     if (m_rotated) {
       double newxMeasured = yMeasured;
       double newyMeasured = -1. * xMeasured;
-      double newdx        = dv;
-      double newdv        = dx;
-      xMeasured           = newxMeasured;
-      yMeasured           = newyMeasured;
-      dx                  = newdx;
-      dv                  = newdv;
+      double newdx = dv;
+      double newdv = dx;
+      xMeasured = newxMeasured;
+      yMeasured = newyMeasured;
+      dx = newdx;
+      dv = newdv;
     }
 
     // Get the residual between the track fit and the hit
@@ -58,7 +58,7 @@ double KDTrack::calculateChi2() {
 
     // Get the error on the hit position
     double term = m_gradient + 2 * m_quadratic * xMeasured;
-    double dy2  = (dv * dv) + (term * term * dx * dx);
+    double dy2 = (dv * dv) + (term * term * dx * dx);
 
     // Increment the chi2
     chi2 += (residualY * residualY) / (dy2);
@@ -69,7 +69,7 @@ double KDTrack::calculateChi2() {
   m_interceptError *= (residual2 / (m_clusters.size() - 3));
   m_gradientError *= (residual2 / (m_clusters.size() - 3));
   m_interceptError = sqrt(m_interceptError);
-  m_gradientError  = sqrt(m_gradientError);
+  m_gradientError = sqrt(m_gradientError);
 
   // Return the final chi2
   return chi2;
@@ -85,19 +85,19 @@ double KDTrack::calculateChi2SZ(TH2F*, bool) {
   double a = -1. * b * m_gradient;
 
   // Get the errors on a and b
-  const double db  = m_interceptError / (2. * m_intercept * m_intercept);
+  const double db = m_interceptError / (2. * m_intercept * m_intercept);
   const double db2 = db * db;
-  double       da2 = db2 * m_gradient * m_gradient + m_gradientError * m_gradientError * b * b;
+  double da2 = db2 * m_gradient * m_gradient + m_gradientError * m_gradientError * b * b;
 
   // Calculate the initial phi0 and its error, used for the calculation of s
-  double x0      = m_clusters[0]->getX();
-  double y0      = m_clusters[0]->getY();
+  double x0 = m_clusters[0]->getX();
+  double y0 = m_clusters[0]->getY();
   double errorx0 = m_clusters[0]->getErrorX();
   double errory0 = m_clusters[0]->getErrorY();
 
   if (m_rotated) {
-    x0      = m_clusters[0]->getY();
-    y0      = -1. * m_clusters[0]->getX();
+    x0 = m_clusters[0]->getY();
+    y0 = -1. * m_clusters[0]->getX();
     errorx0 = m_clusters[0]->getErrorY();
     errory0 = m_clusters[0]->getErrorX();
   }
@@ -109,14 +109,15 @@ double KDTrack::calculateChi2SZ(TH2F*, bool) {
   double radC = sqrt((y0 - b) * (y0 - b) + (x0 - a) * (x0 - a));
 
   // double errorRadC =
-  //     sqrt((da2 + errorx0 * errorx0) * (x0 - a) * (x0 - a) + (db2 + errory0 * errory0) * (y0 - b) * (y0 - b)) / (radC);
+  //     sqrt((da2 + errorx0 * errorx0) * (x0 - a) * (x0 - a) + (db2 + errory0 * errory0) * (y0 - b) * (y0 - b)) /
+  //     (radC);
 
-  const double cPhi0                = cos(phi0);
-  const double sPhi0                = sin(phi0);
-  const double ratio                = (y0 - b) / (x0 - a);
-  const double ratio2               = ratio * ratio;
+  const double cPhi0 = cos(phi0);
+  const double sPhi0 = sin(phi0);
+  const double ratio = (y0 - b) / (x0 - a);
+  const double ratio2 = ratio * ratio;
   const double errorPhi0Denominator = (1. / ((y0 - b) * (1 + (ratio2))));
-  const double errorPhi0Squared     = errorPhi0Denominator * errorPhi0Denominator *
+  const double errorPhi0Squared = errorPhi0Denominator * errorPhi0Denominator *
                                   (((errorx0 * errorx0 + da2) * ratio2 * ratio2) + (errory0 * errory0 + db2) * ratio2);
 
   // Loop over all hits on the track and calculate the residual.
@@ -138,13 +139,13 @@ double KDTrack::calculateChi2SZ(TH2F*, bool) {
   for (auto it = m_clusters.begin() + 1; it != m_clusters.end(); ++it) {
     const auto& cluster = *it;
     // Get the global point details
-    double xi     = cluster->getX();
-    double yi     = cluster->getY();
+    double xi = cluster->getX();
+    double yi = cluster->getY();
     double errorx = cluster->getErrorX();
     double errory = cluster->getErrorY();
     if (m_rotated) {
-      xi     = cluster->getY();
-      yi     = -1. * cluster->getX();
+      xi = cluster->getY();
+      yi = -1. * cluster->getX();
       errorx = cluster->getErrorY();
       errory = cluster->getErrorX();
     }
@@ -171,29 +172,30 @@ double KDTrack::calculateChi2SZ(TH2F*, bool) {
 
     double deltaPhi = phi - phi0;
 
-    //double s        = ((xi - x0) * cPhi0 + (yi - y0) * sPhi0) / (sinc(deltaPhi));
+    // double s        = ((xi - x0) * cPhi0 + (yi - y0) * sPhi0) / (sinc(deltaPhi));
     double s = radC * deltaPhi;
 
     // Calculate the errors on everything
-    const double sinDPhi    = sin(deltaPhi);
+    const double sinDPhi = sin(deltaPhi);
     const double sinDPhiInv = 1.0 / sinDPhi;
-    const double dsdx       = deltaPhi * cPhi0 * sinDPhiInv;
-    const double dsdy       = deltaPhi * sPhi0 * sinDPhiInv;
-    const double dsdx0      = deltaPhi * cPhi0 * sinDPhiInv;
-    const double dsdy0      = deltaPhi * sPhi0 * sinDPhiInv;
-    const double dsdPhi0    = ((yi - y0) * cPhi0 - (xi - x0) * sPhi0) / (sinc(deltaPhi));
+    const double dsdx = deltaPhi * cPhi0 * sinDPhiInv;
+    const double dsdy = deltaPhi * sPhi0 * sinDPhiInv;
+    const double dsdx0 = deltaPhi * cPhi0 * sinDPhiInv;
+    const double dsdy0 = deltaPhi * sPhi0 * sinDPhiInv;
+    const double dsdPhi0 = ((yi - y0) * cPhi0 - (xi - x0) * sPhi0) / (sinc(deltaPhi));
     const double dsdDeltaPhi =
         ((xi - x0) * cPhi0 + (yi - y0) * sPhi0) * (sinDPhi - deltaPhi * cos(deltaPhi)) * sinDPhiInv * sinDPhiInv;
-    //double newRatio      = (yi - y0) / (xi - x0);
-    const double newRatio  = (yi - b) / (xi - a);
+    // double newRatio      = (yi - y0) / (xi - x0);
+    const double newRatio = (yi - b) / (xi - a);
     const double newRatio2 = newRatio * newRatio;
 
-    //double errorDeltaPhi = (1. / ((yi - y0) * (1 + (newRatio * newRatio)))) *
-    //                       sqrt((((errorx * errorx + errorx0 * errorx0) * newRatio * newRatio * newRatio * newRatio) +
-    //                             (errory * errory + errory0 * errory0) * newRatio * newRatio));
+    // double errorDeltaPhi = (1. / ((yi - y0) * (1 + (newRatio * newRatio)))) *
+    //                        sqrt((((errorx * errorx + errorx0 * errorx0) * newRatio * newRatio * newRatio * newRatio)
+    //                        +
+    //                              (errory * errory + errory0 * errory0) * newRatio * newRatio));
 
     const double errorDeltaPhiDenominator = 1. / ((yi - b) * (1 + newRatio2));
-    double       errorDeltaPhi2           = (errorDeltaPhiDenominator * errorDeltaPhiDenominator) *
+    double errorDeltaPhi2 = (errorDeltaPhiDenominator * errorDeltaPhiDenominator) *
                             (((errorx * errorx + da2) * newRatio2 * newRatio2) + (errory * errory + db2) * newRatio2);
 
     const double errorDeltaPhiSquared = errorDeltaPhi2 + errorPhi0Squared;
@@ -203,12 +205,12 @@ double KDTrack::calculateChi2SZ(TH2F*, bool) {
                      (dsdPhi0 * dsdPhi0 * errorPhi0Squared) + (dsdDeltaPhi * dsdDeltaPhi * errorDeltaPhiSquared);
 
     // Now calculate the residual at this point
-    double z         = cluster->getZ();
+    double z = cluster->getZ();
     double residualS = (m_gradientZS * z + m_interceptZS) - s;
 
     // Calculate the corresponding hit error
     double errorZ = cluster->getErrorZ();
-    double ds2    = (errorS2 + m_gradientZS * m_gradientZS * errorZ * errorZ);
+    double ds2 = (errorS2 + m_gradientZS * m_gradientZS * errorZ * errorZ);
 
     // Increment the chi2
     chi2 += (residualS * residualS) / ds2;
@@ -219,7 +221,8 @@ double KDTrack::calculateChi2SZ(TH2F*, bool) {
     //                         << ", error ds = " << sqrt(errorS2) << " and total error = " << sqrt(ds2) << std::endl;
     //   double debugError = sqrt(deltaPhi * deltaPhi * errorRadC * errorRadC + errorDeltaPhiSquared * radC * radC);
     //   streamlog_out(DEBUG5) << "- alternative ds = " << debugError << std::endl;
-    //   streamlog_out(DEBUG5) << "Total chi2 increase " << (residualS * residualS) / (ds2) << ". Chi2 is currently " << chi2
+    //   streamlog_out(DEBUG5) << "Total chi2 increase " << (residualS * residualS) / (ds2) << ". Chi2 is currently " <<
+    //   chi2
     //                         << std::endl;
     // }
     // if (fillFit) {
@@ -258,37 +261,37 @@ void KDTrack::linearRegression(bool highPTfit) {
   }
 
   // Initialise variables for the linear regression
-  std::array<double, 3>                vecx{};
+  std::array<double, 3> vecx{};
   std::array<std::array<double, 3>, 3> matx{};
 
   // Loop over all hits and fill the matrices
   for (const auto& cluster : m_clusters) {
     // Get the global point details
-    double x   = cluster->getU();
-    double y   = cluster->getV();
+    double x = cluster->getU();
+    double y = cluster->getV();
     double er2 = cluster->getErrorV() * cluster->getErrorV();
 
     // If rotated then perform the rotation
     if (m_rotated) {
-      double newx   = y;
-      double newy   = -1. * x;
+      double newx = y;
+      double newy = -1. * x;
       double newer2 = cluster->getErrorU() * cluster->getErrorU();
-      x             = newx;
-      y             = newy;
-      er2           = newer2;
+      x = newx;
+      y = newy;
+      er2 = newer2;
     }
 
     // Fill the matrices
     const double inverseEr2 = 1. / er2;
     vecx[0] += y * inverseEr2;
     vecx[1] += x * y * inverseEr2;
-    vecx[2] += x * x * y * inverseEr2;  // quadratic expression
+    vecx[2] += x * x * y * inverseEr2; // quadratic expression
     matx[0][0] += inverseEr2;
     matx[1][0] += x * inverseEr2;
     matx[1][1] += x * x * inverseEr2;
-    matx[2][0] += x * x * inverseEr2;          // quadratic expression
-    matx[2][1] += x * x * x * inverseEr2;      // quadratic expression
-    matx[2][2] += x * x * x * x * inverseEr2;  // quadratic expression
+    matx[2][0] += x * x * inverseEr2;         // quadratic expression
+    matx[2][1] += x * x * x * inverseEr2;     // quadratic expression
+    matx[2][2] += x * x * x * x * inverseEr2; // quadratic expression
   }
 
   // Invert the matrix
@@ -316,33 +319,33 @@ void KDTrack::linearRegression(bool highPTfit) {
 
   // Get the track parameters
   double intercept = (vecx[0] * adjx[0][0] + vecx[1] * adjx[1][0] + vecx[2] * adjx[2][0]) / detx;
-  double gradient  = (vecx[0] * adjx[1][0] + vecx[1] * adjx[1][1] + vecx[2] * adjx[2][1]) / detx;
+  double gradient = (vecx[0] * adjx[1][0] + vecx[1] * adjx[1][1] + vecx[2] * adjx[2][1]) / detx;
   double quadratic = (vecx[0] * adjx[2][0] + vecx[1] * adjx[2][1] + vecx[2] * adjx[2][2]) / detx;
 
   if (highPTfit) {
-    gradient  = (vecx[1] * matx[0][0] - vecx[0] * matx[1][0]) / detx;
+    gradient = (vecx[1] * matx[0][0] - vecx[0] * matx[1][0]) / detx;
     intercept = (vecx[0] * matx[1][1] - vecx[1] * matx[1][0]) / detx;
     quadratic = 0.;
   }
 
   // Set the track parameters
   m_intercept = intercept;
-  m_gradient  = gradient;
+  m_gradient = gradient;
   m_quadratic = quadratic;
 
   // Set the corresponding errors
-  m_interceptError = adjx[0][0] / detx;  // to be multipled by sigma^2 in chi2 calculation
-  m_gradientError  = adjx[1][1] / detx;  // to be multipled by sigma^2 in chi2 calculation
+  m_interceptError = adjx[0][0] / detx; // to be multipled by sigma^2 in chi2 calculation
+  m_gradientError = adjx[1][1] / detx;  // to be multipled by sigma^2 in chi2 calculation
 
   // Calculate the chi2
-  m_chi2     = this->calculateChi2();
+  m_chi2 = this->calculateChi2();
   m_chi2ndof = m_chi2 / (m_clusters.size() - 3);
 }
 
 // Fit the track in sz (linear regression)
 void KDTrack::linearRegressionConformal(bool) {
   // Initialise variables for the linear regression
-  std::array<double, 2>                vecx{};
+  std::array<double, 2> vecx{};
   std::array<std::array<double, 2>, 2> matx{};
 
   // Calculate a and b from the conformal fit
@@ -350,18 +353,18 @@ void KDTrack::linearRegressionConformal(bool) {
   double a = -1. * b * m_gradient;
 
   // Get the errors on a and b
-  double db  = m_interceptError / (2. * m_intercept * m_intercept);
+  double db = m_interceptError / (2. * m_intercept * m_intercept);
   double da2 = db * db * m_gradient * m_gradient + m_gradientError * m_gradientError * b * b;
 
   // Calculate the initial phi0 and its error, used for the calculation of s
-  double x0      = m_clusters[0]->getX();
-  double y0      = m_clusters[0]->getY();
+  double x0 = m_clusters[0]->getX();
+  double y0 = m_clusters[0]->getY();
   double errorx0 = m_clusters[0]->getErrorX();
   double errory0 = m_clusters[0]->getErrorY();
 
   if (m_rotated) {
-    x0      = m_clusters[0]->getY();
-    y0      = -1. * m_clusters[0]->getX();
+    x0 = m_clusters[0]->getY();
+    y0 = -1. * m_clusters[0]->getX();
     errorx0 = m_clusters[0]->getErrorY();
     errory0 = m_clusters[0]->getErrorX();
   }
@@ -372,9 +375,9 @@ void KDTrack::linearRegressionConformal(bool) {
 
   double radC = sqrt((y0 - b) * (y0 - b) + (x0 - a) * (x0 - a));
 
-  const double cPhi0                = cos(phi0);
-  const double sPhi0                = sin(phi0);
-  double       ratio                = (y0 - b) / (x0 - a);
+  const double cPhi0 = cos(phi0);
+  const double sPhi0 = sin(phi0);
+  double ratio = (y0 - b) / (x0 - a);
   const double errorPhi0Denomitator = 1. / ((y0 - b) * (1 + (ratio * ratio)));
   const double errorPhi0Squared =
       errorPhi0Denomitator * errorPhi0Denomitator *
@@ -388,13 +391,13 @@ void KDTrack::linearRegressionConformal(bool) {
   std::vector<double> sValues, sError2Values;
   for (size_t hit = 1; hit < m_clusters.size(); hit++) {
     // Get the global point details
-    double xi     = m_clusters[hit]->getX();
-    double yi     = m_clusters[hit]->getY();
+    double xi = m_clusters[hit]->getX();
+    double yi = m_clusters[hit]->getY();
     double errorx = m_clusters[hit]->getErrorX();
     double errory = m_clusters[hit]->getErrorY();
     if (m_rotated) {
-      xi     = m_clusters[hit]->getY();
-      yi     = -1. * m_clusters[hit]->getX();
+      xi = m_clusters[hit]->getY();
+      yi = -1. * m_clusters[hit]->getX();
       errorx = m_clusters[hit]->getErrorY();
       errory = m_clusters[hit]->getErrorX();
     }
@@ -418,36 +421,38 @@ void KDTrack::linearRegressionConformal(bool) {
 
     double deltaPhi = phi - phi0;
 
-    //double s        = ((xi - x0) * cPhi0 + (yi - y0) * sPhi0) / (sinc(deltaPhi));
+    // double s        = ((xi - x0) * cPhi0 + (yi - y0) * sPhi0) / (sinc(deltaPhi));
     double s = radC * deltaPhi;
 
     // if (debug) {
     //   streamlog_out(DEBUG5) << "- for hit " << hit << " s = " << s << std::endl;
     //   double deltaPhi2 = atan2(yi - b, xi - a) - phi0;
-    //   streamlog_out(DEBUG5) << "- deltaPhi is " << deltaPhi << ", calculating by hand gives " << deltaPhi2 << std::endl;
+    //   streamlog_out(DEBUG5) << "- deltaPhi is " << deltaPhi << ", calculating by hand gives " << deltaPhi2 <<
+    //   std::endl;
     // }
 
     // Calculate the errors on everything
-    const double sinDPhi    = sin(deltaPhi);
+    const double sinDPhi = sin(deltaPhi);
     const double sinDPhiInv = 1. / sinDPhi;
 
-    const double dsdx    = deltaPhi * cPhi0 * sinDPhiInv;
-    const double dsdy    = deltaPhi * sPhi0 * sinDPhiInv;
-    const double dsdx0   = deltaPhi * cPhi0 * sinDPhiInv;
-    const double dsdy0   = deltaPhi * sPhi0 * sinDPhiInv;
+    const double dsdx = deltaPhi * cPhi0 * sinDPhiInv;
+    const double dsdy = deltaPhi * sPhi0 * sinDPhiInv;
+    const double dsdx0 = deltaPhi * cPhi0 * sinDPhiInv;
+    const double dsdy0 = deltaPhi * sPhi0 * sinDPhiInv;
     const double dsdPhi0 = ((yi - y0) * cPhi0 - (xi - x0) * sPhi0) / (sinc(deltaPhi));
     const double dsdDeltaPhi =
         ((xi - x0) * cPhi0 + (yi - y0) * sPhi0) * (sinDPhi - deltaPhi * cos(deltaPhi)) * sinDPhiInv * sinDPhiInv;
     //    double newRatio      = (yi - y0) / (xi - x0);
-    const double newRatio  = (yi - b) / (xi - a);
+    const double newRatio = (yi - b) / (xi - a);
     const double newRatio2 = newRatio * newRatio;
 
-    //double errorDeltaPhi = (1. / ((yi - y0) * (1 + (newRatio * newRatio)))) *
-    //                       sqrt((((errorx * errorx + errorx0 * errorx0) * newRatio * newRatio * newRatio * newRatio) +
-    //                             (errory * errory + errory0 * errory0) * newRatio * newRatio));
+    // double errorDeltaPhi = (1. / ((yi - y0) * (1 + (newRatio * newRatio)))) *
+    //                        sqrt((((errorx * errorx + errorx0 * errorx0) * newRatio * newRatio * newRatio * newRatio)
+    //                        +
+    //                              (errory * errory + errory0 * errory0) * newRatio * newRatio));
 
     const double errorDeltaPhiDenominator = 1. / ((yi - b) * (1 + newRatio2));
-    double       errorDeltaPhiPart1Squared =
+    double errorDeltaPhiPart1Squared =
         errorDeltaPhiDenominator * errorDeltaPhiDenominator *
         (((errorx * errorx + da2) * newRatio2 * newRatio2) + (errory * errory + db * db) * newRatio2);
 
@@ -465,7 +470,7 @@ void KDTrack::linearRegressionConformal(bool) {
     double er2 =
         errorS2 +
         m_clusters[hit]->getErrorZ() *
-            m_clusters[hit]->getErrorZ();  //errorS2; // 1.; // errors are assumed to be the same for all points here
+            m_clusters[hit]->getErrorZ(); // errorS2; // 1.; // errors are assumed to be the same for all points here
     const double inverseEr2 = 1. / er2;
 
     // Fill the matrices
@@ -484,20 +489,20 @@ void KDTrack::linearRegressionConformal(bool) {
     return;
 
   // Get the track parameters
-  double slope     = (vecx[1] * matx[0][0] - vecx[0] * matx[1][0]) / detx;
+  double slope = (vecx[1] * matx[0][0] - vecx[0] * matx[1][0]) / detx;
   double intercept = (vecx[0] * matx[1][1] - vecx[1] * matx[1][0]) / detx;
 
   // Now that the sz gradient is known, re-fit using better error estimates
 
   // Reset the matrices
-  vecx[0]    = 0;
-  vecx[1]    = 0;
+  vecx[0] = 0;
+  vecx[1] = 0;
   matx[0][0] = 0;
   matx[1][0] = 0;
   matx[1][1] = 0;
   for (size_t hit = 1; hit < m_clusters.size(); hit++) {
-    double y   = sValues[hit - 1];
-    double x   = m_clusters[hit]->getZ();
+    double y = sValues[hit - 1];
+    double x = m_clusters[hit]->getZ();
     double er2 = (sError2Values[hit - 1] + slope * slope * m_clusters[hit]->getErrorZ() * m_clusters[hit]->getErrorZ());
     const double inverseEr2 = 1. / er2;
 
@@ -519,15 +524,15 @@ void KDTrack::linearRegressionConformal(bool) {
     return;
 
   // Get the track parameters
-  slope     = (vecx[1] * matx[0][0] - vecx[0] * matx[1][0]) / detx;
+  slope = (vecx[1] * matx[0][0] - vecx[0] * matx[1][0]) / detx;
   intercept = (vecx[0] * matx[1][1] - vecx[1] * matx[1][0]) / detx;
 
   // Set the track parameters
-  m_gradientZS  = slope;
+  m_gradientZS = slope;
   m_interceptZS = intercept;
 
   // Calculate the chi2
-  m_chi2ZS     = this->calculateChi2SZ();
+  m_chi2ZS = this->calculateChi2SZ();
   m_chi2ndofZS = m_chi2ZS / (m_clusters.size() - 2);
 }
 

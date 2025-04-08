@@ -55,10 +55,10 @@ public:
 
   explicit KDTree(const SharedKDClusters& pts, double overlapTheta, bool sort);
 
-  KDTree(const KDTree&)            = delete;
+  KDTree(const KDTree&) = delete;
   KDTree& operator=(const KDTree&) = delete;
-  KDTree(KDTree&&)                 = delete;
-  KDTree& operator=(KDTree&&)      = delete;
+  KDTree(KDTree&&) = delete;
+  KDTree& operator=(KDTree&&) = delete;
   ~KDTree();
 
   void nearestNeighbours(
@@ -82,14 +82,14 @@ private:
       KDTreeResultVector& vec, SharedKDClusters& result,
       std::function<bool(SKDCluster const&)> const& filter = [](SKDCluster const&) { return false; });
 
-  static const int              k;
+  static const int k;
   boost::multi_array<double, 2> array{};
   boost::multi_array<double, 2> arrayTheta{};
-  kdtree2::KDTree*              tree      = nullptr;
-  kdtree2::KDTree*              treeTheta = nullptr;
-  SharedKDClusters              det{};
-  std::map<double, SKDCluster>  thetaLookup{};
-  bool                          sortTreeResults = true;
+  kdtree2::KDTree* tree = nullptr;
+  kdtree2::KDTree* treeTheta = nullptr;
+  SharedKDClusters det{};
+  std::map<double, SKDCluster> thetaLookup{};
+  bool sortTreeResults = true;
 };
 
 bool distComparator(const kdtree2::KDTreeResult& a, const kdtree2::KDTreeResult& b);

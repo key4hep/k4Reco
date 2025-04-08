@@ -41,11 +41,11 @@ public:
   //--- Constructor and destructor
   KDTrack(Parameters const& par);
 
-  KDTrack(const KDTrack&)            = default;
+  KDTrack(const KDTrack&) = default;
   KDTrack& operator=(const KDTrack&) = delete;
-  KDTrack(KDTrack&&)                 = default;
-  KDTrack& operator=(KDTrack&&)      = default;
-  ~KDTrack()                         = default;
+  KDTrack(KDTrack&&) = default;
+  KDTrack& operator=(KDTrack&&) = default;
+  ~KDTrack() = default;
 
   //--- Functions to add and remove clusters
   void add(SKDCluster cluster) { m_clusters.push_back(cluster); }
@@ -55,10 +55,10 @@ public:
   //--- Fit functions
   double calculateChi2();
   double calculateChi2SZ(TH2F* histo = NULL, bool debug = false);
-  void   linearRegression(bool highPTfit = false);
-  void   linearRegressionConformal(bool debug = false);
+  void linearRegression(bool highPTfit = false);
+  void linearRegressionConformal(bool debug = false);
   double sinc(double) const;
-  void   FillDistribution(TH2F*);
+  void FillDistribution(TH2F*);
 
   //--- Functions to set and return member variables
 
@@ -68,7 +68,7 @@ public:
   double quadratic() const { return m_quadratic; }
   double chi2() const { return m_chi2; }
   double chi2ndof() const { return m_chi2ndof; }
-  bool   rotated() const { return m_rotated; }
+  bool rotated() const { return m_rotated; }
 
   // SZ fit parameters
   double interceptZS() const { return m_interceptZS; }
@@ -85,30 +85,30 @@ public:
   //--- along with the errors and list of clusters used
 
   // UV fit parameters
-  double m_gradient       = 0.0;
-  double m_gradientError  = 0.0;
-  double m_intercept      = 0.0;
+  double m_gradient = 0.0;
+  double m_gradientError = 0.0;
+  double m_intercept = 0.0;
   double m_interceptError = 0.0;
-  double m_quadratic      = 0.0;
-  double m_chi2           = 0.0;
-  double m_chi2ndof       = 0.0;
-  bool   m_rotated        = false;
+  double m_quadratic = 0.0;
+  double m_chi2 = 0.0;
+  double m_chi2ndof = 0.0;
+  bool m_rotated = false;
 
   // SZ fit parameters
-  double m_gradientZS  = 0.0;
+  double m_gradientZS = 0.0;
   double m_interceptZS = 0.0;
-  double m_chi2ZS      = 0.0;
-  double m_chi2ndofZS  = 0.0;
-  bool   m_rotatedSZ   = 0.0;
-  bool   fillFit       = false;
+  double m_chi2ZS = 0.0;
+  double m_chi2ndofZS = 0.0;
+  bool m_rotatedSZ = 0.0;
+  bool fillFit = false;
 
   // Clusters and kalman track pointer
-  double           m_pT = 0.0;
+  double m_pT = 0.0;
   SharedKDClusters m_clusters{};
-  bool             m_kalmanFitForward = true;
+  bool m_kalmanFitForward = true;
 };
 
 typedef std::vector<std::unique_ptr<KDTrack>> UniqueKDTracks;
-typedef std::unique_ptr<KDTrack>              UKDTrack;
+typedef std::unique_ptr<KDTrack> UKDTrack;
 
 #endif

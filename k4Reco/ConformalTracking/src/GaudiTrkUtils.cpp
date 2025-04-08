@@ -37,7 +37,7 @@
 #include <vector>
 
 // From MarlinTrkUtils
-const int MIN_NDF         = 6;
+const int MIN_NDF = 6;
 const int no_intersection = 4;
 
 void setStreamlogOutputLevel(const Gaudi::Algorithm* thisAlg, streamlog::logscope* scope) {
@@ -61,7 +61,7 @@ void setStreamlogOutputLevel(const Gaudi::Algorithm* thisAlg, streamlog::logscop
   }
 }
 
-int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack&                                marlinTrk,
+int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
                                             const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
                                             edm4hep::MutableTrack& track, bool fit_direction,
                                             const edm4hep::CovMatrix6f& initial_cov_for_prefit, float bfield_z,
@@ -69,7 +69,7 @@ int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack&                
   if (hit_list.empty())
     return 1;
 
-  int                 return_error = 0;
+  int return_error = 0;
   edm4hep::TrackState pre_fit(0, 0, 0, 0, 0, 0, 0, {}, initial_cov_for_prefit);
   return_error = createPrefit(hit_list, pre_fit, bfield_z);
   // m_thisAlg->info() << " **** createFinalisedLCIOTrack - created pre-fit: " <<  toString( &pre_fit )  << endmsg ;
@@ -84,7 +84,7 @@ int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack&                
   return return_error;
 }
 
-int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack&                                marlinTrk,
+int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
                                             const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
                                             edm4hep::MutableTrack& track, bool fit_direction,
                                             edm4hep::TrackState& pre_fit, double maxChi2Increment) {
@@ -124,7 +124,7 @@ int GaudiTrkUtils::createPrefit(const std::vector<const edm4hep::TrackerHitPlane
   // check that there are enough 2-D hits to create a helix
   ///////////////////////////////////////////////////////
 
-  if (twoD_hits.size() < 3) {  // no chance to initialise print warning and return
+  if (twoD_hits.size() < 3) { // no chance to initialise print warning and return
     m_thisAlg->warning() << "MarlinTrk::createFinalisedLCIOTrack Cannot create helix from less than 3 2-D hits"
                          << endmsg;
     // TODO
@@ -136,7 +136,8 @@ int GaudiTrkUtils::createPrefit(const std::vector<const edm4hep::TrackerHitPlane
   // make a helix from 3 hits to get a trackstate
   ///////////////////////////////////////////////////////
 
-  // SJA:FIXME: this may not be the optimal 3 hits to take in certain cases where the 3 hits are not well spread over the track length
+  // SJA:FIXME: this may not be the optimal 3 hits to take in certain cases where the 3 hits are not well spread over
+  // the track length
   const edm4hep::Vector3d x1 = twoD_hits[0]->getPosition();
   const edm4hep::Vector3d x2 = twoD_hits[twoD_hits.size() / 2]->getPosition();
   const edm4hep::Vector3d x3 = twoD_hits.back()->getPosition();
@@ -148,10 +149,10 @@ int GaudiTrkUtils::createPrefit(const std::vector<const edm4hep::TrackerHitPlane
   const float referencePoint[3] = {float(helixTrack.getRefPointX()), float(helixTrack.getRefPointY()),
                                    float(helixTrack.getRefPointZ())};
 
-  pre_fit.D0        = helixTrack.getD0();
-  pre_fit.phi       = helixTrack.getPhi0();
-  pre_fit.omega     = helixTrack.getOmega();
-  pre_fit.Z0        = helixTrack.getZ0();
+  pre_fit.D0 = helixTrack.getD0();
+  pre_fit.phi = helixTrack.getPhi0();
+  pre_fit.omega = helixTrack.getOmega();
+  pre_fit.Z0 = helixTrack.getZ0();
   pre_fit.tanLambda = helixTrack.getTanLambda();
 
   pre_fit.referencePoint = referencePoint;
@@ -175,14 +176,14 @@ int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHitPlane*>&
   m_thisAlg->debug() << "MarlinTrk::createFit Start Fit: AddHits: number of hits to fit " << hit_list.size() << endmsg;
 
   std::vector<const edm4hep::TrackerHitPlane*> added_hits;
-  unsigned int                                 ndof_added = 0;
+  unsigned int ndof_added = 0;
 
   for (auto it = hit_list.begin(); it != hit_list.end(); ++it) {
-    const edm4hep::TrackerHitPlane* trkHit       = *it;
-    bool                            isSuccessful = false;
+    const edm4hep::TrackerHitPlane* trkHit = *it;
+    bool isSuccessful = false;
 
     // TODO: check if bitset works
-    if (std::bitset<32>(trkHit->getType())[30]) {  //it is a composite spacepoint
+    if (std::bitset<32>(trkHit->getType())[30]) { // it is a composite spacepoint
 
       // TODO:
       // //Split it up and add both hits to the MarlinTrk
@@ -197,7 +198,7 @@ int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHitPlane*>&
       //     streamlog_out(DEBUG4) << "MarlinTrk::createFit ndof_added = " << ndof_added << std::endl;
       //   }
       // }
-    } else {  // normal non composite hit
+    } else { // normal non composite hit
 
       if (marlinTrk.addHit(trkHit) == 0) {
         isSuccessful = true;
@@ -224,7 +225,7 @@ int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHitPlane*>&
   // set the initial track parameters
   ///////////////////////////////////////////////////////
 
-  return_error = marlinTrk.initialise(pre_fit, fit_direction);  //IMarlinTrack::backward ) ;
+  return_error = marlinTrk.initialise(pre_fit, fit_direction); // IMarlinTrack::backward ) ;
 
   if (return_error != 0) {
     m_thisAlg->debug() << "MarlinTrk::createFit Initialisation of track fit failed with error : " << return_error
@@ -237,7 +238,7 @@ int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHitPlane*>&
 
 int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::MutableTrack& track,
                                      const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool fit_direction) {
-  int    ndf  = 0;
+  int ndf = 0;
   double chi2 = -DBL_MAX;
 
   // First check NDF to see if it make any sense to continue.
@@ -261,7 +262,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   std::vector<const edm4hep::TrackerHitPlane*> used_hits;
 
   const auto& hits_in_fit = marlintrk.getHitsInFit();
-  const auto& outliers    = marlintrk.getOutliers();
+  const auto& outliers = marlintrk.getOutliers();
 
   ///////////////////////////////////////////////
   // now loop over the hits provided for fitting
@@ -272,8 +273,9 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   for (unsigned ihit = 0; ihit < hit_list.size(); ++ihit) {
     const edm4hep::TrackerHitPlane* trkHit = hit_list[ihit];
     // TODO
-    // if( UTIL::BitSet32( trkHit.getType() )[ UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT ]   ){ //it is a composite spacepoint
-    if (std::bitset<32>(trkHit->getType())[30]) {  //it is a composite spacepoint
+    // if( UTIL::BitSet32( trkHit.getType() )[ UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT ]   ){ //it is a composite
+    // spacepoint
+    if (std::bitset<32>(trkHit->getType())[30]) { // it is a composite spacepoint
       // // TODO:
       throw std::runtime_error("MarlinTrk::finaliseLCIOTrack: composite spacepoints not yet supported");
       // // const auto rawObjects = trkHit.getRawHits();
@@ -305,7 +307,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
         // TODO
         if (trkHit == outliers[ohit].first) {
           is_outlier = true;
-          break;  // break out of loop over outliers
+          break; // break out of loop over outliers
         }
       }
       if (is_outlier == false) {
@@ -320,7 +322,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   // and therefore be able to provide well formed (pos. def.) cov. matrices
   ///////////////////////////////////////////////////////////////////////////
 
-  edm4hep::TrackState             trkStateAtFirstHit;
+  edm4hep::TrackState trkStateAtFirstHit;
   const edm4hep::TrackerHitPlane* firstHit =
       fit_direction == false ? hits_in_fit.back().first : hits_in_fit.front().first;
   const edm4hep::TrackerHitPlane* lastHit =
@@ -344,7 +346,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   ///////////////////////////////////////////////////////
   // first create trackstate at IP
   ///////////////////////////////////////////////////////
-  const edm4hep::Vector3d point(0., 0., 0.);  // nominal IP
+  const edm4hep::Vector3d point(0., 0., 0.); // nominal IP
 
   edm4hep::TrackState trkStateIP;
 
@@ -377,8 +379,8 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
     edm4hep::TrackState ts;
 
     double chi2Tmp = 0;
-    int    ndfTmp  = 0;
-    return_error   = marlintrk.getTrackState(last_constrained_hit, ts, chi2, ndf);
+    int ndfTmp = 0;
+    return_error = marlintrk.getTrackState(last_constrained_hit, ts, chi2, ndf);
 
     // m_thisAlg->debug()  << "  MarlinTrk::finaliseLCIOTrack:--  TrackState at last constrained hit : " << endmsg
     //   			<< toString( &ts )    << endmsg ;
@@ -401,7 +403,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
       const edm4hep::TrackerHitPlane* h = (*hI).first;
 
       double deltaChi;
-      double maxChi2Increment = 1e10;  // ???
+      double maxChi2Increment = 1e10; // ???
 
       int addHit = mTrk->addAndFit(h, deltaChi, maxChi2Increment);
 
@@ -417,7 +419,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
 
       ++hI;
 
-    }  //------------------------------------
+    } //------------------------------------
 
     // m_thisAlg->debug() << "MarlinTrk::finaliseLCIOTrack: temporary kaltest track for track state at the IP: "
     //       	    <<  mTrk->toString() << endmsg ;
@@ -425,7 +427,8 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
     // now propagate the temporary track to the IP
     return_error = mTrk->propagate(point, firstHit, trkStateIP, chi2Tmp, ndfTmp);
 
-    // m_thisAlg->debug() << " ***  MarlinTrk::finaliseLCIOTrack: - propagated temporary track fromfirst hit to IP : " <<  toString( trkStateIP ) << endmsg ;
+    // m_thisAlg->debug() << " ***  MarlinTrk::finaliseLCIOTrack: - propagated temporary track fromfirst hit to IP : "
+    // <<  toString( trkStateIP ) << endmsg ;
   }
 
   // TODO
@@ -493,8 +496,8 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   } else {
     m_thisAlg->debug() << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "
                        << endmsg;
-    //FIXME: ignore track state at Calo face for debugging new tracking ...
-    // THIS IS ALSO PART OF THE PREVIOUS TODO
+    // FIXME: ignore track state at Calo face for debugging new tracking ...
+    //  THIS IS ALSO PART OF THE PREVIOUS TODO
   }
 
   // This branch is never taken in the original MarlinTrkUtils code
@@ -509,7 +512,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   return return_error;
 }
 
-void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>&                               subdetectorHitNumbers,
+void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNumbers,
                                          const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
                                          const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const {
   // Because in EDM4hep for vector members only hits can be added, we need the whole
@@ -524,7 +527,7 @@ void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>&                  
   }
 
   int offset = 2;
-  if (!hits_in_fit) {  // all hit atributed by patrec
+  if (!hits_in_fit) { // all hit atributed by patrec
     offset = 1;
   }
 
@@ -542,16 +545,16 @@ void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>&                  
 
 int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
                                               const edm4hep::TrackerHitPlane* trkhit, bool tanL_is_positive) {
-  int return_error        = 0;
+  int return_error = 0;
   int return_error_barrel = 0;
   int return_error_endcap = 0;
 
   double chi2 = -DBL_MAX;
-  int    ndf  = 0;
+  int ndf = 0;
 
-  std::string                           cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable);
+  std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable);
   dd4hep::DDSegmentation::BitFieldCoder encoder(cellIDEncodingString);
-  std::uint64_t                         cellID = 0;
+  std::uint64_t cellID = 0;
 
   // ================== need to get the correct ID(s) for the calorimeter face  ============================
 
@@ -593,20 +596,20 @@ int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, ed
 
   // // check which is the right intersection / closer to the trkhit
   if (return_error_barrel == no_intersection) {
-    //if barrel fails just return ts at the Endcap if exists
+    // if barrel fails just return ts at the Endcap if exists
     return_error = return_error_endcap;
     trkStateCalo = tsEndcap;
   } else if (return_error_endcap == no_intersection) {
-    //if barrel succeeded and endcap fails return ts at the barrel
+    // if barrel succeeded and endcap fails return ts at the barrel
     return_error = return_error_barrel;
     trkStateCalo = tsBarrel;
   } else {
-    //this means both barrel and endcap have intersections. Return closest to the tracker hit
+    // this means both barrel and endcap have intersections. Return closest to the tracker hit
     edm4hep::Vector3d hitPos(trkhit->getPosition());
     edm4hep::Vector3d barrelPos = {tsBarrel.referencePoint[0], tsBarrel.referencePoint[1], tsBarrel.referencePoint[2]};
     edm4hep::Vector3d endcapPos = {tsEndcap.referencePoint[0], tsEndcap.referencePoint[1], tsEndcap.referencePoint[2]};
-    double            dToBarrel = edm4hep::utils::magnitude(hitPos - barrelPos);
-    double            dToendcap = edm4hep::utils::magnitude(hitPos - endcapPos);
+    double dToBarrel = edm4hep::utils::magnitude(hitPos - barrelPos);
+    double dToendcap = edm4hep::utils::magnitude(hitPos - endcapPos);
 
     if (dToBarrel < dToendcap) {
       return_error = return_error_barrel;
@@ -617,9 +620,9 @@ int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, ed
     }
   }
 
-  //bd: d0 and z0 of the track state at the calorimeter must be 0 by definition for all tracks.
-  // info() << "  >>>>>>>>>>> createTrackStateAtCaloFace : setting d0 and z0 to 0. for track state at calorimeter : "
-  //        << toString(trkStateCalo) << endmsg;
+  // bd: d0 and z0 of the track state at the calorimeter must be 0 by definition for all tracks.
+  //  info() << "  >>>>>>>>>>> createTrackStateAtCaloFace : setting d0 and z0 to 0. for track state at calorimeter : "
+  //         << toString(trkStateCalo) << endmsg;
 
   trkStateCalo.D0 = 0.;
   trkStateCalo.Z0 = 0.;
