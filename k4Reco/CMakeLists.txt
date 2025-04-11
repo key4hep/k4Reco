@@ -21,39 +21,105 @@ set(sources
   DDPlanarDigi/components/DDPlanarDigi.cpp
   Overlay/components/OverlayTiming.cpp
 )
+
+set(libs
+        podio::podioIO
+        EDM4HEP::edm4hep
+        k4FWCore::k4FWCore
+        k4FWCore::k4Interface
+        Gaudi::GaudiKernel
+        DD4hep::DDRec
+        DD4hep::DDCore
+        ROOT::Core
+        ROOT::MathCore
+        ROOT::Tree
+)
+
+if(BUILD_TRACKING)
+
+  find_package(LCIO REQUIRED)
+  find_package(ILCUTIL COMPONENTS streamlog REQUIRED)
+  find_package(KalTest REQUIRED)
+  find_package(DDKalTest REQUIRED)
+
+  gaudi_add_library(GaudiTrkUtils
+    SOURCES
+    GaudiTrkUtils/src/GaudiDDKalTest.cpp
+    GaudiTrkUtils/src/GaudiDDKalTestTrack.cpp
+    LINK PRIVATE
+    LCIO::lcio EDM4HEP::edm4hep DD4hep::DDRec Gaudi::GaudiKernel
+    ${KalTest_LIBRARIES}
+    ${DDKalTest_LIBRARIES}
+  )
+
+  # Needed for the warnings in KalTest
+  target_compile_options(GaudiTrkUtils PRIVATE "-Wno-error=deprecated-copy")
+
+  target_sources(GaudiTrkUtils
+    PUBLIC FILE_SET headers
+    TYPE HEADERS FILES
+    GaudiTrkUtils/include/GaudiDDKalTest.h
+    GaudiTrkUtils/include/GaudiDDKalTestTrack.h
+  )
+
+  target_include_directories(GaudiTrkUtils PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiTrkUtils/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE
+    ${KalTest_INCLUDE_DIRS}
+    ${DDKalTest_INCLUDE_DIRS}
+    ${streamlog_INCLUDE_DIRS}
+  )
+
+  # Expected by KalTest
+  target_compile_definitions(GaudiTrkUtils PRIVATE __NOT0__)
+
+  list(APPEND sources
+       ConformalTracking/components/ConformalTracking.cpp
+       ConformalTracking/src/KDTrack.cpp
+       ConformalTracking/src/kdtree2.cpp
+       ConformalTracking/src/KDTree.cpp
+       ConformalTracking/src/HelixTrack.cpp
+       ConformalTracking/src/GaudiTrkUtils.cpp
+       Tracking/src/ClonesAndSplitTracksFinder.cpp
+       Tracking/src/RefitFinal.cpp
+       Tracking/src/TruthTrackFinder.cpp
+  )
+
+  list(APPEND libs
+       ${KalTest_LIBRARIES}
+       ${DDKalTest_LIBRARIES}
+       GaudiTrkUtils
+  )
+endif()
+
+
 gaudi_add_module(k4RecoPlugins
                  SOURCES ${sources}
                  LINK
-                      podio::podioIO
-                      Gaudi::GaudiKernel
-                      k4FWCore::k4FWCore
-                      k4FWCore::k4Interface
-                      EDM4HEP::edm4hep
-                      DD4hep::DDRec
-                      DD4hep::DDCore
-                      ROOT::Core
-                      ROOT::MathCore
-                      )
+                 ${libs}
+)
 target_include_directories(k4RecoPlugins PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-install(TARGETS k4RecoPlugins
-  EXPORT ${CMAKE_PROJECT_NAME}Targets
+if(BUILD_TRACKING)
+
+  target_include_directories(k4RecoPlugins PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+    ${KalTest_INCLUDE_DIRS}
+    ${DDKalTest_INCLUDE_DIRS}
+    ${streamlog_INCLUDE_DIRS}
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+endif()
+
+install(TARGETS GaudiTrkUtils k4RecoPlugins
+  EXPORT k4RecoTargets
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
-  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/@{CMAKE_PROJECT_NAME}"
+  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  FILE_SET headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/k4Reco"
+  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   COMPONENT dev)
-
-include(CTest)
-
-set(GAUDI_GENCONF_DIR "genConfDir")
-
-function(set_test_env _testname)
-  set_property(TEST ${_testname} APPEND PROPERTY ENVIRONMENT
-    LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$<TARGET_FILE_DIR:k4RecoPlugins>:$<TARGET_FILE_DIR:ROOT::Core>:$<TARGET_FILE_DIR:k4FWCore::k4FWCore>:$<TARGET_FILE_DIR:EDM4HEP::edm4hep>:$<TARGET_FILE_DIR:podio::podio>:$ENV{LD_LIBRARY_PATH}
-    PYTHONPATH=${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}/${GAUDI_GENCONF_DIR}:$<TARGET_FILE_DIR:k4FWCore::k4FWCore>/../python:$ENV{PYTHONPATH}
-    PATH=$<TARGET_FILE_DIR:k4FWCore::k4FWCore>/../bin:$ENV{PATH}
-    K4PROJECTTEMPLATE=${CMAKE_CURRENT_LIST_DIR}/
-    )
-endfunction()
