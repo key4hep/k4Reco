@@ -32,6 +32,8 @@ from Configurables import GeoSvc
 from Configurables import RootHistSvc
 from Configurables import Gaudi__Histograming__Sink__Root as RootHistoSink
 
+from conformal_tracking_utils import configure_conformal_tracking_steps
+
 id_service = UniqueIDGenSvc("UniqueIDGenSvc")
 
 eds = EventDataSvc("EventDataSvc")
@@ -40,7 +42,6 @@ geoservice = GeoSvc("GeoSvc")
 geoservice.detectors = [
     os.environ["K4GEO"] + "/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml"
 ]
-# geoservice.detectors = [os.environ["K4GEO"]+"/FCCee/CLD/compact/CLD_o2_v06/CLD_o2_v06.xml"]
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
 
@@ -93,7 +94,7 @@ tracking.trackPurity = 0.7
 
 CT_MAX_DIST = 0.05
 
-# The keys are simply a name are not passed to ConformalTracking
+# The keys (VXDBarrel, VXDEndcap...) are simply names and are not passed to ConformalTracking
 parameters = {
         "VXDBarrel": {
             "collections": ["VXDTrackerHits"],
@@ -181,11 +182,7 @@ parameters = {
         },
     }
 
-tracking.stepCollections = [elem["collections"] for elem in parameters.values()]
-tracking.stepParametersNames = [list(elem["params"].keys()) for elem in parameters.values()]
-tracking.stepParametersValues = [list(elem["params"].values()) for elem in parameters.values()]
-tracking.stepParametersFlags = [elem["flags"] for elem in parameters.values()]
-tracking.stepParametersFunctions = [elem["functions"] for elem in parameters.values()]
+configure_conformal_tracking_steps(tracking, parameters)
 
 hps = RootHistSvc("HistogramPersistencySvc")
 root_hist_svc = RootHistoSink("RootHistoSink")
