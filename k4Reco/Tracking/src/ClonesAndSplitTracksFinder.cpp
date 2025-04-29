@@ -128,7 +128,7 @@ size_t ClonesAndSplitTracksFinder::overlappingHits(const edm4hep::Track& track1,
   const auto& trackVec1 = track1.getTrackerHits();
   const auto& trackVec2 = track2.getTrackerHits();
   for (size_t hit = 0; hit < trackVec1.size(); hit++) {
-    if (std::find(trackVec2.begin(), trackVec2.end(), trackVec1.at(hit)) != trackVec2.end())
+    if (std::ranges::find(trackVec2, trackVec1.at(hit)) != trackVec2.end())
       nHitsInCommon++;
   }
   return nHitsInCommon;
@@ -413,7 +413,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
     if (!multiConnection) { // if only 1 connection
 
       if (clones) { // clones: compare the track pointers
-        auto it_trk = std::find(trackVecFinal.begin(), trackVecFinal.end(), track_final);
+        auto it_trk = std::ranges::find(trackVecFinal, track_final);
         if (it_trk != trackVecFinal.end()) { // if the track is already there, do nothing
           continue;
         }
@@ -454,7 +454,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
         if (std::adjacent_find(bestTracksMultiConnections.begin(), bestTracksMultiConnections.end(),
                                std::not_equal_to<edm4hep::Track>()) ==
             bestTracksMultiConnections.end()) { // one best track with the same track key
-          auto it_trk = std::find(trackVecFinal.begin(), trackVecFinal.end(), bestTracksMultiConnections.at(0));
+          auto it_trk = std::ranges::find(trackVecFinal, bestTracksMultiConnections.at(0));
           if (it_trk != trackVecFinal.end()) { // if the track is already there, do nothing
             continue;
           }
@@ -470,8 +470,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
         const edm4hep::Track& track_a = inputTracks.at(track_a_id);
         const edm4hep::Track& track_b = inputTracks.at(track_b_id);
 
-        // auto trk1 = std::find(trackVecFinal.begin(), trackVecFinal.end(), track_a);
-        auto trk1 = std::find(trackVecFinal.begin(), trackVecFinal.end(), inputTracks.at(track_a_id));
+        auto trk1 = std::ranges::find(trackVecFinal, inputTracks.at(track_a_id));
 
         if (trk1 != trackVecFinal.end()) { // if the track1 is already there
           continue;
