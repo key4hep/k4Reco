@@ -22,7 +22,7 @@ In this folder there are reimplementations of the other tracking processors that
 
 Originally ported from https://github.com/iLCSoft/MarlinTrkProcessors/blob/master/source/Refitting/include/ClonesAndSplitTracksFinder.h and https://github.com/iLCSoft/MarlinTrkProcessors/blob/master/source/Refitting/src/ClonesAndSplitTracksFinder.cc
 
-Only the part that runs when `mergeSplitTracks` is false (default value in the CLD reconstruction) has been ported. The rest can be ported if there on demand.
+Only the part that runs when `mergeSplitTracks` is false (default value in the CLD reconstruction) has been ported. The rest can be ported if there is demand.
 
 Additional validation may be required, since in the simulations that have been done there is not overlap between hits.
 

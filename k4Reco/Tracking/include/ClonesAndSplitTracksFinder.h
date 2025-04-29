@@ -33,56 +33,19 @@ struct ClonesAndSplitTracksFinder final
 
   edm4hep::TrackCollection operator()(const edm4hep::TrackCollection&) const override;
 
-  // // Checks for overlapping hits
+  // Checks for overlapping hits
   size_t overlappingHits(const edm4hep::Track&, const edm4hep::Track&) const;
 
-  // // Picks up the best track between two clones (based on chi2 and length requirements)
+  // Picks up the best track between two clones (based on chi2 and length requirements)
   edm4hep::Track bestInClones(const edm4hep::Track&, const edm4hep::Track&, size_t) const;
 
-  // // Service function to set the information from a edm4hep::Track* object to a TrackImpl* object
-  // void fromTrackToTrackImpl(const edm4hep::Track*, TrackImpl*&);
-
-  // // Merges hits from two tracks in one and fits it
-  // void mergeAndFit(edm4hep::Track*, edm4hep::Track*, edm4hep::Track*&);
-
-  // // Removes doubles (from clone treatments and track merging) and filters multiple connections (clones and mergeable
-  // // tracks treated differently)
+  // Removes doubles (from clone treatments and track merging) and filters multiple connections (clones and mergeable
+  // tracks treated differently)
   void filterClonesAndMergedTracks(std::multimap<size_t, std::pair<size_t, edm4hep::Track>>&,
                                    const edm4hep::TrackCollection&, edm4hep::TrackCollection&, bool) const;
 
-  // // Contains the whole merging procedure (calls filterClonesAndMergedTracks(bool false) and mergeAndFit)
-  // void mergeSplitTracks(std::unique_ptr<LCCollectionVec>&, LCCollection*&, EVENT::TrackVec&);
-
-  // // Calculate significance in pt for two candidate clones
-  // double calculateSignificancePt(const edm4hep::Track*, const edm4hep::Track*);
-
-  // // Calculate significance in phi for two candidate clones
-  // double calculateSignificancePhi(const edm4hep::Track*, const edm4hep::Track*);
-
-  // // Calculate significance in tanLambda for two candidate clones
-  // double calculateSignificanceTanLambda(const edm4hep::Track*, const edm4hep::Track*);
-
-  // // Calculate significance for two candidate clones
-  // double calculateSignificance(const double firstPar, const double secondPar, const double firstPar_sigma,
-  //                              const double secondPar_sigma);
-
-  // // Contains the whole clone skimming procedure (calls bestInClones and filterClonesAndMergedTracks(bool true))
+  // Contains the whole clone skimming procedure (calls bestInClones and filterClonesAndMergedTracks(bool true))
   edm4hep::TrackCollection removeClones(const edm4hep::TrackCollection&) const;
-
-  // int _n_run = -1;
-
-  // double _magneticField = 0.0;
-  // bool _extrapolateForward = true;
-
-  // // Track fit parameters
-  // double m_initialTrackError_d0{};
-  // double m_initialTrackError_phi0{};
-  // double m_initialTrackError_omega{};
-  // double m_initialTrackError_z0{};
-  // double m_initialTrackError_tanL{};
-  // double m_maxChi2perHit{};
-
-  // std::shared_ptr<UTIL::BitField64> _encoder{};
 
   Gaudi::Property<bool> m_MSOn{this, "MultipleScatteringOn", true, "Use MultipleScattering in Fit"};
   Gaudi::Property<bool> m_ElossOn{this, "EnergyLossOn", true, "Use Energy Loss in Fit"};
