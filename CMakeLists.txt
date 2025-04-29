@@ -29,8 +29,10 @@ set(PACKAGE_VERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE
 
 option(BUILD_TRACKING "Build conformal tracking" ON)
 
-find_package(DD4hep REQUIRED)
+
+find_package(podio 1.2.99 REQUIRED)
 find_package(EDM4HEP REQUIRED)
+find_package(DD4hep REQUIRED)
 find_package(Gaudi REQUIRED)
 find_package(k4FWCore REQUIRED)
 find_package(ROOT REQUIRED COMPONENTS RIO Tree)
