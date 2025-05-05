@@ -111,12 +111,11 @@ void LumiCalClustererClass::energyCorrections(MapIntVInt& superClusterIdToCellId
   distanceAB = std::hypot(pos1[0] - pos2[0], pos1[1] - pos2[1]);
 
   superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
-  for (int superClusterNow = 0; superClusterNow < superClusterIdToCellId.size();
+  for (size_t superClusterNow = 0; superClusterNow < superClusterIdToCellId.size();
        superClusterNow++, superClusterIdToCellIdIterator++) {
-    superClusterId = (int)(*superClusterIdToCellIdIterator).first; // Id of cluster
+    superClusterId = (*superClusterIdToCellIdIterator).first; // Id of cluster
 
-    int numElementsInCluster = superClusterIdToCellId[superClusterId].size();
-    for (int hitNow = 0; hitNow < numElementsInCluster; hitNow++) {
+    for (size_t hitNow = 0; hitNow < superClusterIdToCellId[superClusterId].size(); hitNow++) {
       cellIdHit = superClusterIdToCellId[superClusterId][hitNow];
 
       const auto& thisHit = calHitsCellIdGlobal.at(cellIdHit);
