@@ -84,7 +84,7 @@ protected:
 
   // global variables
   int m_numEventsPerTree, m_resetRootTrees;
-  int m_maxLayerToAnalyse;
+  size_t m_maxLayerToAnalyse;
   double m_zFirstLayer, m_zLayerThickness, m_zLayerPhiOffset, m_rMin, m_rMax, m_rCellLength, m_phiCellLength;
   double m_beamCrossingAngle;
   double m_elementsPercentInShowerPeakLayer;
