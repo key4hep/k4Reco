@@ -211,7 +211,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       initialLowEngyClusterBuild(calHitsSmallEngyCellId[layerNow], calHitsCellId[layerNow], cellIdToClusterId[layerNow],
                                  clusterIdToCellId[layerNow], clusterCM[layerNow]);
 #endif
-    // store max number of hits in ShowerPeakLayer
+      // store max number of hits in ShowerPeakLayer
 
 #if _CLUSTER_BUILD_DEBUG == 1
       dumpClusters(clusterCM[layerNow]);
@@ -359,8 +359,8 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
         //	avrgCM[closestCluster->first].setY( (CM1[1]+(avrgCM[closestCluster->first].getY()))/2.);
 
       } // for all clusters
-    } // if isShowerPeakLayer
-  } // for all layers
+    }   // if isShowerPeakLayer
+  }     // for all layers
 
   /* --------------------------------------------------------------------------
      fit a stright line through each cluster from engyPosCMLayer. results
@@ -371,7 +371,8 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   m_alg->debug() << "Fit lines through the averaged CM" << endmsg << endmsg;
   m_alg->debug() << "Fit Param should be this size: " << engyPosCMLayer.size() << endmsg;
 #endif
-  auto sFF = std::make_unique<TF1>("fitFunc", [](double* x, double* p) { return p[0] + p[1] * x[0]; }, -3000, -2000, 2);
+  auto sFF = std::make_unique<TF1>(
+      "fitFunc", [](double* x, double* p) { return p[0] + p[1] * x[0]; }, -3000, -2000, 2);
   TF1& fitFunc(*sFF);
 
   //  for(size_t clusterNow=0; clusterNow < engyPosCMLayer.size(); clusterNow++, engyPosCMLayerIterator++) {
