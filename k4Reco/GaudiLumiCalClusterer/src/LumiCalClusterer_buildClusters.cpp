@@ -317,7 +317,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       clusterCMIterator = clusterCM[layerNow].begin();
       int numClustersNow = int(clusterCM[layerNow].size());
 
-      if ((numClustersNow != numClustersMajority) || (layerNow == maxEngyLayerN))
+      if ((numClustersNow != numClustersMajority) || (static_cast<int>(layerNow) == maxEngyLayerN))
         continue;
 
       for (int clusterNow1 = 0; clusterNow1 < numClustersMajority; clusterNow1++, clusterCMIterator++) {
