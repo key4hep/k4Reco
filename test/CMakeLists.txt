@@ -35,17 +35,36 @@ add_test(NAME "Run ddsim"
   )
 set_test_env("Run ddsim")
 
+# If this is modified, make sure that this simulations produces clusters and reconstructed particles in the LumiCal
+# as this doesn't always happen with the current setting (but does for the current seed)
+add_test(NAME "Run ddsim for LumiCal"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim_lumical.edm4hep.root --gun.energy "50*GeV" --gun.particle "gamma" --gun.distribution uniform --gun.multiplicity 10 --random.seed 123"
+  )
+set_test_env("Run ddsim for LumiCal")
+
 add_test(NAME "Run the Marlin wrapper"
   COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
 )
 set_test_env("Run the Marlin wrapper")
 set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
 
+add_test(NAME "Run the Marlin wrapper for LumiCal"
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
+)
+set_test_env("Run the Marlin wrapper for LumiCal")
+set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim for LumiCal")
+
 add_test(NAME "Run the Marlin wrapper with Truth Tracking"
   COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
 )
 set_test_env("Run the Marlin wrapper with Truth Tracking")
 set_tests_properties("Run the Marlin wrapper with Truth Tracking" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
+
+add_test(NAME "Compare LumiCalClusterer between Marlin and Gaudi"
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/scripts/compare-lumical.py --marlin-file output_lumical_REC.edm4hep.root"
+)
+set_test_env("Compare LumiCalClusterer between Marlin and Gaudi")
+set_tests_properties("Compare LumiCalClusterer between Marlin and Gaudi" PROPERTIES DEPENDS "Run the Marlin wrapper for LumiCal")
 
 if(BUILD_TRACKING)
 
