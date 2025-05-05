@@ -176,7 +176,7 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
         neighborFound = true;
       }
     } while (!neighborFound); // while not neighborFound
-  } // for all hits in layer
+  }                           // for all hits in layer
 
   /* --------------------------------------------------------------------------
      create clusters from each connected bunch of cal hits.
@@ -856,8 +856,9 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
     cout << " - num possible -  " << weightedDistanceV.size() << " \t id of chosen - (" << maxWeightClusterId
-         << ") \t virtualClusterId/hit(x,y): " << " \t " << virtualClusterCM[maxWeightClusterId][1] << " \t "
-         << virtualClusterCM[maxWeightClusterId][2] << endl;
+         << ") \t virtualClusterId/hit(x,y): "
+         << " \t " << virtualClusterCM[maxWeightClusterId][1] << " \t " << virtualClusterCM[maxWeightClusterId][2]
+         << endl;
 #endif
 
     // add the hit to the chosen cluster
