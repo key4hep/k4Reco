@@ -521,7 +521,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
         hitLayerRatio = 22 / 2570.;
       }
 
-      if (layerNow < maxLayerToRaiseVirtualClusterSize)
+      if (static_cast<int>(layerNow) < maxLayerToRaiseVirtualClusterSize)
         virtualClusterCMV.setZ(exp((fitPar0 + fitPar1 * layerNow) * hitLayerRatio));
       else
         virtualClusterCMV.setZ(exp((fitPar0 + fitPar1 * maxLayerToRaiseVirtualClusterSize) * hitLayerRatio));
