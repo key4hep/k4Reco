@@ -39,7 +39,7 @@
 std::pair<int, edm4hep::CalorimeterHitCollection>
 LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& col, MapIntMapIntVCalHit& calHits) {
 
-  if (col.size() < m_clusterMinNumHits)
+  if (col.size() < static_cast<size_t>(m_clusterMinNumHits))
     return {0, edm4hep::CalorimeterHitCollection()};
 
   auto calohits = createCaloHitCollection(col);
@@ -81,7 +81,7 @@ LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& co
     int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
 
     // skip this hit if the following conditions are met
-    if (layer >= m_maxLayerToAnalyse || layer < 0)
+    if (layer >= static_cast<int>(m_maxLayerToAnalyse) || layer < 0)
       continue;
 
     const auto Pos = calHitIn.getPosition();

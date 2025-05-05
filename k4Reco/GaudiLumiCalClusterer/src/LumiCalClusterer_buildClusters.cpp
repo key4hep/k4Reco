@@ -154,7 +154,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
      -------------------------------------------------------------------------- */
   /*(BP)
   for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
-    //  for(int layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
+    //  for(size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
     for(size_t j=0; j<calHitsIt->second.size(); j++){
       int       cellIdHit = (int)calHitsIt->second[j]->getCellID0();
       double    cellEngy = (double)calHitsIt->second[j]->getEnergy();
@@ -225,7 +225,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   MapIntInt numClustersCounter;
   // find the number of clusters in the majority of layers
   m_alg->debug() << "Searching number of clusters in the majority of layers..." << endmsg;
-  for (int layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
+  for (size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
     if (isShowerPeakLayer[layerNow] == 1) {
       const int numClusters = clusterCM[layerNow].size();
       m_alg->debug() << "\t -> layer " << layerNow << "\t global clusters " << numClusters << endmsg;
@@ -250,7 +250,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
 
   // find the layer with the highest energy which has numClustersMajority clusters
   maxEngyLayer = 0.;
-  for (int layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
+  for (size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
     if (isShowerPeakLayer[layerNow] == 1) {
       clusterCMIterator = clusterCM[layerNow].begin();
       const int numClusters = clusterCM[layerNow].size();
@@ -277,7 +277,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
 
   std::vector<LCCluster> avrgCM;
   /*
-  for(int layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
+  for(size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
     if(isShowerPeakLayer[layerNow] == 1) {
       clusterCMIterator = clusterCM[layerNow].begin();
       const int numClusters       = clusterCM[layerNow].size();
@@ -312,7 +312,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   // for all layers in ShowerPeak except the layer with the most energy which has numClustersMajority clusters,
   // update the averageCM vector
 
-  for (int layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
+  for (size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
     if (isShowerPeakLayer[layerNow] == 1) {
       clusterCMIterator = clusterCM[layerNow].begin();
       int numClustersNow = int(clusterCM[layerNow].size());
@@ -489,7 +489,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
 #endif
 
   // fill virtual cluster CM vectors for all the layers
-  for (int layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
+  for (size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
 
     if (calHitsCellId[layerNow].empty())
       continue;
