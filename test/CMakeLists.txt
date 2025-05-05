@@ -62,7 +62,7 @@ set_tests_properties("run_marlin_wrapper_lumical" PROPERTIES DEPENDS "Clone CLDC
 
 
 add_test(NAME "Run the GaudiLumiCalClusterer"
-  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/options/runGaudiLumiCalClusterer.py
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/options/runGaudiLumiCalClusterer.py --IOSvc.Input output_lumical_REC.edm4hep.root
 )
 set_test_env("Run the GaudiLumiCalClusterer")
 set_tests_properties("Run the GaudiLumiCalClusterer" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim for LumiCal")
