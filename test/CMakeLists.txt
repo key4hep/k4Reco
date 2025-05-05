@@ -55,7 +55,7 @@ set_test_env("Run the Marlin wrapper for LumiCal")
 set_tests_properties("Run the Marlin wrapper for LumiCal" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim for LumiCal")
 
 add_test(NAME "Compare LumiCalClusterer between Marlin and Gaudi"
-  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/scripts/compare-lumical.py --marlin-file output_lumical_REC.edm4hep.root"
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/scripts/compare-lumical.py" --marlin-file output_lumical_REC.edm4hep.root
 )
 set_test_env("Compare LumiCalClusterer between Marlin and Gaudi")
 set_tests_properties("Compare LumiCalClusterer between Marlin and Gaudi" PROPERTIES DEPENDS "Run the Marlin wrapper for LumiCal")
