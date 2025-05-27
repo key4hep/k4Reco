@@ -67,16 +67,16 @@ StatusCode GaudiLumiCalClusterer::initialize() {
   parameters["WeightingMethod"] = m_WeightingMethod;
   parameters["NumOfNearNeighbor"] = static_cast<int>(m_NumOfNearNeighbor);
 
-  gmc.SetConstants(parameters);
+  gmc.setConstants(parameters);
 
-  m_BeamCrossingAngle = gmc.GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.;
+  m_BeamCrossingAngle = gmc.m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.;
 
   // printParameters();
   // /* --------------------------------------------------------------------------
   //    Print out Processor Parameters
   //    -------------------------------------------------------------------------- */
   // info() << "Global parameters for Processor:" << name() << "\t" << type() << endmsg;
-  // gmc.PrintAllParameters();
+  // gmc.printAllParameters();
   // info() << endmsg;
 
   LumiCalClusterer.init(gmc);

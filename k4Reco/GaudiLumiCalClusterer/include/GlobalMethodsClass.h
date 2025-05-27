@@ -17,22 +17,29 @@
  * limitations under the License.
  */
 #ifndef k4RECO_GLOBALMETHODSCLASS_H
-#define k4RECO_GLOBALMETHODSCLASS_H 1
+#define k4RECO_GLOBALMETHODSCLASS_H
 
 #include <edm4hep/Cluster.h>
 #include <edm4hep/ReconstructedParticle.h>
 #include <edm4hep/Vector3f.h>
 
 #include <map>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <variant>
 
 class LCCluster;
-class TGeoHMatrix;
 
 class GlobalMethodsClass {
 public:
+  GlobalMethodsClass();
+  GlobalMethodsClass(const GlobalMethodsClass& rhs) = delete;
+  GlobalMethodsClass& operator=(const GlobalMethodsClass& rhs) = default;
+  GlobalMethodsClass(GlobalMethodsClass&& rhs) = default;
+  GlobalMethodsClass& operator=(GlobalMethodsClass&& rhs) = default;
+  ~GlobalMethodsClass() = default;
+
   enum WeightingMethod_t { LogMethod = -1, EnergyMethod = 1 };
 
   enum Parameter_t {
@@ -68,52 +75,36 @@ public:
     BetaGamma,
     Gamma
   };
-  //
 
-  enum Coordinate_t { COTheta, COPhi, COZ, COR, COP, COA };
-
-  static std::string GetParameterName(Parameter_t par);
-
-  typedef std::map<Parameter_t, int> ParametersInt;
-  typedef std::map<Parameter_t, double> ParametersDouble;
-  typedef std::map<Parameter_t, std::string> ParametersString;
-
-  GlobalMethodsClass();
-  GlobalMethodsClass(const GlobalMethodsClass& rhs) = delete;
-  GlobalMethodsClass& operator=(const GlobalMethodsClass& rhs) = default;
-  GlobalMethodsClass(GlobalMethodsClass&& rhs) = default;
-  GlobalMethodsClass& operator=(GlobalMethodsClass&& rhs) = default;
-  ~GlobalMethodsClass() = default;
-
-  void SetConstants(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars);
-  WeightingMethod_t getMethod(const std::string& methodName) const;
+  std::map<Parameter_t, int> m_globalParamI;
+  std::map<Parameter_t, double> m_globalParamD;
+  std::map<Parameter_t, std::string> m_globalParamS;
 
   WeightingMethod_t method = LogMethod;
 
-  double _backwardRotationPhi;
-  ParametersInt GlobalParamI;
-  ParametersDouble GlobalParamD;
-  ParametersString GlobalParamS;
+  enum Coordinate_t { COTheta, COPhi, COZ, COR, COP, COA };
+
+  static std::string getParameterName(Parameter_t par);
+
+  void setConstants(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars);
+  WeightingMethod_t getMethod(const std::string& methodName) const;
 
   double toSignal(const double valNow) const;
   double toGev(const double valNow) const;
 
-  void ThetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
+  void thetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
 
   static void CellIdZPR(const int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
   static int CellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm);
   static int CellIdZPR(const int cellId, const Coordinate_t ZPR);
 
-  void PrintAllParameters() const;
   void initializeAdditionalParameters();
 
   static double posWeight(const double cellEngy, const double totEngy,
                           const GlobalMethodsClass::WeightingMethod_t method, const double logWeightConstNow);
 
-  inline double getCalibrationFactor() const { return GlobalParamD.at(Signal_to_GeV); }
+  inline double getCalibrationFactor() const { return m_globalParamD.at(Signal_to_GeV); }
 
-  template <class T, class U>
-  inline void rotateToGlobal(const T* loc, U* glob) const;
   void rotateToLumiCal(const edm4hep::Vector3f& glob, double* loc) const;
 
   std::tuple<std::optional<edm4hep::MutableCluster>, std::optional<edm4hep::MutableReconstructedParticle>>
@@ -121,19 +112,17 @@ public:
                  const edm4hep::CalorimeterHitCollection& calohits) const;
 
 private:
-  bool SetGeometryDD4HEP();
+  double m_backwardRotationPhi;
+
+  edm4hep::Vector3f rotateToGlobal(const edm4hep::Vector3f& loc) const;
+
+  void printAllParameters() const;
+
+  bool setGeometryDD4hep();
 
   // LumiCal rotations angles ( local->Global )
   std::map<int, double> m_armCosAngle{};
   std::map<int, double> m_armSinAngle{};
 };
-
-template <class T, class U>
-void GlobalMethodsClass::rotateToGlobal(const T* loc, U* glob) const {
-  const int armNow = (loc[2] < 0) ? -1 : 1;
-  glob[0] = +m_armCosAngle.at(armNow) * loc[0] + m_armSinAngle.at(armNow) * loc[2];
-  glob[1] = loc[1];
-  glob[2] = -m_armSinAngle.at(armNow) * loc[0] + m_armCosAngle.at(armNow) * loc[2];
-}
 
 #endif
