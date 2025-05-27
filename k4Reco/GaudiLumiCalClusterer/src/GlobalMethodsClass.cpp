@@ -45,7 +45,8 @@
 #include <utility>
 #include <vector>
 
-GlobalMethodsClass::GlobalMethodsClass() : _backwardRotationPhi(0.0), GlobalParamI(), GlobalParamD(), GlobalParamS() {}
+GlobalMethodsClass::GlobalMethodsClass()
+    : m_globalParamI(), m_globalParamD(), m_globalParamS(), m_backwardRotationPhi(0.0) {}
 
 /* --------------------------------------------------------------------------
    (1):	return a cellId for a given Z (layer), R (cylinder) and Phi (sector)
@@ -67,6 +68,15 @@ void GlobalMethodsClass::rotateToLumiCal(const edm4hep::Vector3f& glob, double* 
   loc[0] = +m_armCosAngle.at(armNow) * glob[0] - m_armSinAngle.at(armNow) * glob[2];
   loc[1] = glob[1];
   loc[2] = +m_armSinAngle.at(armNow) * glob[0] + m_armCosAngle.at(armNow) * glob[2];
+}
+
+edm4hep::Vector3f GlobalMethodsClass::rotateToGlobal(const edm4hep::Vector3f& loc) const {
+  const int armNow = (loc[2] < 0) ? -1 : 1;
+  edm4hep::Vector3f glob;
+  glob.x = +m_armCosAngle.at(armNow) * loc[0] + m_armSinAngle.at(armNow) * loc[2];
+  glob.y = loc[1];
+  glob.z = -m_armSinAngle.at(armNow) * loc[0] + m_armCosAngle.at(armNow) * loc[2];
+  return glob;
 }
 
 int GlobalMethodsClass::CellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm) {
@@ -105,10 +115,10 @@ int GlobalMethodsClass::CellIdZPR(const int cellId, const GlobalMethodsClass::Co
   return 0;
 }
 
-void GlobalMethodsClass::SetConstants(
+void GlobalMethodsClass::setConstants(
     const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars) {
 
-  SetGeometryDD4HEP();
+  setGeometryDD4hep();
 
   //------------------------------------------------------------------------
   // Processor Parameters
@@ -118,40 +128,40 @@ void GlobalMethodsClass::SetConstants(
   double val = std::get<float>(_lcalRecoPars.at(parname));
 
   // check units just in case ( convert to rad as needed )
-  val = (val <= GlobalParamD[PhiCellLength]) ? val : val * M_PI / 180.;
-  GlobalParamD[ZLayerPhiOffset] = val;
+  val = (val <= m_globalParamD[PhiCellLength]) ? val : val * M_PI / 180.;
+  m_globalParamD[ZLayerPhiOffset] = val;
 
-  GlobalParamD[Signal_to_GeV] = 1. / std::get<float>(_lcalRecoPars.at("EnergyCalibConst"));
+  m_globalParamD[Signal_to_GeV] = 1. / std::get<float>(_lcalRecoPars.at("EnergyCalibConst"));
 
   // logarithmic constant for position reconstruction
-  GlobalParamD[LogWeightConstant] = std::get<float>(_lcalRecoPars.at("LogWeigthConstant"));
+  m_globalParamD[LogWeightConstant] = std::get<float>(_lcalRecoPars.at("LogWeigthConstant"));
 
-  GlobalParamD[MinHitEnergy] = toGev(std::get<float>(_lcalRecoPars.at("MinHitEnergy")));
-  GlobalParamD[MiddleEnergyHitBoundFrac] = std::get<float>(_lcalRecoPars.at("MiddleEnergyHitBoundFrac"));
-  GlobalParamD[ElementsPercentInShowerPeakLayer] =
+  m_globalParamD[MinHitEnergy] = toGev(std::get<float>(_lcalRecoPars.at("MinHitEnergy")));
+  m_globalParamD[MiddleEnergyHitBoundFrac] = std::get<float>(_lcalRecoPars.at("MiddleEnergyHitBoundFrac"));
+  m_globalParamD[ElementsPercentInShowerPeakLayer] =
       std::get<float>(_lcalRecoPars.at("ElementsPercentInShowerPeakLayer"));
-  GlobalParamI[ClusterMinNumHits] = std::get<int>(_lcalRecoPars.at("ClusterMinNumHits"));
+  m_globalParamI[ClusterMinNumHits] = std::get<int>(_lcalRecoPars.at("ClusterMinNumHits"));
 
   // Moliere radius of LumiCal [mm]
-  GlobalParamD[MoliereRadius] = std::get<float>(_lcalRecoPars.at("MoliereRadius"));
+  m_globalParamD[MoliereRadius] = std::get<float>(_lcalRecoPars.at("MoliereRadius"));
 
   // Geometrical fiducial volume of LumiCal - minimal and maximal polar angles [rad]
   // (BP) Note, this in local LumiCal Reference System ( crossing angle not accounted )
   // quite large - conservative, further reco-particles selection can be done later if desired
-  GlobalParamD[ThetaMin] = (GlobalParamD[RMin] + GlobalParamD[MoliereRadius]) / GlobalParamD[ZEnd];
-  GlobalParamD[ThetaMax] = (GlobalParamD[RMax] - GlobalParamD[MoliereRadius]) / GlobalParamD[ZStart];
+  m_globalParamD[ThetaMin] = (m_globalParamD[RMin] + m_globalParamD[MoliereRadius]) / m_globalParamD[ZEnd];
+  m_globalParamD[ThetaMax] = (m_globalParamD[RMax] - m_globalParamD[MoliereRadius]) / m_globalParamD[ZStart];
 
   // minimal separation distance between any pair of clusters [mm]
-  GlobalParamD[MinSeparationDist] = GlobalParamD[MoliereRadius];
+  m_globalParamD[MinSeparationDist] = m_globalParamD[MoliereRadius];
 
   // minimal energy of a single cluster
-  GlobalParamD[MinClusterEngyGeV] = std::get<float>(_lcalRecoPars.at("MinClusterEngy"));
+  m_globalParamD[MinClusterEngyGeV] = std::get<float>(_lcalRecoPars.at("MinClusterEngy"));
 
   // hits positions weighting method
-  GlobalParamS[WeightingMethod] = std::get<std::string>(_lcalRecoPars.at("WeightingMethod"));
-  GlobalParamD[ElementsPercentInShowerPeakLayer] =
+  m_globalParamS[WeightingMethod] = std::get<std::string>(_lcalRecoPars.at("WeightingMethod"));
+  m_globalParamD[ElementsPercentInShowerPeakLayer] =
       std::get<float>(_lcalRecoPars.at("ElementsPercentInShowerPeakLayer"));
-  GlobalParamI[NumOfNearNeighbor] = std::get<int>(_lcalRecoPars.at("NumOfNearNeighbor"));
+  m_globalParamI[NumOfNearNeighbor] = std::get<int>(_lcalRecoPars.at("NumOfNearNeighbor"));
 
   initializeAdditionalParameters();
 }
@@ -160,7 +170,7 @@ double GlobalMethodsClass::toSignal(const double value) const { return value * g
 
 double GlobalMethodsClass::toGev(const double value) const { return value / getCalibrationFactor(); }
 
-void GlobalMethodsClass::ThetaPhiCell(const int cellId,
+void GlobalMethodsClass::thetaPhiCell(const int cellId,
                                       std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const {
   // compute Z,Phi,R coordinates according to the cellId
   // returned Phi is in the range (-M_PI, M_PI )
@@ -169,17 +179,19 @@ void GlobalMethodsClass::ThetaPhiCell(const int cellId,
   CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
 
   // theta
-  double rCell = GlobalParamD.at(RMin) + (cellIdR + 0.5) * GlobalParamD.at(RCellLength) - GlobalParamD.at(RCellOffset);
-  double zCell =
-      fabs(GlobalParamD.at(ZStart)) + GlobalParamD.at(ZLayerThickness) * (cellIdZ) + GlobalParamD.at(ZLayerZOffset);
+  double rCell =
+      m_globalParamD.at(RMin) + (cellIdR + 0.5) * m_globalParamD.at(RCellLength) - m_globalParamD.at(RCellOffset);
+  double zCell = fabs(m_globalParamD.at(ZStart)) + m_globalParamD.at(ZLayerThickness) * (cellIdZ) +
+                 m_globalParamD.at(ZLayerZOffset);
   double thetaCell = atan(rCell / zCell);
 
   // phi
   //(BP) use phiCell size and account for possible layers relative offset/stagger
-  // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(GlobalParamI[NumCellsPhi]) + double( cellIdZ % 2 )
-  // * GlobalParamD[;
-  double phiCell = (double(cellIdPhi)) * GlobalParamD.at(PhiCellLength) +
-                   double((cellIdZ) % 2) * GlobalParamD.at(ZLayerPhiOffset) + GlobalParamD.at(PhiCellOffset);
+  // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(m_globalParamI[NumCellsPhi]) + double( cellIdZ % 2
+  // )
+  // * m_globalParamD[;
+  double phiCell = (double(cellIdPhi)) * m_globalParamD.at(PhiCellLength) +
+                   double((cellIdZ) % 2) * m_globalParamD.at(ZLayerPhiOffset) + m_globalParamD.at(PhiCellOffset);
   phiCell = (phiCell > M_PI) ? phiCell - 2. * M_PI : phiCell;
   // fill output container
   thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;
@@ -189,7 +201,7 @@ void GlobalMethodsClass::ThetaPhiCell(const int cellId,
   return;
 }
 
-std::string GlobalMethodsClass::GetParameterName(Parameter_t par) {
+std::string GlobalMethodsClass::getParameterName(Parameter_t par) {
 
   switch (par) {
   case ZStart:
@@ -259,26 +271,26 @@ std::string GlobalMethodsClass::GetParameterName(Parameter_t par) {
   }
 }
 
-void GlobalMethodsClass::PrintAllParameters() const {
+void GlobalMethodsClass::printAllParameters() const {
   // info() << "------------------------------------------------------------------" << std::endl;
   // info() << "********* LumiCalReco Parameters set in GlobalMethodClass ********" << std::endl;
 
-  // for (ParametersInt::const_iterator it = GlobalParamI.begin();it != GlobalParamI.end() ;++it) {
-  //   info() << " - (int)     " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
+  // for (ParametersInt::const_iterator it = m_globalParamI.begin();it != m_globalParamI.end() ;++it) {
+  //   info() << " - (int)     " << getParameterName(it->first) << "  =  " << it->second<< std::endl;
   // }
 
-  // for (ParametersDouble::const_iterator it = GlobalParamD.begin();it != GlobalParamD.end() ;++it) {
-  //   info() << " - (double)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
+  // for (ParametersDouble::const_iterator it = m_globalParamD.begin();it != m_globalParamD.end() ;++it) {
+  //   info() << " - (double)  " << getParameterName(it->first) << "  =  " << it->second<< std::endl;
   // }
 
-  // for (ParametersString::const_iterator it = GlobalParamS.begin();it != GlobalParamS.end() ;++it) {
-  //   info() << " - (string)  " << GetParameterName(it->first) << "  =  " << it->second<< std::endl;
+  // for (ParametersString::const_iterator it = m_globalParamS.begin();it != m_globalParamS.end() ;++it) {
+  //   info() << " - (string)  " << getParameterName(it->first) << "  =  " << it->second<< std::endl;
   // }
 
   // info() << "---------------------------------------------------------------" << std::endl;
 }
 
-bool GlobalMethodsClass::SetGeometryDD4HEP() {
+bool GlobalMethodsClass::setGeometryDD4hep() {
 
   dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
 
@@ -294,12 +306,12 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
   const dd4hep::rec::LayeredCalorimeterData* theExtension = lumical.extension<dd4hep::rec::LayeredCalorimeterData>();
   const std::vector<dd4hep::rec::LayeredCalorimeterStruct::Layer>& layers = theExtension->layers;
 
-  GlobalParamD[RMin] = theExtension->extent[0] / dd4hep::mm;
-  GlobalParamD[RMax] = theExtension->extent[1] / dd4hep::mm;
+  m_globalParamD[RMin] = theExtension->extent[0] / dd4hep::mm;
+  m_globalParamD[RMax] = theExtension->extent[1] / dd4hep::mm;
 
   // starting/end position [mm]
-  GlobalParamD[ZStart] = theExtension->extent[2] / dd4hep::mm;
-  GlobalParamD[ZEnd] = theExtension->extent[3] / dd4hep::mm;
+  m_globalParamD[ZStart] = theExtension->extent[2] / dd4hep::mm;
+  m_globalParamD[ZEnd] = theExtension->extent[3] / dd4hep::mm;
 
   // cell division numbers
   typedef dd4hep::DDSegmentation::TypedSegmentationParameter<double> ParDou;
@@ -312,13 +324,14 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
     throw std::runtime_error("Could not obtain parameters from segmentation");
   }
 
-  GlobalParamD[RCellLength] = rPar->typedValue() / dd4hep::mm;
-  GlobalParamD[RCellOffset] = 0.5 * GlobalParamD[RCellLength] + GlobalParamD[RMin] - rOff->typedValue() / dd4hep::mm;
-  GlobalParamD[PhiCellLength] = pPar->typedValue() / dd4hep::radian;
-  GlobalParamD[PhiCellOffset] = pOff->typedValue() / dd4hep::radian;
-  GlobalParamI[NumCellsR] = (int)((GlobalParamD[RMax] - GlobalParamD[RMin]) / GlobalParamD[RCellLength]);
-  GlobalParamI[NumCellsPhi] = (int)(2.0 * M_PI / GlobalParamD[PhiCellLength] + 0.5);
-  GlobalParamI[NumCellsZ] = layers.size();
+  m_globalParamD[RCellLength] = rPar->typedValue() / dd4hep::mm;
+  m_globalParamD[RCellOffset] =
+      0.5 * m_globalParamD[RCellLength] + m_globalParamD[RMin] - rOff->typedValue() / dd4hep::mm;
+  m_globalParamD[PhiCellLength] = pPar->typedValue() / dd4hep::radian;
+  m_globalParamD[PhiCellOffset] = pOff->typedValue() / dd4hep::radian;
+  m_globalParamI[NumCellsR] = (int)((m_globalParamD[RMax] - m_globalParamD[RMin]) / m_globalParamD[RCellLength]);
+  m_globalParamI[NumCellsPhi] = (int)(2.0 * M_PI / m_globalParamD[PhiCellLength] + 0.5);
+  m_globalParamI[NumCellsZ] = layers.size();
 
   // beam crossing angle ( convert to rad )
   dd4hep::DetElement::Children children = lumical.children();
@@ -331,7 +344,7 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
     dd4hep::Position loc(0.0, 0.0, 0.0);
     dd4hep::Position glob(0.0, 0.0, 0.0);
     it->second.nominal().localToWorld(loc, glob);
-    GlobalParamD[BeamCrossingAngle] = 2.0 * fabs(atan(glob.x() / glob.z()) / dd4hep::rad);
+    m_globalParamD[BeamCrossingAngle] = 2.0 * fabs(atan(glob.x() / glob.z()) / dd4hep::rad);
     if (glob.z() > 0.0) {
     } else {
       const auto& backwardCalo = &it->second.nominal().worldTransformation();
@@ -342,24 +355,24 @@ bool GlobalMethodsClass::SetGeometryDD4HEP() {
       // undo backward and crossing angle rotation
       tempMat->SetTranslation(nulltr);
       // root matrices need degrees as argument
-      tempMat->RotateY(GlobalParamD[BeamCrossingAngle] / 2.0 * 180 / M_PI);
+      tempMat->RotateY(m_globalParamD[BeamCrossingAngle] / 2.0 * 180 / M_PI);
       tempMat->RotateY(-180.0);
       double local[] = {0.0, 1.0, 0.0};
       double global[] = {0.0, 0.0, 0.0};
 
       tempMat->LocalToMaster(local, global);
 
-      _backwardRotationPhi = atan2(local[1], local[0]) - atan2(global[1], global[0]);
-      if (_backwardRotationPhi < M_PI)
-        _backwardRotationPhi += 2 * M_PI;
+      m_backwardRotationPhi = atan2(local[1], local[0]) - atan2(global[1], global[0]);
+      if (m_backwardRotationPhi < M_PI)
+        m_backwardRotationPhi += 2 * M_PI;
 
       delete tempMat;
     }
   }
 
   // layer thickness
-  GlobalParamD[ZLayerThickness] = (layers[0].inner_thickness + layers[0].outer_thickness) / dd4hep::mm;
-  GlobalParamD[ZLayerZOffset] = (layers[0].inner_thickness) / dd4hep::mm;
+  m_globalParamD[ZLayerThickness] = (layers[0].inner_thickness + layers[0].outer_thickness) / dd4hep::mm;
+  m_globalParamD[ZLayerZOffset] = (layers[0].inner_thickness) / dd4hep::mm;
 
   // successfully created geometry from DD4hep
   return true;
@@ -389,14 +402,14 @@ double GlobalMethodsClass::posWeight(const double cellEngy, const double totEngy
 
 void GlobalMethodsClass::initializeAdditionalParameters() {
   // Lorentz boost params
-  const double beta = tan(GlobalParamD[BeamCrossingAngle] / 2.0);
-  GlobalParamD[BetaGamma] = beta;
-  GlobalParamD[Gamma] = sqrt(1. + beta * beta);
+  const double beta = tan(m_globalParamD[BeamCrossingAngle] / 2.0);
+  m_globalParamD[BetaGamma] = beta;
+  m_globalParamD[Gamma] = sqrt(1. + beta * beta);
 
-  m_armCosAngle[-1] = cos(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
-  m_armCosAngle[1] = cos(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
-  m_armSinAngle[-1] = sin(-GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
-  m_armSinAngle[1] = sin(GlobalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armCosAngle[-1] = cos(-m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armCosAngle[1] = cos(m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armSinAngle[-1] = sin(-m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
+  m_armSinAngle[1] = sin(m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.);
 }
 
 std::tuple<std::optional<edm4hep::MutableCluster>, std::optional<edm4hep::MutableReconstructedParticle>>
@@ -404,9 +417,9 @@ GlobalMethodsClass::getLCIOObjects(const LCCluster& thisClusterInfo, const doubl
                                    const bool cutOnFiducialVolume,
                                    const edm4hep::CalorimeterHitCollection& calohits) const {
   double ThetaMid =
-      (GlobalParamD.at(GlobalMethodsClass::ThetaMin) + GlobalParamD.at(GlobalMethodsClass::ThetaMax)) / 2.;
+      (m_globalParamD.at(GlobalMethodsClass::ThetaMin) + m_globalParamD.at(GlobalMethodsClass::ThetaMax)) / 2.;
   double ThetaTol =
-      (GlobalParamD.at(GlobalMethodsClass::ThetaMax) - GlobalParamD.at(GlobalMethodsClass::ThetaMin)) / 2.;
+      (m_globalParamD.at(GlobalMethodsClass::ThetaMax) - m_globalParamD.at(GlobalMethodsClass::ThetaMin)) / 2.;
 
   const double clusterEnergy = thisClusterInfo.getE();
   if (clusterEnergy < minClusterEnergy)
@@ -427,9 +440,9 @@ GlobalMethodsClass::getLCIOObjects(const LCCluster& thisClusterInfo, const doubl
   particle.setEnergy(clusterEnergy);
   particle.addToClusters(cluster);
 
-  const float locPos[3] = {float(thisClusterInfo.getX()), float(thisClusterInfo.getY()), float(thisClusterInfo.getZ())};
-  float gP[3] = {0.0, 0.0, 0.0};
-  this->rotateToGlobal(locPos, gP);
+  const edm4hep::Vector3f locPos{float(thisClusterInfo.getX()), float(thisClusterInfo.getY()),
+                                 float(thisClusterInfo.getZ())};
+  edm4hep::Vector3f gP = rotateToGlobal(locPos);
   cluster.setPosition(gP);
 
   const float norm = clusterEnergy / std::sqrt(gP[0] * gP[0] + gP[1] * gP[1] + gP[2] * gP[2]);

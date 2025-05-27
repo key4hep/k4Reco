@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef Global_hh
-#define Global_hh 1
+#ifndef K4RECO_GLOBAL_H
+#define K4RECO_GLOBAL_H
 
 #include <map>
 #include <memory>
@@ -57,10 +57,4 @@ using VMapIntVirtualCluster = std::vector<MapIntVirtualCluster>;
 
 using VVDouble = std::vector<VDouble>;
 
-#define _VERY_SMALL_NUMBER 1e-9
-#define _GLOBAL_COUNTERS_UPDATE_DEBUG 0
-#define _BHABHA_SELECTION_CUTS_DEBUG 1
-#define _CLUSTER_STORE_DEBUG 0
-#define _BP_DEBUG 0
-
-#endif // Global_hh
+#endif // K4RECO_GLOBAL_H

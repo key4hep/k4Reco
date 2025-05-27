@@ -52,45 +52,45 @@ void LumiCalClustererClass::init(GlobalMethodsClass const& gmc) {
   _armsToCluster.push_back(-1);
   _armsToCluster.push_back(1);
      -------------------------------------------------------------------------- */
-  m_methodCM = gmc.getMethod(gmc.GlobalParamS.at(GlobalMethodsClass::WeightingMethod)); // GlobalMethodsClass::LogMethod
-  m_clusterMinNumHits = gmc.GlobalParamI.at(GlobalMethodsClass::ClusterMinNumHits);     // = 15
-  m_hitMinEnergy = gmc.GlobalParamD.at(GlobalMethodsClass::MinHitEnergy);               // = 5e-6
-  m_zLayerThickness = gmc.GlobalParamD.at(GlobalMethodsClass::ZLayerThickness);         // = 4.5
-  m_zLayerPhiOffset = gmc.GlobalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);         // = 3.75 [deg]
+  m_methodCM = gmc.getMethod(gmc.m_globalParamS.at(GlobalMethodsClass::WeightingMethod)); // GlobalMethodsClass::LogMethod
+  m_clusterMinNumHits = gmc.m_globalParamI.at(GlobalMethodsClass::ClusterMinNumHits);     // = 15
+  m_hitMinEnergy = gmc.m_globalParamD.at(GlobalMethodsClass::MinHitEnergy);               // = 5e-6
+  m_zLayerThickness = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerThickness);         // = 4.5
+  m_zLayerPhiOffset = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);         // = 3.75 [deg]
   m_elementsPercentInShowerPeakLayer =
-      gmc.GlobalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
+      gmc.m_globalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
   m_nNearNeighbor =
-      gmc.GlobalParamI.at(GlobalMethodsClass::NumOfNearNeighbor); // = 6; // number of near neighbors to consider
-  m_beamCrossingAngle = gmc.GlobalParamD.at(GlobalMethodsClass::BeamCrossingAngle) / 2.;
+      gmc.m_globalParamI.at(GlobalMethodsClass::NumOfNearNeighbor); // = 6; // number of near neighbors to consider
+  m_beamCrossingAngle = gmc.m_globalParamD.at(GlobalMethodsClass::BeamCrossingAngle) / 2.;
 
   // the minimal energy to take into account in the initial clustering pass is
   // defined as m_middleEnergyHitBoundFrac of the minimal energy that is taken into
   // account when computing weighted averages in the log' weighting method
-  m_middleEnergyHitBoundFrac = gmc.GlobalParamD.at(GlobalMethodsClass::MiddleEnergyHitBoundFrac); // =.01;
+  m_middleEnergyHitBoundFrac = gmc.m_globalParamD.at(GlobalMethodsClass::MiddleEnergyHitBoundFrac); // =.01;
 
   /* --------------------------------------------------------------------------
      constants set by: GlobalMethodsClass
      -------------------------------------------------------------------------- */
-  m_logWeightConst = gmc.GlobalParamD.at(GlobalMethodsClass::LogWeightConstant);
-  m_moliereRadius = gmc.GlobalParamD.at(GlobalMethodsClass::MoliereRadius);
+  m_logWeightConst = gmc.m_globalParamD.at(GlobalMethodsClass::LogWeightConstant);
+  m_moliereRadius = gmc.m_globalParamD.at(GlobalMethodsClass::MoliereRadius);
 
   // minimal separation distance and energy (of either cluster) to affect a merge
-  m_minSeparationDistance = gmc.GlobalParamD.at(GlobalMethodsClass::MinSeparationDist);
-  m_minClusterEngyGeV = gmc.GlobalParamD.at(GlobalMethodsClass::MinClusterEngyGeV);
+  m_minSeparationDistance = gmc.m_globalParamD.at(GlobalMethodsClass::MinSeparationDist);
+  m_minClusterEngyGeV = gmc.m_globalParamD.at(GlobalMethodsClass::MinClusterEngyGeV);
 
-  m_thetaContainmentBounds[0] = gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMin);
-  m_thetaContainmentBounds[1] = gmc.GlobalParamD.at(GlobalMethodsClass::ThetaMax);
+  m_thetaContainmentBounds[0] = gmc.m_globalParamD.at(GlobalMethodsClass::ThetaMin);
+  m_thetaContainmentBounds[1] = gmc.m_globalParamD.at(GlobalMethodsClass::ThetaMax);
 
-  m_maxLayerToAnalyse = gmc.GlobalParamI.at(GlobalMethodsClass::NumCellsZ);
-  m_cellRMax = gmc.GlobalParamI.at(GlobalMethodsClass::NumCellsR);
-  m_cellPhiMax = gmc.GlobalParamI.at(GlobalMethodsClass::NumCellsPhi);
+  m_maxLayerToAnalyse = gmc.m_globalParamI.at(GlobalMethodsClass::NumCellsZ);
+  m_cellRMax = gmc.m_globalParamI.at(GlobalMethodsClass::NumCellsR);
+  m_cellPhiMax = gmc.m_globalParamI.at(GlobalMethodsClass::NumCellsPhi);
 
-  m_zFirstLayer = gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
-  m_rMin = gmc.GlobalParamD.at(GlobalMethodsClass::RMin);
-  m_rMax = gmc.GlobalParamD.at(GlobalMethodsClass::RMax);
+  m_zFirstLayer = gmc.m_globalParamD.at(GlobalMethodsClass::ZStart);
+  m_rMin = gmc.m_globalParamD.at(GlobalMethodsClass::RMin);
+  m_rMax = gmc.m_globalParamD.at(GlobalMethodsClass::RMax);
 
-  m_rCellLength = gmc.GlobalParamD.at(GlobalMethodsClass::RCellLength);
-  m_phiCellLength = gmc.GlobalParamD.at(GlobalMethodsClass::PhiCellLength);
+  m_rCellLength = gmc.m_globalParamD.at(GlobalMethodsClass::RCellLength);
+  m_phiCellLength = gmc.m_globalParamD.at(GlobalMethodsClass::PhiCellLength);
 
   /* --------------------------------------------------------------------------
      Print out Parameters
