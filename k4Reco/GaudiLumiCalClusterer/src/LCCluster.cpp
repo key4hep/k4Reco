@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& o, const LCCluster& rhs) {
  * Resolution in Theta (R) is better than in RPhi so averaging theta gives better results
  */
 void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
-  const double logConstant(gmc.GlobalParamD.at(GlobalMethodsClass::LogWeightConstant));
+  const double logConstant(gmc.m_globalParamD.at(GlobalMethodsClass::LogWeightConstant));
 
   // re-set new cluster energy
   _energy = 0.0;
@@ -69,7 +69,7 @@ void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
     _energy += calHit->getEnergy();
   }
 
-  const double rMin = gmc.GlobalParamD.at(GlobalMethodsClass::RMin);
+  const double rMin = gmc.m_globalParamD.at(GlobalMethodsClass::RMin);
 
   double thetaTemp(0.0), weightsTemp(0.0), xTemp(0.0), yTemp(0.0), zTemp(0.0);
   for (auto const& calHit : _caloHits) {
@@ -107,7 +107,7 @@ void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
   const double sign = zTemp < 0 ? -1.0 : 1.0;
 
   const double r = sqrt(xTemp * xTemp + yTemp * yTemp + zTemp * zTemp);
-  const double zStart = sign * gmc.GlobalParamD.at(GlobalMethodsClass::ZStart);
+  const double zStart = sign * gmc.m_globalParamD.at(GlobalMethodsClass::ZStart);
 
   _position[0] = r * sin(_theta) * cos(_phi);
   _position[1] = r * sin(_theta) * sin(_phi);

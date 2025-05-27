@@ -66,7 +66,7 @@ LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& co
       // This is not needed any more because we no currently do not calculate pad positions from IDs any longer
       //  now it is just important that we have the correct phiID range
       // LumiCal is (or not, if we fix it) rotated by pi around Z for negative side
-      // phiCell += int(m_gmc._backwardRotationPhi/(2.0*M_PI)*_cellPhiMax+0.5);
+      // phiCell += int(m_gmc.m_backwardRotationPhi/(2.0*M_PI)*_cellPhiMax+0.5);
     }
     // limit to range 0 to m_cellPhiMax-1
     if (phiCell >= m_cellPhiMax)
