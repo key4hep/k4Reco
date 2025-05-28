@@ -23,6 +23,7 @@
 #include "Parameters.h"
 
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 class TH2F;
