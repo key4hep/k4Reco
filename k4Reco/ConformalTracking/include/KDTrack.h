@@ -50,7 +50,12 @@ public:
   //--- Functions to add and remove clusters
   void add(SKDCluster cluster) { m_clusters.push_back(cluster); }
   void insert(SKDCluster cluster) { m_clusters.insert(m_clusters.begin(), cluster); }
-  void remove(int clusterN) { m_clusters.erase(m_clusters.begin() + clusterN); }
+  void remove(int clusterN) {
+    if (clusterN < 0 || clusterN >= static_cast<int>(m_clusters.size())) {
+      throw std::out_of_range("KDTrack::remove: clusterN out of range");
+    }
+    m_clusters.erase(m_clusters.begin() + clusterN);
+  }
 
   //--- Fit functions
   double calculateChi2();

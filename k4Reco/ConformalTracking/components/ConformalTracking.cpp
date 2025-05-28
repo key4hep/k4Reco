@@ -1761,7 +1761,7 @@ void ConformalTracking::extendTracksPerLayer(UniqueKDTracks& conformalTracks, Sh
           deltaChi2zs = newchi2zs - chi2zs;
           debug() << "-- hit was fitted and has a delta chi2 of " << deltaChi2 << " and delta chi2zs of " << deltaChi2zs
                   << endmsg;
-          tempTrack.remove(tempTrack.m_clusters.size());
+          tempTrack.remove(tempTrack.m_clusters.size() - 1);
           debug() << "-- tempTrack has now " << tempTrack.m_clusters.size() << " hits " << endmsg;
 
           double chi2cut = parameters.m_chi2cut;
