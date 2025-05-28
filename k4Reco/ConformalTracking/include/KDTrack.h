@@ -22,7 +22,6 @@
 #include "KDCluster.h"
 #include "Parameters.h"
 
-#include <cmath>
 #include <memory>
 #include <vector>
 
