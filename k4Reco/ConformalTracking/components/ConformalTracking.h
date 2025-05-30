@@ -34,8 +34,18 @@
 #include <k4FWCore/Transformer.h>
 #include <k4Interface/IGeoSvc.h>
 
-#include <Gaudi/Accumulators/StaticRootHistogram.h>
+#include <Gaudi/Accumulators/RootHistogram.h>
 #include <Gaudi/Property.h>
+
+#include "GAUDI_VERSION.h"
+
+#if GAUDI_MAJOR_VERSION < 39
+namespace Gaudi::Accumulators {
+template <unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
+using StaticRootHistogram =
+    Gaudi::Accumulators::RootHistogramingCounterBase<ND, Atomicity, Arithmetic, naming::histogramString>;
+}
+#endif
 
 #include <TCanvas.h>
 #include <TH1F.h>
