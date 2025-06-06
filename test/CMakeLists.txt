@@ -26,7 +26,7 @@ function(set_test_env testname)
 endfunction()
 
 add_test(NAME "clone_CLDConfig"
-  COMMAND bash -c "git clone https://github.com/key4hep/CLDConfig.git && cp -r CLDConfig/CLDConfig/* ."
+  COMMAND bash -c "git clone https://github.com/key4hep/CLDConfig.git --depth 1 && cp -r CLDConfig/CLDConfig/* . && sed -i -e '/Overlay.Overlay/d' -e '/HighLevelReco.RecoMCTruthLink/d' CLDReconstruction.py"
 )
 set_test_env("clone_CLDConfig")
 
@@ -36,13 +36,13 @@ add_test(NAME "run_ddsim"
 set_test_env("run_ddsim")
 
 add_test(NAME "run_marlin_wrapper"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
+  COMMAND k4run CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
 )
 set_test_env("run_marlin_wrapper")
 set_tests_properties("run_marlin_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
 
 add_test(NAME "run_marlin_wrapper with Truth Tracking"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
+  COMMAND k4run CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
 )
 set_test_env("run_marlin_wrapper with Truth Tracking")
 set_tests_properties("run_marlin_wrapper with Truth Tracking" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
