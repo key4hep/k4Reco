@@ -30,6 +30,8 @@
 #include <kaltest/TKalDetCradle.h>
 #pragma GCC diagnostic pop
 
+#include <edm4hep/TrackerHit.h>
+
 #include <cstdint>
 #include <map>
 #include <vector>
@@ -102,7 +104,7 @@ private:
   const DDVMeasLayer* getLastMeasLayer(const THelicalTrack& helix, const TVector3& point) const;
 
   // find the measurement layer for a given hit
-  const DDVMeasLayer* findMeasLayer(const edm4hep::TrackerHitPlane& trkhit) const;
+  const DDVMeasLayer* findMeasLayer(const edm4hep::TrackerHit& trkhit) const;
 
   const DDCylinderMeasLayer* getIPLayer() const { return m_ipLayer; }
 
