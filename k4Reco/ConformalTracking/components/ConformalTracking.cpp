@@ -681,9 +681,7 @@ edm4hep::TrackCollection ConformalTracking::operator()(
 
       if (track_inv.getTrackerHits().size() > track.getTrackerHits().size()) {
         debug() << " Track is replaced. " << endmsg;
-        // TODO
-        //  track.swap(track_inv);
-        //  marlinTrack.swap(marlinTrack_inv);
+        std::swap(track, track_inv);
         fitError = fitError_inv;
       } else {
         debug() << " Track is not replaced. " << endmsg;
