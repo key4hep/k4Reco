@@ -42,7 +42,7 @@
 
 */
 
-inline bool sort_by_radius(const edm4hep::TrackerHitPlane* hit1, const edm4hep::TrackerHitPlane* hit2) {
+inline bool sort_by_radius(const edm4hep::TrackerHit* hit1, const edm4hep::TrackerHit* hit2) {
   return edm4hep::utils::magnitudeTransverse(hit1->getPosition()) <
          edm4hep::utils::magnitudeTransverse(hit2->getPosition());
 }
@@ -145,8 +145,8 @@ MC particle at the end and get all of the hits, before making a track.
 */
 
   // Make the container
-  std::map<size_t, std::vector<const edm4hep::TrackerHitPlane*>> particleHits;
-  std::vector<edm4hep::TrackerHitPlane> hits;
+  std::map<size_t, std::vector<const edm4hep::TrackerHit*>> particleHits;
+  std::vector<edm4hep::TrackerHit> hits;
   hits.reserve(std::accumulate(trackerHitCollections.begin(), trackerHitCollections.end(), 0u,
                                [](size_t sum, const auto& collection) { return sum + collection->size(); }));
 
@@ -178,7 +178,7 @@ MC particle at the end and get all of the hits, before making a track.
       edm4hep::MCParticle particle = simHit.getParticle();
 
       // Push back the element into the container
-      hits.push_back(hit.as<edm4hep::TrackerHitPlane>());
+      hits.push_back(hit);
       particleHits[static_cast<size_t>(particle.id().index)].push_back(&hits.back());
     }
   }
@@ -202,8 +202,8 @@ MC particle at the end and get all of the hits, before making a track.
     std::sort(trackHits.begin(), trackHits.end(), sort_by_radius);
 
     // Remove the hits on the same layers (removing those with higher R)
-    auto trackFilteredByRHits = removeHitsSameLayer(trackHits);
-    if (trackFilteredByRHits.size() < 3)
+    auto trackfitHitsPtrs = removeHitsSameLayer(trackHits);
+    if (trackfitHitsPtrs.size() < 3)
       continue;
 
     /*
@@ -219,15 +219,9 @@ MC particle at the end and get all of the hits, before making a track.
     auto marlinTrack = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
     auto marlinTrackZSort = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
 
+    // Original comment about having to save trackfitHitsPtrs
     // Save a vector of the hits to be used (why is this not attached to the track directly?? MarlinTrkUtils to be
     // updated?)
-    std::vector<const edm4hep::TrackerHit*> trackfitHitsPtrs;
-    std::vector<edm4hep::TrackerHit> trackfitHitsObjs;
-    for (unsigned int itTrackHit = 0; itTrackHit < trackFilteredByRHits.size(); itTrackHit++) {
-      trackfitHitsObjs.push_back(*trackFilteredByRHits[itTrackHit]);
-      // trackfitHitsPtrs.push_back(trackFilteredByRHits[itTrackHit]);
-      trackfitHitsPtrs.push_back(&trackfitHitsObjs.back());
-    }
 
     // Make an initial covariance matrix with very broad default values
     edm4hep::CovMatrix6f covMatrix{};
@@ -345,8 +339,7 @@ MC particle at the end and get all of the hits, before making a track.
 
     /// Fill hits associated to the track by pattern recognition and hits in fit
     std::vector<int32_t> subdetectorHitNumbers;
-    // TODO:
-    // trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, trackHits, false, m_encoder);
+    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, trackHits, false, m_encoder);
     trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, hits_in_fit_ptr, true, m_encoder);
     for (const auto num : subdetectorHitNumbers) {
       track.addToSubdetectorHitNumbers(num);
