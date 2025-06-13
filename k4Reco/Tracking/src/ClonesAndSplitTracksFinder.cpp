@@ -82,9 +82,7 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::operator()(const edm4hep::T
   const size_t nTracks = input_track_col.size();
   debug() << " >> ClonesAndSplitTracksFinder starts with " << nTracks << " tracks." << endmsg;
 
-  // establish the track collection that will be created
   auto trackVec = edm4hep::TrackCollection();
-  // _encoder->reset();
 
   //------------
   // FIRST STEP: REMOVE CLONES

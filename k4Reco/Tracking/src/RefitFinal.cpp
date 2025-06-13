@@ -110,16 +110,11 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
   for (size_t iTrack = 0; iTrack < nTracks; ++iTrack) {
     const auto& track = input_track_col.at(iTrack);
     const auto& trkHits = track.getTrackerHits();
-    std::vector<edm4hep::TrackerHitPlane> hits;
     // TODO: Don't create a copy because finaliseLCIOTrack and marlin_trk need pointers
-    for (const auto& hit : trkHits) {
-      hits.push_back(hit.as<edm4hep::TrackerHitPlane>());
-    }
     std::vector<const edm4hep::TrackerHit*> trkHitsPtr;
-    std::vector<edm4hep::TrackerHit> trkHitsObjects;
-    for (const auto& hit : hits) {
-      trkHitsObjects.emplace_back(hit);
-      trkHitsPtr.push_back(&trkHitsObjects.back());
+    trkHitsPtr.reserve(trkHits.size());
+    for (const auto& hit : trkHits) {
+      trkHitsPtr.push_back(&hit);
     }
 
     auto marlin_trk = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
@@ -181,6 +176,7 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
     std::vector<const edm4hep::TrackerHit*> all_hits;
     std::vector<const edm4hep::TrackerHit*> hits_in_fit_ptr;
     all_hits.reserve(hits_in_fit.size() + outliers.size());
+    hits_in_fit_ptr.reserve(hits_in_fit.size());
 
     for (unsigned ihit = 0; ihit < hits_in_fit.size(); ++ihit) {
       all_hits.push_back(hits_in_fit[ihit].first);
