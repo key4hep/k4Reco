@@ -370,7 +370,7 @@ private:
 public:
   SearchRecord(std::vector<double>& qv_in, KDTree& tree_in, KDTreeResultVector& result_in)
       : qv(qv_in), dim(tree_in.dim), rearrange(tree_in.rearrange), nn(0), ballsize(infinity), result(result_in),
-        data(tree_in.data), ind(tree_in.ind){};
+        data(tree_in.data), ind(tree_in.ind) {};
 };
 
 void KDTree::n_nearest_brute_force(std::vector<double>& qv, KDTreeResultVector& result) {
@@ -661,7 +661,7 @@ void KDTreeNode::process_terminal_node(SearchRecord& sr) {
       }
       if (early_exit)
         continue; // next iteration of mainloop
-    }             // end if rearrange.
+    } // end if rearrange.
 
     if (centeridx > 0) {
       // we are doing decorrelation interval
@@ -760,7 +760,7 @@ void KDTreeNode::process_terminal_node_fixedball(SearchRecord& sr) {
       }
       if (early_exit)
         continue; // next iteration of mainloop
-    }             // end if rearrange.
+    } // end if rearrange.
 
     if (centeridx > 0) {
       // we are doing decorrelation interval
