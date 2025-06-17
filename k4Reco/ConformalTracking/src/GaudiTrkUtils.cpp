@@ -23,6 +23,8 @@
 
 #include "HelixTrack.h"
 
+#include <kaltest/TKalTrack.h>
+
 #include <edm4hep/MutableTrack.h>
 #include <edm4hep/Track.h>
 #include <edm4hep/TrackState.h>
