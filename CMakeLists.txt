@@ -49,4 +49,4 @@ endif()
 
 add_subdirectory(python)
 
-# include(cmake/CreateProjectConfig.cmake)
+include(cmake/CreateProjectConfig.cmake)
