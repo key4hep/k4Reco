@@ -60,6 +60,7 @@ if(BUILD_TRACKING)
     TYPE HEADERS FILES
     GaudiTrkUtils/include/GaudiDDKalTest.h
     GaudiTrkUtils/include/GaudiDDKalTestTrack.h
+    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/GaudiTrkUtils/include
   )
 
   target_include_directories(GaudiTrkUtils PUBLIC
@@ -96,23 +97,27 @@ endif()
 
 gaudi_add_module(k4RecoPlugins
                  SOURCES ${sources}
-                 LINK
-                 ${libs}
+                 LINK ${libs}
 )
-target_include_directories(k4RecoPlugins PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+# Common include directories
+set(k4RecoPlugins_public_includes
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
 
 if(BUILD_TRACKING)
-
-  target_include_directories(k4RecoPlugins PUBLIC
+  target_include_directories(k4RecoPlugins
+    PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+    ${k4RecoPlugins_public_includes}
+    PRIVATE
     ${KalTest_INCLUDE_DIRS}
     ${DDKalTest_INCLUDE_DIRS}
     ${streamlog_INCLUDE_DIRS}
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-
+  )
 endif()
 
 install(TARGETS GaudiTrkUtils k4RecoPlugins
@@ -121,5 +126,5 @@ install(TARGETS GaudiTrkUtils k4RecoPlugins
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
   PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   FILE_SET headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/k4Reco"
-  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-  COMPONENT dev)
+  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
