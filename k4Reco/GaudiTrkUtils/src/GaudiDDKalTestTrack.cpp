@@ -20,10 +20,10 @@
 
 #include <IMPL/TrackerHitPlaneImpl.h>
 
+#include <kaltest/TKalDetCradle.h>
 #include <kaltest/TKalFilterCond.h>
 #include <kaltest/TKalTrack.h>
 #include <kaltest/TKalTrackSite.h>
-#include <kaltest/TKalDetCradle.h>
 
 // Remove when the warnings are fixed in DDKalTest
 #pragma GCC diagnostic push
@@ -76,7 +76,7 @@ protected:
 GaudiDDKalTestTrack::GaudiDDKalTestTrack(
     const Gaudi::Algorithm* algorithm, GaudiDDKalTest* ktest,
     std::shared_ptr<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>> edm4hep_hits_to_kaltest_hits)
-: m_ktest(ktest), m_edm4hep_hits_to_kaltest_hits(edm4hep_hits_to_kaltest_hits), m_thisAlg(algorithm) {
+    : m_ktest(ktest), m_edm4hep_hits_to_kaltest_hits(edm4hep_hits_to_kaltest_hits), m_thisAlg(algorithm) {
   m_kaltrack.reset(new TKalTrack());
   m_kaltrack->SetOwner();
 

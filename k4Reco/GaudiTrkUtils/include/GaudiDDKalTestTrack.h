@@ -199,7 +199,7 @@ public:
     return phi;
   }
 
-  std::unique_ptr<TKalTrack> m_kaltrack{}; //unique ptr to be able to forward declare
+  std::unique_ptr<TKalTrack> m_kaltrack{}; // unique ptr to be able to forward declare
   TObjArray* m_kalhits = nullptr;
   GaudiDDKalTest* m_ktest = nullptr;
   // used to store whether initial track state has been supplied or created
