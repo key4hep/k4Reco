@@ -25,9 +25,9 @@
 #include <edm4hep/TrackerHitPlane.h>
 
 #include <TMatrixD.h>
+#include <TObjArray.h>
 
 #include <cmath>
-#include <memory>
 
 class DDVMeasLayer;
 class DDVTrackHit;
@@ -38,8 +38,6 @@ class TKalTrackSite;
 namespace Gaudi {
 class Algorithm;
 }
-
-class TObjArray;
 
 const int modeClosest = 0;
 
@@ -58,7 +56,7 @@ public:
   GaudiDDKalTestTrack& operator=(const GaudiDDKalTestTrack&) = delete;
   GaudiDDKalTestTrack(GaudiDDKalTestTrack&&) = delete;
   GaudiDDKalTestTrack& operator=(GaudiDDKalTestTrack&&) = delete;
-  ~GaudiDDKalTestTrack();
+  ~GaudiDDKalTestTrack() = default;
 
   /** add hit to track - the hits have to be added ordered in time ( i.e. typically outgoing )
    *  this order will define the direction of the energy loss used in the fit
@@ -199,7 +197,7 @@ public:
     return phi;
   }
 
-  std::unique_ptr<TKalTrack> m_kaltrack{}; // unique ptr to be able to forward declare
+  TKalTrack m_kaltrack{};
   TObjArray* m_kalhits = nullptr;
   GaudiDDKalTest* m_ktest = nullptr;
   // used to store whether initial track state has been supplied or created

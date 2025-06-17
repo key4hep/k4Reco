@@ -24,13 +24,11 @@
 #include <TVector3.h>
 
 // Remove when these warnings are fixed in KalTest
-// #pragma GCC diagnostic push
-// #pragma GCC diagnostic ignored "-Wdeprecated-copy"
-// #pragma GCC diagnostic ignored "-Woverloaded-virtual"
-// #include <kaltest/TKalDetCradle.h>
-// #pragma GCC diagnostic pop
-
-#include <edm4hep/TrackerHit.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#pragma GCC diagnostic ignored "-Woverloaded-virtual"
+#include <kaltest/TKalDetCradle.h>
+#pragma GCC diagnostic pop
 
 #include <cstdint>
 #include <map>
@@ -40,7 +38,6 @@ class DDKalDetector;
 class DDVMeasLayer;
 class THelicalTrack;
 class TVKalDetector;
-class TKalDetCradle;
 namespace edm4hep {
 class TrackerHitPlane;
 }
@@ -112,7 +109,7 @@ private:
 private:
   bool is_initialised = false;
   const DDCylinderMeasLayer* m_ipLayer = nullptr;
-  std::unique_ptr<TKalDetCradle> m_det; // the detector cradle, pointer to be able to forward declare
+  TKalDetCradle m_det{}; // the detector cradle
   std::multimap<int, const DDVMeasLayer*> m_active_measurement_modules{};
   std::multimap<int, const DDVMeasLayer*> m_active_measurement_modules_by_layer{};
   std::vector<DDKalDetector*> m_detectors{};

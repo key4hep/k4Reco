@@ -43,8 +43,7 @@
 #include <stdexcept>
 
 GaudiDDKalTest::GaudiDDKalTest(const Gaudi::Algorithm* algorithm) : m_thisAlg(algorithm) {
-  m_det.reset(new TKalDetCradle());
-  m_det->SetOwner(true); // takes care of deleting subdetector in the end ...
+  m_det.SetOwner(true); // takes care of deleting subdetector in the end ...
 
   // this->registerOptions();
 }
@@ -118,7 +117,7 @@ void GaudiDDKalTest::init() {
 
     this->storeActiveMeasurementModuleIDs(kalDet);
 
-    m_det->Install(*kalDet);
+    m_det.Install(*kalDet);
 
     Int_t nLayers = kalDet->GetEntriesFast();
 
@@ -142,20 +141,20 @@ void GaudiDDKalTest::init() {
   }
   //-------------------------------------------------------------------------------
 
-  m_det->Close(); // close the cradle
-  // done in Close()    m_det->Sort() ;           // sort meas. layers from inside to outside
+  m_det.Close(); // close the cradle
+  // done in Close()    m_det.Sort() ;           // sort meas. layers from inside to outside
 
-  m_thisAlg->debug() << "  GaudiDDKalTest - number of layers = " << m_det->GetEntriesFast() << endmsg;
+  m_thisAlg->debug() << "  GaudiDDKalTest - number of layers = " << m_det.GetEntriesFast() << endmsg;
 
   // if (streamlog_level(DEBUG)) {
   //   lcio::BitField64 bf(UTIL::LCTrackerCellID::encoding_string());
 
-  //   for (unsigned i = 0, N = m_det->GetEntriesFast(); i < N; ++i) {
-  //     DDVMeasLayer* ml = dynamic_cast<DDVMeasLayer*>(m_det->At(i));
+  //   for (unsigned i = 0, N = m_det.GetEntriesFast(); i < N; ++i) {
+  //     DDVMeasLayer* ml = dynamic_cast<DDVMeasLayer*>(m_det.At(i));
 
   //     bf.setValue(ml->getLayerID());
 
-  //     TVSurface* s = dynamic_cast<TVSurface*>(m_det->At(i));
+  //     TVSurface* s = dynamic_cast<TVSurface*>(m_det.At(i));
 
   //     streamlog_out(DEBUG) << " *** meas. layer : " << bf.valueString() << "  sorting: " << s->GetSortingPolicy()
   //                          << endmsg;
@@ -169,9 +168,9 @@ void GaudiDDKalTest::includeMultipleScattering(bool msOn) {
   m_thisAlg->debug() << "  **** GaudiDDKalTest::includeMultipleScattering( " << msOn << " ) called " << endmsg;
 
   if (msOn) {
-    m_det->SwitchOnMS();
+    m_det.SwitchOnMS();
   } else {
-    m_det->SwitchOffMS();
+    m_det.SwitchOffMS();
   }
 }
 
@@ -179,9 +178,9 @@ void GaudiDDKalTest::includeEnergyLoss(bool energyLossOn) {
   m_thisAlg->debug() << "  **** GaudiDDKalTest::includeEnergyLoss( " << energyLossOn << " ) called " << endmsg;
 
   if (energyLossOn) {
-    m_det->SwitchOnDEDX();
+    m_det.SwitchOnDEDX();
   } else {
-    m_det->SwitchOffDEDX();
+    m_det.SwitchOffDEDX();
   }
 }
 
@@ -279,8 +278,8 @@ const DDVMeasLayer* GaudiDDKalTest::getLastMeasLayer(const THelicalTrack& hel, T
   const TVSurface* ml_retval = nullptr;
   double min_deflection = DBL_MAX;
 
-  for (int i = 0; i < m_det->GetEntriesFast(); ++i) {
-    const auto* sfp = static_cast<const TVSurface*>(m_det->At(i)); // surface at destination
+  for (int i = 0; i < m_det.GetEntriesFast(); ++i) {
+    const auto* sfp = static_cast<const TVSurface*>(m_det.At(i)); // surface at destination
 
     double defection_angle = 0;
     TVector3 crossing_point;

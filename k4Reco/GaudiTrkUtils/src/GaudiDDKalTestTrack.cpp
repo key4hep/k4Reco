@@ -35,7 +35,6 @@
 #include <DDKalTest/DDVTrackHit.h>
 #pragma GCC diagnostic pop
 
-#include <edm4hep/TrackerHit.h>
 #include <edm4hep/TrackerHitPlane.h>
 
 #include <Gaudi/Algorithm.h>
@@ -77,8 +76,7 @@ GaudiDDKalTestTrack::GaudiDDKalTestTrack(
     const Gaudi::Algorithm* algorithm, GaudiDDKalTest* ktest,
     std::shared_ptr<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>> edm4hep_hits_to_kaltest_hits)
     : m_ktest(ktest), m_edm4hep_hits_to_kaltest_hits(edm4hep_hits_to_kaltest_hits), m_thisAlg(algorithm) {
-  m_kaltrack.reset(new TKalTrack());
-  m_kaltrack->SetOwner();
+  m_kaltrack.SetOwner();
 
   m_kalhits = new TObjArray();
   m_kalhits->SetOwner();
@@ -95,7 +93,9 @@ GaudiDDKalTestTrack::GaudiDDKalTestTrack(
   }
 }
 
-GaudiDDKalTestTrack::~GaudiDDKalTestTrack() = default;
+// GaudiDDKalTestTrack::~GaudiDDKalTestTrack() {
+//   delete m_kalhits;
+// }
 
 int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit) {
   return this->addHit(trkhit, m_ktest->findMeasLayer(*trkhit));
@@ -336,7 +336,7 @@ int GaudiDDKalTestTrack::initialise(const edm4hep::TrackState& ts, bool fitDirec
 
   // add the initial site to the track: that is, give the track initial parameters and covariance
   // matrix at the starting measurement layer
-  m_kaltrack->Add(&initialSite);
+  m_kaltrack.Add(&initialSite);
 
   m_initialised = true;
 
@@ -376,7 +376,7 @@ int GaudiDDKalTestTrack::addAndFit(DDVTrackHit* kalhit, double& chi2increment, T
   // it will always be possible to get the delta chi2 so long as we have a link to the sites ...
   // although calling smooth will natrually update delta chi2.
 
-  if (!m_kaltrack->AddAndFilter(*temp_site)) {
+  if (!m_kaltrack.AddAndFilter(*temp_site)) {
     chi2increment = temp_site->GetDeltaChi2();
     // get the measurement layer of the current hit
     TVector3 pos = ml->HitToXv(*kalhit);
@@ -458,13 +458,13 @@ int GaudiDDKalTestTrack::addAndFit(const edm4hep::TrackerHitPlane* trkhit, doubl
   }
 
   // set the values for the point at which the fit becomes constained
-  if (!m_trackHitAtPositiveNDF && m_kaltrack->GetNDF() >= 0) {
+  if (!m_trackHitAtPositiveNDF && m_kaltrack.GetNDF() >= 0) {
     m_trackHitAtPositiveNDF = trkhit;
-    m_hitIndexAtPositiveNDF = m_kaltrack->IndexOf(site);
+    m_hitIndexAtPositiveNDF = m_kaltrack.IndexOf(site);
 
     m_thisAlg->debug() << ">>>>>>>>>>>  Fit is now constrained at : " << trkhit->getCellID() << " pos "
                        << edm4hep::Vector3d(trkhit->getPosition()) << " trkhit = " << m_trackHitAtPositiveNDF
-                       << " index of kalhit = " << m_hitIndexAtPositiveNDF << " NDF = " << m_kaltrack->GetNDF()
+                       << " index of kalhit = " << m_hitIndexAtPositiveNDF << " NDF = " << m_kaltrack.GetNDF()
                        << endmsg;
   }
 
@@ -507,13 +507,13 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
       m_hit_chi2_values.push_back(std::make_pair(trkhit, chi2increment));
 
       // set the values for the point at which the fit becomes constained
-      if (!m_trackHitAtPositiveNDF && m_kaltrack->GetNDF() >= 0) {
+      if (!m_trackHitAtPositiveNDF && m_kaltrack.GetNDF() >= 0) {
         m_trackHitAtPositiveNDF = trkhit;
-        m_hitIndexAtPositiveNDF = m_kaltrack->IndexOf(site);
+        m_hitIndexAtPositiveNDF = m_kaltrack.IndexOf(site);
 
         m_thisAlg->debug() << ">>>>>>>>>>>  Fit is now constrained at : " << trkhit->getCellID() << " pos "
                            << trkhit->getPosition() << " trkhit = " << m_trackHitAtPositiveNDF
-                           << " index of kalhit = " << m_hitIndexAtPositiveNDF << " NDF = " << m_kaltrack->GetNDF()
+                           << " index of kalhit = " << m_hitIndexAtPositiveNDF << " NDF = " << m_kaltrack.GetNDF()
                            << endmsg;
       }
 
@@ -565,9 +565,9 @@ int GaudiDDKalTestTrack::smooth(const edm4hep::TrackerHitPlane* trkhit) {
   if (error_code != 0)
     return error_code;
 
-  int index = m_kaltrack->IndexOf(site);
+  int index = m_kaltrack.IndexOf(site);
 
-  m_kaltrack->SmoothBackTo(index);
+  m_kaltrack.SmoothBackTo(index);
 
   m_smoothed = true;
 
@@ -628,7 +628,7 @@ int GaudiDDKalTestTrack::getNDF() const {
   if (!m_initialised) {
     throw std::runtime_error("GaudiDDKalTestTrack is not initialised");
   }
-  return const_cast<TKalTrack&>(*m_kaltrack).GetNDF();
+  return const_cast<TKalTrack&>(m_kaltrack).GetNDF();
 }
 
 const edm4hep::TrackerHitPlane* GaudiDDKalTestTrack::getTrackerHitAtPositiveNDF() const {
@@ -685,7 +685,7 @@ int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const TKalTra
   }
 
   if (ml) {
-    m_ktest->m_det->Transport(site, *ml, x0, sv, F, Q); // transport to last layer cross before point
+    m_ktest->m_det.Transport(site, *ml, x0, sv, F, Q); // transport to last layer cross before point
 
     // given that we are sure to have intersected the layer ml as this was provided via getLastMeasLayer, x0 will lie on
     // the layer this could be checked with the method isOnSurface so F will be the propagation matrix from the current
@@ -849,8 +849,8 @@ int GaudiDDKalTestTrack::findIntersection(std::vector<DDVMeasLayer const*>& meas
 
 void GaudiDDKalTestTrack::ToLCIOTrackState(const THelicalTrack& helix, const TMatrixD& cov, edm4hep::TrackState& ts,
                                            double& chi2, int& ndf) const {
-  chi2 = const_cast<TKalTrack&>(*m_kaltrack).GetChi2();
-  ndf = const_cast<TKalTrack&>(*m_kaltrack).GetNDF();
+  chi2 = const_cast<TKalTrack&>(m_kaltrack).GetChi2();
+  ndf = const_cast<TKalTrack&>(m_kaltrack).GetNDF();
 
   //============== convert parameters to LCIO convention ====
 

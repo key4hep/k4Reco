@@ -113,8 +113,8 @@ if(BUILD_TRACKING)
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
     ${k4RecoPlugins_public_includes}
-    PRIVATE
     ${KalTest_INCLUDE_DIRS}
+    PRIVATE
     ${DDKalTest_INCLUDE_DIRS}
     ${streamlog_INCLUDE_DIRS}
   )
