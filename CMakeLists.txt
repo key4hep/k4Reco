@@ -21,14 +21,13 @@ cmake_minimum_required(VERSION 3.23)
 project(k4Reco LANGUAGES CXX)
 
 # please keep this layout for version setting, used by the automatic tagging script
-set(PACKAGE_VERSION_MAJOR 0)
-set(PACKAGE_VERSION_MINOR 2)
-set(PACKAGE_VERSION_PATCH 1)
+set(${PROJECT_NAME}_VERSION_MAJOR 0)
+set(${PROJECT_NAME}_VERSION_MINOR 2)
+set(${PROJECT_NAME}_VERSION_PATCH 1)
 
-set(PACKAGE_VERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}.${PACKAGE_VERSION_PATCH}")
+set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
 
 option(BUILD_TRACKING "Build conformal tracking" ON)
-
 
 find_package(podio 1.2.99 REQUIRED)
 find_package(EDM4HEP REQUIRED)
