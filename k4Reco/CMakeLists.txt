@@ -100,17 +100,24 @@ gaudi_add_module(k4RecoPlugins
                  LINK ${libs}
 )
 
-target_include_directories(k4RecoPlugins PUBLIC
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+# Common include directories
+set(k4RecoPlugins_public_includes
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
 
 if(BUILD_TRACKING)
-  target_include_directories(k4RecoPlugins PRIVATE
+  target_include_directories(k4RecoPlugins
+    PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+    PRIVATE
+    ${k4RecoPlugins_public_includes}
     ${KalTest_INCLUDE_DIRS}
     ${DDKalTest_INCLUDE_DIRS}
     ${streamlog_INCLUDE_DIRS}
-    )
-
+  )
 endif()
 
 install(TARGETS GaudiTrkUtils k4RecoPlugins
