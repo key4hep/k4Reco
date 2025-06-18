@@ -58,32 +58,30 @@ public:
   GaudiTrkUtils(GaudiTrkUtils&&) = delete;
   GaudiTrkUtils& operator=(GaudiTrkUtils&&) = delete;
 
-  int createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
-                               const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
+  int createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk, const std::vector<const edm4hep::TrackerHit*>& hit_list,
                                edm4hep::MutableTrack& track, bool fit_direction,
                                const edm4hep::CovMatrix6f& initial_cov_for_prefit, float bfield_z,
                                double maxChi2Increment);
 
-  int createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
-                               const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
+  int createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk, const std::vector<const edm4hep::TrackerHit*>& hit_list,
                                edm4hep::MutableTrack& track, bool fit_direction, edm4hep::TrackState& pre_fit,
                                double maxChi2Increment);
 
-  int createPrefit(const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, edm4hep::TrackState& pre_fit,
+  int createPrefit(const std::vector<const edm4hep::TrackerHit*>& hit_list, edm4hep::TrackState& pre_fit,
                    float bfield_z);
 
-  int createFit(const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, GaudiDDKalTestTrack& marlinTrk,
+  int createFit(const std::vector<const edm4hep::TrackerHit*>& hit_list, GaudiDDKalTestTrack& marlinTrk,
                 edm4hep::TrackState& pre_fit, bool fit_direction, double maxChi2Increment);
 
   int finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::MutableTrack& track,
-                        const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool fit_direction);
+                        const std::vector<const edm4hep::TrackerHit*>& hit_list, bool fit_direction);
 
   void addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNumbers,
-                            const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
+                            const std::vector<const edm4hep::TrackerHit*>& hit_list, bool hits_in_fit,
                             const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const;
 
   int createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
-                                 const edm4hep::TrackerHitPlane* trkhit, bool tanL_is_positive);
+                                 const edm4hep::TrackerHit* trkhit, bool tanL_is_positive);
 
 private:
   const Gaudi::Algorithm* m_thisAlg;
