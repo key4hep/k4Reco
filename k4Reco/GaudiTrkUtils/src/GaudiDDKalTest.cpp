@@ -32,7 +32,7 @@
 #include <DDKalTest/DDKalDetector.h>
 #include <DDKalTest/DDVMeasLayer.h>
 
-#include <edm4hep/TrackerHitPlane.h>
+#include <edm4hep/TrackerHit.h>
 
 #include <Gaudi/Algorithm.h>
 
@@ -311,7 +311,7 @@ const DDVMeasLayer* GaudiDDKalTest::getLastMeasLayer(const THelicalTrack& hel, T
   return dynamic_cast<const DDVMeasLayer*>(ml_retval);
 }
 
-const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const edm4hep::TrackerHitPlane& trkhit) const {
+const DDVMeasLayer* GaudiDDKalTest::findMeasLayer(const edm4hep::TrackerHit& trkhit) const {
   const TVector3 hit_pos(trkhit.getPosition()[0], trkhit.getPosition()[1], trkhit.getPosition()[2]);
 
   return this->findMeasLayer(trkhit.getCellID(), hit_pos);
