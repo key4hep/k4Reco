@@ -23,7 +23,10 @@
 
 #include "HelixTrack.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
 #include <kaltest/TKalTrack.h>
+#pragma GCC diagnostic pop
 
 #include <edm4hep/MutableTrack.h>
 #include <edm4hep/Track.h>
