@@ -33,8 +33,6 @@
 #include <DD4hep/Detector.h>
 
 #include <algorithm>
-#include <cfloat>
-#include <climits>
 #include <cmath>
 
 /*
@@ -44,20 +42,20 @@
 
 */
 
-inline bool sort_by_radius(const edm4hep::TrackerHitPlane* hit1, const edm4hep::TrackerHitPlane* hit2) {
+inline bool sort_by_radius(const edm4hep::TrackerHit* hit1, const edm4hep::TrackerHit* hit2) {
   return edm4hep::utils::magnitudeTransverse(hit1->getPosition()) <
          edm4hep::utils::magnitudeTransverse(hit2->getPosition());
 }
 
-inline bool sort_by_z(const edm4hep::TrackerHitPlane* hit1, const edm4hep::TrackerHitPlane* hit2) {
+inline bool sort_by_z(const edm4hep::TrackerHit* hit1, const edm4hep::TrackerHit* hit2) {
   const double z1 = fabs(hit1->getPosition()[2]);
   const double z2 = fabs(hit2->getPosition()[2]);
   return z1 < z2;
 }
 
-std::vector<const edm4hep::TrackerHitPlane*>
-TruthTrackFinder::removeHitsSameLayer(const std::vector<const edm4hep::TrackerHitPlane*>& trackHits) const {
-  std::vector<const edm4hep::TrackerHitPlane*> trackFilteredHits;
+template <typename T>
+std::vector<const T*> TruthTrackFinder::removeHitsSameLayer(const std::vector<const T*>& trackHits) const {
+  std::vector<const T*> trackFilteredHits;
 
   trackFilteredHits.push_back(*(trackHits.begin()));
 
@@ -146,8 +144,8 @@ MC particle at the end and get all of the hits, before making a track.
 */
 
   // Make the container
-  std::map<size_t, std::vector<const edm4hep::TrackerHitPlane*>> particleHits;
-  std::vector<edm4hep::TrackerHitPlane> hits;
+  std::map<size_t, std::vector<const edm4hep::TrackerHit*>> particleHits;
+  std::vector<edm4hep::TrackerHit> hits;
   hits.reserve(std::accumulate(trackerHitCollections.begin(), trackerHitCollections.end(), 0u,
                                [](size_t sum, const auto& collection) { return sum + collection->size(); }));
 
@@ -179,7 +177,7 @@ MC particle at the end and get all of the hits, before making a track.
       edm4hep::MCParticle particle = simHit.getParticle();
 
       // Push back the element into the container
-      hits.push_back(hit.as<edm4hep::TrackerHitPlane>());
+      hits.push_back(hit);
       particleHits[static_cast<size_t>(particle.id().index)].push_back(&hits.back());
     }
   }
@@ -203,8 +201,8 @@ MC particle at the end and get all of the hits, before making a track.
     std::sort(trackHits.begin(), trackHits.end(), sort_by_radius);
 
     // Remove the hits on the same layers (removing those with higher R)
-    auto trackFilteredByRHits = removeHitsSameLayer(trackHits);
-    if (trackFilteredByRHits.size() < 3)
+    auto trackfitHitsPtrs = removeHitsSameLayer(trackHits);
+    if (trackfitHitsPtrs.size() < 3)
       continue;
 
     /*
@@ -220,11 +218,9 @@ MC particle at the end and get all of the hits, before making a track.
     auto marlinTrack = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
     auto marlinTrackZSort = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
 
+    // Original comment about having to save trackfitHitsPtrs
     // Save a vector of the hits to be used (why is this not attached to the track directly?? MarlinTrkUtils to be
     // updated?)
-    std::vector<const edm4hep::TrackerHitPlane*> trackfitHits;
-    for (unsigned int itTrackHit = 0; itTrackHit < trackFilteredByRHits.size(); itTrackHit++)
-      trackfitHits.push_back(trackFilteredByRHits[itTrackHit]);
 
     // Make an initial covariance matrix with very broad default values
     edm4hep::CovMatrix6f covMatrix{};
@@ -254,33 +250,33 @@ MC particle at the end and get all of the hits, before making a track.
       //   double trueTanLambda = helix.getTanLambda();
 
       //   // float ref_point[3] = { 0., 0., 0. };
-      //   helix.moveRefPoint(trackfitHits.at(0)->getPosition()[0], trackfitHits.at(0)->getPosition()[1],
-      //                      trackfitHits.at(0)->getPosition()[2]);
+      //   helix.moveRefPoint(trackfitHitsPtrs.at(0)->getPosition()[0], trackfitHitsPtrs.at(0)->getPosition()[1],
+      //                      trackfitHitsPtrs.at(0)->getPosition()[2]);
       //   float ref_point[3] = {float(helix.getRefPointX()), float(helix.getRefPointY()), float(helix.getRefPointZ())};
       //   TrackStateImpl* trkState =
       //       new TrackStateImpl(TrackState::AtIP, trueD0, truePhi, trueOmega, trueZ0, trueTanLambda, covMatrix,
       //       ref_point);
 
-      //   // int prefitError =  createFit(trackfitHits, marlinTrack, trkState, m_magneticField,  direction,
+      //   // int prefitError =  createFit(trackfitHitsPtrs, marlinTrack, trkState, m_magneticField,  direction,
       //   // m_maxChi2perHit); streamlog_out(DEBUG2) << "---- createFit - error_fit = " << error_fit << endmsg;
 
       //   // if (prefitError == 0) {
-      //   //   fitError = finaliseLCIOTrack(marlinTrack, track, trackfitHits,  direction );
+      //   //   fitError = finaliseLCIOTrack(marlinTrack, track, trackfitHitsPtrs,  direction );
       //   //   streamlog_out(DEBUG2) << "---- finalisedLCIOTrack - error = " << error << endmsg;
       //   // }
 
-      //   fitError = MarlinTrk::createFinalisedLCIOTrack(marlinTrack, trackfitHits, track, direction, trkState,
+      //   fitError = MarlinTrk::createFinalisedLCIOTrack(marlinTrack, trackfitHitsPtrs, track, direction, trkState,
       //                                                  m_magneticField, m_maxChi2perHit);
 
       //   // If first fit attempt fails, try a new fit with hits ordered by z
 
       //   if (fitError != 0) {
       //     // Sort the hits from smaller to larger z
-      //     std::sort(trackfitHits.begin(), trackfitHits.end(), sort_by_z);
+      //     std::sort(trackfitHitsPtrs.begin(), trackfitHitsPtrs.end(), sort_by_z);
 
       //     // Removing the hits on the same layers (remove those with higher z)
       //     EVENT::TrackerHitVec trackFilteredByZHits;
-      //     removeHitsSameLayer(trackfitHits, trackFilteredByZHits);
+      //     removeHitsSameLayer(trackfitHitsPtrs, trackFilteredByZHits);
       //     if (trackFilteredByZHits.size() < 3)
       //       continue;
 
@@ -299,7 +295,7 @@ MC particle at the end and get all of the hits, before making a track.
 
     else {
       // DEFAULT procedure: Try to fit
-      fitError = trkUtils.createFinalisedLCIOTrack(marlinTrack, trackfitHits, track, direction, covMatrix,
+      fitError = trkUtils.createFinalisedLCIOTrack(marlinTrack, trackfitHitsPtrs, track, direction, covMatrix,
                                                    m_magneticField, m_maxChi2perHit);
 
       // If first fit attempt fails, try a new fit with hits ordered by z
@@ -309,10 +305,10 @@ MC particle at the end and get all of the hits, before making a track.
         track = edm4hep::MutableTrack();
 
         // Sort the hits from smaller to larger z
-        std::sort(trackfitHits.begin(), trackfitHits.end(), sort_by_z);
+        std::sort(trackfitHitsPtrs.begin(), trackfitHitsPtrs.end(), sort_by_z);
 
         // Removing the hits on the same layers (remove those with higher z)
-        const auto trackFilteredByZHits = removeHitsSameLayer(trackfitHits);
+        const auto trackFilteredByZHits = removeHitsSameLayer(trackfitHitsPtrs);
         if (trackFilteredByZHits.size() < 3)
           continue;
 
@@ -334,7 +330,7 @@ MC particle at the end and get all of the hits, before making a track.
     }
 
     const auto hits_in_fit = marlinTrack.getHitsInFit();
-    std::vector<const edm4hep::TrackerHitPlane*> hits_in_fit_ptr;
+    std::vector<const edm4hep::TrackerHit*> hits_in_fit_ptr;
 
     for (const auto& hit : hits_in_fit) {
       hits_in_fit_ptr.push_back(hit.first);
@@ -349,7 +345,7 @@ MC particle at the end and get all of the hits, before making a track.
     }
 
     debug() << "TruthTrackFinder: trackHits.size(): " << trackHits.size()
-            << " trackfitHits.size(): " << trackfitHits.size() << " hits_in_fit.size(): " << hits_in_fit.size()
+            << " trackfitHitsPtrs.size(): " << trackfitHitsPtrs.size() << " hits_in_fit.size(): " << hits_in_fit.size()
             << endmsg;
 
     // Push back to the output container

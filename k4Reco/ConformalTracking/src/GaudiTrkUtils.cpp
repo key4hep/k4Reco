@@ -23,6 +23,11 @@
 
 #include "HelixTrack.h"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-copy"
+#include <kaltest/TKalTrack.h>
+#pragma GCC diagnostic pop
+
 #include <edm4hep/MutableTrack.h>
 #include <edm4hep/Track.h>
 #include <edm4hep/TrackState.h>
@@ -62,7 +67,7 @@ void setStreamlogOutputLevel(const Gaudi::Algorithm* thisAlg, streamlog::logscop
 }
 
 int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
-                                            const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
+                                            const std::vector<const edm4hep::TrackerHit*>& hit_list,
                                             edm4hep::MutableTrack& track, bool fit_direction,
                                             const edm4hep::CovMatrix6f& initial_cov_for_prefit, float bfield_z,
                                             double maxChi2Increment) {
@@ -85,7 +90,7 @@ int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
 }
 
 int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
-                                            const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
+                                            const std::vector<const edm4hep::TrackerHit*>& hit_list,
                                             edm4hep::MutableTrack& track, bool fit_direction,
                                             edm4hep::TrackState& pre_fit, double maxChi2Increment) {
   if (hit_list.empty())
@@ -102,14 +107,14 @@ int GaudiTrkUtils::createFinalisedLCIOTrack(GaudiDDKalTestTrack& marlinTrk,
   return error;
 }
 
-int GaudiTrkUtils::createPrefit(const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
-                                edm4hep::TrackState& pre_fit, float bfield_z) {
+int GaudiTrkUtils::createPrefit(const std::vector<const edm4hep::TrackerHit*>& hit_list, edm4hep::TrackState& pre_fit,
+                                float bfield_z) {
   if (hit_list.empty())
     return 1;
 
   // loop over all the hits and create a list consisting only 2D hits
 
-  std::vector<const edm4hep::TrackerHitPlane*> twoD_hits;
+  std::vector<const edm4hep::TrackerHit*> twoD_hits;
 
   for (unsigned ihit = 0; ihit < hit_list.size(); ++ihit) {
     // check if this a space point or 2D hit
@@ -160,9 +165,8 @@ int GaudiTrkUtils::createPrefit(const std::vector<const edm4hep::TrackerHitPlane
   return 0;
 }
 
-int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHitPlane*>& hit_list,
-                             GaudiDDKalTestTrack& marlinTrk, edm4hep::TrackState& pre_fit, bool fit_direction,
-                             double maxChi2Increment) {
+int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHit*>& hit_list, GaudiDDKalTestTrack& marlinTrk,
+                             edm4hep::TrackState& pre_fit, bool fit_direction, double maxChi2Increment) {
   if (hit_list.empty())
     return 1;
 
@@ -175,11 +179,11 @@ int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHitPlane*>&
   //  start by trying to add the hits to the track we want to finally use.
   m_thisAlg->debug() << "MarlinTrk::createFit Start Fit: AddHits: number of hits to fit " << hit_list.size() << endmsg;
 
-  std::vector<const edm4hep::TrackerHitPlane*> added_hits;
+  std::vector<const edm4hep::TrackerHit*> added_hits;
   unsigned int ndof_added = 0;
 
   for (auto it = hit_list.begin(); it != hit_list.end(); ++it) {
-    const edm4hep::TrackerHitPlane* trkHit = *it;
+    const auto* trkHit = *it;
     bool isSuccessful = false;
 
     // TODO: check if bitset works
@@ -237,7 +241,7 @@ int GaudiTrkUtils::createFit(const std::vector<const edm4hep::TrackerHitPlane*>&
 }
 
 int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::MutableTrack& track,
-                                     const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool fit_direction) {
+                                     const std::vector<const edm4hep::TrackerHit*>& hit_list, bool fit_direction) {
   int ndf = 0;
   double chi2 = -DBL_MAX;
 
@@ -259,7 +263,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   // add these to the track, add spacepoints as long as at least on strip hit is used.
   ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  std::vector<const edm4hep::TrackerHitPlane*> used_hits;
+  std::vector<const edm4hep::TrackerHit*> used_hits;
 
   const auto& hits_in_fit = marlintrk.getHitsInFit();
   const auto& outliers = marlintrk.getOutliers();
@@ -271,7 +275,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   ///////////////////////////////////////////////
 
   for (unsigned ihit = 0; ihit < hit_list.size(); ++ihit) {
-    const edm4hep::TrackerHitPlane* trkHit = hit_list[ihit];
+    const auto* trkHit = hit_list[ihit];
     // TODO
     // if( UTIL::BitSet32( trkHit.getType() )[ UTIL::ILDTrkHitTypeBit::COMPOSITE_SPACEPOINT ]   ){ //it is a composite
     // spacepoint
@@ -323,11 +327,9 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   ///////////////////////////////////////////////////////////////////////////
 
   edm4hep::TrackState trkStateAtFirstHit;
-  const edm4hep::TrackerHitPlane* firstHit =
-      fit_direction == false ? hits_in_fit.back().first : hits_in_fit.front().first;
-  const edm4hep::TrackerHitPlane* lastHit =
-      fit_direction == false ? hits_in_fit.front().first : hits_in_fit.back().first;
-  const edm4hep::TrackerHitPlane* last_constrained_hit = marlintrk.getTrackerHitAtPositiveNDF();
+  const edm4hep::TrackerHit* firstHit = fit_direction == false ? hits_in_fit.back().first : hits_in_fit.front().first;
+  const edm4hep::TrackerHit* lastHit = fit_direction == false ? hits_in_fit.front().first : hits_in_fit.back().first;
+  const edm4hep::TrackerHit* last_constrained_hit = marlintrk.getTrackerHitAtPositiveNDF();
 
   // m_thisAlg->debug() << "MarlinTrk::finaliseLCIOTrack: firstHit : " << toString( firstHit )
   //     		  << " lastHit:                                " << toString( lastHit )
@@ -400,7 +402,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
     ++hI;
 
     while (hI != hits_in_fit.rend()) {
-      const edm4hep::TrackerHitPlane* h = (*hI).first;
+      const edm4hep::TrackerHit* h = (*hI).first;
 
       double deltaChi;
       double maxChi2Increment = 1e10; // ???
@@ -513,7 +515,7 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
 }
 
 void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNumbers,
-                                         const std::vector<const edm4hep::TrackerHitPlane*>& hit_list, bool hits_in_fit,
+                                         const std::vector<const edm4hep::TrackerHit*>& hit_list, bool hits_in_fit,
                                          const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const {
   // Because in EDM4hep for vector members only hits can be added, we need the whole
   // vector before starting to assign
@@ -544,7 +546,7 @@ void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNum
 }
 
 int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
-                                              const edm4hep::TrackerHitPlane* trkhit, bool tanL_is_positive) {
+                                              const edm4hep::TrackerHit* trkhit, bool tanL_is_positive) {
   int return_error = 0;
   int return_error_barrel = 0;
   int return_error_endcap = 0;

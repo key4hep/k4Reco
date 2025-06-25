@@ -34,6 +34,7 @@
 #include <edm4hep/SimTrackerHit.h>
 #include <edm4hep/Track.h>
 #include <edm4hep/TrackState.h>
+#include <edm4hep/TrackerHit.h>
 #include <edm4hep/TrackerHitPlaneCollection.h>
 #include <edm4hep/Vector3d.h>
 #include <edm4hep/utils/vector_utils.h>
@@ -53,14 +54,21 @@
 #include <TStopwatch.h>
 
 #include <algorithm>
-#include <cfloat>
 #include <cmath>
 #include <functional>
 #include <iostream>
 #include <stdexcept>
 
-bool sort_by_radius(const edm4hep::TrackerHitPlane& hit1, const edm4hep::TrackerHitPlane& hit2);
-bool sort_by_radius(const edm4hep::TrackerHitPlane* hit1, const edm4hep::TrackerHitPlane* hit2);
+// Sort tracker hits from smaller to larger radius
+inline bool sort_by_radius(const edm4hep::TrackerHitPlane& hit1, const edm4hep::TrackerHitPlane& hit2) {
+  return edm4hep::utils::magnitudeTransverse(hit1.getPosition()) <
+         edm4hep::utils::magnitudeTransverse(hit2.getPosition());
+}
+
+inline bool sort_by_radius(const edm4hep::TrackerHit* hit1, const edm4hep::TrackerHit* hit2) {
+  return edm4hep::utils::magnitudeTransverse(hit1->getPosition()) <
+         edm4hep::utils::magnitudeTransverse(hit2->getPosition());
+}
 
 // Sort kd hits from smaller to larger radius
 inline bool sort_by_lower_radiusKD(const SKDCluster& hit1, const SKDCluster& hit2) {
@@ -626,14 +634,17 @@ edm4hep::TrackCollection ConformalTracking::operator()(
     info() << "- Fitting track " << &conformalTrack << endmsg;
 
     // Make the LCIO track hit vector
-    std::vector<const edm4hep::TrackerHitPlane*> trackHits;
+    std::vector<const edm4hep::TrackerHit*> trackHits;
+    std::vector<edm4hep::TrackerHit> trackHitsObjects;
     for (const auto& cluster : conformalTrack->m_clusters) {
-      trackHits.push_back(&kdClusterMap[cluster]);
+      trackHitsObjects.emplace_back(kdClusterMap[cluster]);
+    }
+    for (auto& trackHit : trackHitsObjects) {
+      trackHits.push_back(&trackHit);
     }
 
     // Sort the hits from smaller to larger radius
-    std::ranges::sort(trackHits,
-                      (bool (*)(const edm4hep::TrackerHitPlane*, const edm4hep::TrackerHitPlane*))sort_by_radius);
+    std::ranges::sort(trackHits, (bool (*)(const edm4hep::TrackerHit*, const edm4hep::TrackerHit*))sort_by_radius);
 
     // Now we can make the track object and relations object, and fit the track
     edm4hep::MutableTrack track;
@@ -907,17 +918,6 @@ StatusCode ConformalTracking::finalize() {
     file->Close();
   }
   return StatusCode::SUCCESS;
-}
-
-// Sort tracker hits from smaller to larger radius
-inline bool sort_by_radius(const edm4hep::TrackerHitPlane& hit1, const edm4hep::TrackerHitPlane& hit2) {
-  return edm4hep::utils::magnitudeTransverse(hit1.getPosition()) <
-         edm4hep::utils::magnitudeTransverse(hit2.getPosition());
-}
-
-inline bool sort_by_radius(const edm4hep::TrackerHitPlane* hit1, const edm4hep::TrackerHitPlane* hit2) {
-  return edm4hep::utils::magnitudeTransverse(hit1->getPosition()) <
-         edm4hep::utils::magnitudeTransverse(hit2->getPosition());
 }
 
 // Sort kd hits from larger to smaller radius

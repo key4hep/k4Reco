@@ -51,7 +51,7 @@ class GaudiDDKalTestTrack {
 public:
   GaudiDDKalTestTrack(
       const Gaudi::Algorithm* thisAlg, GaudiDDKalTest* ktest,
-      std::shared_ptr<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>> edm4hep_hits_to_kaltest_hits = nullptr);
+      std::shared_ptr<std::map<const edm4hep::TrackerHit*, DDVTrackHit*>> edm4hep_hits_to_kaltest_hits = nullptr);
 
 public:
   GaudiDDKalTestTrack(const GaudiDDKalTestTrack&) = delete;
@@ -63,17 +63,17 @@ public:
   /** add hit to track - the hits have to be added ordered in time ( i.e. typically outgoing )
    *  this order will define the direction of the energy loss used in the fit
    */
-  int addHit(const edm4hep::TrackerHitPlane* hit);
+  int addHit(const edm4hep::TrackerHit* hit);
 
   /** add hit to track - the hits have to be added ordered in time ( i.e. typically outgoing )
    *  this order will define the direction of the energy loss used in the fit
    */
-  int addHit(const edm4hep::TrackerHitPlane* trkhit, const DDVMeasLayer* ml);
+  int addHit(const edm4hep::TrackerHit* trkhit, const DDVMeasLayer* ml);
 
   /** add hit to track - the hits have to be added ordered in time ( i.e. typically outgoing )
    *  this order will define the direction of the energy loss used in the fit
    */
-  int addHit(const edm4hep::TrackerHitPlane* trkhit, DDVTrackHit* kalhit, const DDVMeasLayer* ml);
+  int addHit(const edm4hep::TrackerHit* trkhit, DDVTrackHit* kalhit, const DDVMeasLayer* ml);
 
   /** initialise the fit with a track state
    *  the fit direction has to be specified using IMarlinTrack::backward or IMarlinTrack::forward.
@@ -93,12 +93,12 @@ public:
 
   /** smooth track states from the last filtered hit back to the measurement site associated with the given hit
    */
-  int smooth(const edm4hep::TrackerHitPlane* hit);
+  int smooth(const edm4hep::TrackerHit* hit);
 
   /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from
    * adding the hit via reference. the given hit will not be added if chi2increment > maxChi2Increment.
    */
-  int addAndFit(const edm4hep::TrackerHitPlane* hit, double& chi2increment, double maxChi2Increment = DBL_MAX);
+  int addAndFit(const edm4hep::TrackerHit* hit, double& chi2increment, double maxChi2Increment = DBL_MAX);
 
   /** update the current fit using the supplied hit, return code via int. Provides the Chi2 increment to the fit from
    * adding the hit via reference. the given hit will not be added if chi2increment > maxChi2Increment.
@@ -107,21 +107,21 @@ public:
 
   /** get track state at measurement associated with the given hit, returning TrackState, chi2 and ndf via reference
    */
-  int getTrackState(const edm4hep::TrackerHitPlane* hit, edm4hep::TrackState& ts, double& chi2, int& ndf) const;
+  int getTrackState(const edm4hep::TrackerHit* hit, edm4hep::TrackState& ts, double& chi2, int& ndf) const;
 
   /** get the list of hits included in the fit, together with the chi2 contributions of the hits.
    *  Pointers to the hits together with their chi2 contribution will be filled into a vector of
    *  pairs consitining of the pointer as the first part of the pair and the chi2 contribution as
    *  the second.
    */
-  const std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>>& getHitsInFit() const;
+  const std::vector<std::pair<const edm4hep::TrackerHit*, double>>& getHitsInFit() const;
 
   /** get the list of hits which have been rejected by from the fit due to the a chi2 increment greater than threshold,
    *  Pointers to the hits together with their chi2 contribution will be filled into a vector of
    *  pairs consitining of the pointer as the first part of the pair and the chi2 contribution as
    *  the second.
    */
-  const std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>>& getOutliers() const;
+  const std::vector<std::pair<const edm4hep::TrackerHit*, double>>& getOutliers() const;
 
   /** get the current number of degrees of freedom for the fit.
    */
@@ -129,13 +129,13 @@ public:
 
   /** get TrackeHit at which fit became constrained, i.e. ndf >= 0
    */
-  const edm4hep::TrackerHitPlane* getTrackerHitAtPositiveNDF() const;
+  const edm4hep::TrackerHit* getTrackerHitAtPositiveNDF() const;
 
   /** propagate the fit at the measurement site associated with the given hit, to the point of closest approach to the
    * given point, returning TrackState, chi2 and ndf via reference
    */
-  int propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHitPlane* hit, edm4hep::TrackState& ts,
-                double& chi2, int& ndf);
+  int propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHit* hit, edm4hep::TrackState& ts, double& chi2,
+                int& ndf);
 
   /** propagate the fit at the provided measurement site, to the point of closest approach to the given point,
    *  returning TrackState, chi2 and ndf via reference
@@ -146,8 +146,8 @@ public:
   /** propagate the fit at the measurement site associated with the given hit, to numbered sensitive layer,
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
    */
-  int propagateToLayer(int layerID, const edm4hep::TrackerHitPlane* hit, edm4hep::TrackState& ts, double& chi2,
-                       int& ndf, int& detElementID, int mode = modeClosest);
+  int propagateToLayer(int layerID, const edm4hep::TrackerHit* hit, edm4hep::TrackState& ts, double& chi2, int& ndf,
+                       int& detElementID, int mode = modeClosest);
 
   /** propagate the fit at the measurement site, to numbered sensitive layer,
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
@@ -187,7 +187,7 @@ public:
 
   /** get the measurement site associated with the given lcio TrackerHit trkhit
    */
-  int getSiteFromLCIOHit(const edm4hep::TrackerHitPlane* trkhit, TKalTrackSite*& site) const;
+  int getSiteFromLCIOHit(const edm4hep::TrackerHit* trkhit, TKalTrackSite*& site) const;
 
   /** helper function to restrict the range of the azimuthal angle to ]-pi,pi]*/
   inline double toBaseRange(double phi) const {
@@ -208,24 +208,24 @@ public:
   bool m_fitDirection = false;
   // used to store whether smoothing has been performed
   bool m_smoothed = false;
-  const edm4hep::TrackerHitPlane* m_trackHitAtPositiveNDF = nullptr;
+  const edm4hep::TrackerHit* m_trackHitAtPositiveNDF = nullptr;
   int m_hitIndexAtPositiveNDF = -1;
 
   // map to store relation between lcio hits and measurement sites
-  std::map<const edm4hep::TrackerHitPlane*, TKalTrackSite*> m_hit_used_for_sites{};
+  std::map<const edm4hep::TrackerHit*, TKalTrackSite*> m_hit_used_for_sites{};
 
   // map to store relation between lcio hits kaltest hits
-  std::map<DDVTrackHit*, const edm4hep::TrackerHitPlane*> m_kaltest_hits_to_edm4hep_hits{};
-  std::shared_ptr<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>> m_edm4hep_hits_to_kaltest_hits{};
+  std::map<DDVTrackHit*, const edm4hep::TrackerHit*> m_kaltest_hits_to_edm4hep_hits{};
+  std::shared_ptr<std::map<const edm4hep::TrackerHit*, DDVTrackHit*>> m_edm4hep_hits_to_kaltest_hits{};
 
   // vector to store lcio hits rejected for measurement sites
-  std::vector<const edm4hep::TrackerHitPlane*> m_hit_not_used_for_sites{};
+  std::vector<const edm4hep::TrackerHit*> m_hit_not_used_for_sites{};
 
   // vector to store the chi-sqaure increment for measurement sites
-  std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>> m_hit_chi2_values{};
+  std::vector<std::pair<const edm4hep::TrackerHit*, double>> m_hit_chi2_values{};
 
   // vector to store the chi-sqaure increment for measurement sites
-  std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>> m_outlier_chi2_values{};
+  std::vector<std::pair<const edm4hep::TrackerHit*, double>> m_outlier_chi2_values{};
 
   // Originally not present in MarlinDDKalTest, this is needed to be able to use
   // logging from Gaudi

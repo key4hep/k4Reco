@@ -51,8 +51,8 @@ struct TruthTrackFinder final
              const std::vector<const edm4hep::TrackerHitSimTrackerHitLinkCollection*>& relations,
              const std::vector<const edm4hep::MCParticleCollection*>& particleCollections) const override;
 
-  std::vector<const edm4hep::TrackerHitPlane*>
-  removeHitsSameLayer(const std::vector<const edm4hep::TrackerHitPlane*>& trackHits) const;
+  template <typename T>
+  std::vector<const T*> removeHitsSameLayer(const std::vector<const T*>& trackHits) const;
 
   // Track fit parameters
   float m_initialTrackError_d0{1.e6};

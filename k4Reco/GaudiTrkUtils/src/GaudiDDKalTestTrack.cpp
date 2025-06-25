@@ -75,7 +75,7 @@ protected:
 // //---------------------------------------------------------------------------------------------------------------
 GaudiDDKalTestTrack::GaudiDDKalTestTrack(
     const Gaudi::Algorithm* algorithm, GaudiDDKalTest* ktest,
-    std::shared_ptr<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>> edm4hep_hits_to_kaltest_hits)
+    std::shared_ptr<std::map<const edm4hep::TrackerHit*, DDVTrackHit*>> edm4hep_hits_to_kaltest_hits)
     : m_ktest(ktest), m_edm4hep_hits_to_kaltest_hits(edm4hep_hits_to_kaltest_hits), m_thisAlg(algorithm) {
   m_kaltrack.reset(new TKalTrack());
   m_kaltrack->SetOwner();
@@ -91,28 +91,32 @@ GaudiDDKalTestTrack::GaudiDDKalTestTrack(
   m_hitIndexAtPositiveNDF = 0;
 
   if (!m_edm4hep_hits_to_kaltest_hits) {
-    m_edm4hep_hits_to_kaltest_hits = std::make_shared<std::map<const edm4hep::TrackerHitPlane*, DDVTrackHit*>>();
+    m_edm4hep_hits_to_kaltest_hits = std::make_shared<std::map<const edm4hep::TrackerHit*, DDVTrackHit*>>();
   }
 }
 
 GaudiDDKalTestTrack::~GaudiDDKalTestTrack() = default;
 
-int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit) {
+int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHit* trkhit) {
   return this->addHit(trkhit, m_ktest->findMeasLayer(*trkhit));
 }
 
-int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit, const DDVMeasLayer* ml) {
+int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHit* trkhit, const DDVMeasLayer* ml) {
   m_thisAlg->debug() << "GaudiDDKalTestTrack::addHit: trkhit = " << trkhit->id() << " addr: " << trkhit
                      << " ml = " << ml << endmsg;
 
   if (trkhit && ml) {
     // TODO: a LCIO hit has to be created because it's needed downstream
+    if (!trkhit->isA<edm4hep::TrackerHitPlane>()) {
+      throw std::runtime_error(
+          "GaudiDDKalTestTrack::addHit - trkhit is not a TrackerHitPlane, this is not implemented yet");
+    }
     auto hit = IMPL::TrackerHitPlaneImpl();
     double pos[3] = {trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]};
     hit.setPosition(pos);
     hit.setCellID0(trkhit->getCellID());
-    hit.setdU(trkhit->getDu());
-    hit.setdV(trkhit->getDv());
+    hit.setdU(trkhit->as<edm4hep::TrackerHitPlane>().getDu());
+    hit.setdV(trkhit->as<edm4hep::TrackerHitPlane>().getDv());
 
     // Not needed
     // hit.setCovMatrix(lcioCov);
@@ -135,7 +139,7 @@ int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit, const DD
   }
 }
 
-int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHitPlane* trkhit, DDVTrackHit* kalhit, const DDVMeasLayer* ml) {
+int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHit* trkhit, DDVTrackHit* kalhit, const DDVMeasLayer* ml) {
   if (kalhit && ml) {
     m_kalhits->Add(kalhit);                             // Add hit and set surface found
     m_kaltest_hits_to_edm4hep_hits[kalhit] = trkhit;    // add hit to map relating lcio and kaltest hits
@@ -408,8 +412,7 @@ int GaudiDDKalTestTrack::addAndFit(DDVTrackHit* kalhit, double& chi2increment, T
   return 0;
 }
 
-int GaudiDDKalTestTrack::addAndFit(const edm4hep::TrackerHitPlane* trkhit, double& chi2increment,
-                                   double maxChi2Increment) {
+int GaudiDDKalTestTrack::addAndFit(const edm4hep::TrackerHit* trkhit, double& chi2increment, double maxChi2Increment) {
   if (!trkhit) {
     m_thisAlg->debug() << "GaudiDDKalTestTrack::addAndFit( EVENT::TrackerHit* trkhit, double& chi2increment, "
                           "double maxChi2Increment): trkhit == 0"
@@ -500,7 +503,7 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
     TKalTrackSite* site = nullptr;
     int error_code = this->addAndFit(kalhit, chi2increment, site, maxChi2Increment);
 
-    const edm4hep::TrackerHitPlane* trkhit = m_kaltest_hits_to_edm4hep_hits[kalhit];
+    const edm4hep::TrackerHit* trkhit = m_kaltest_hits_to_edm4hep_hits[kalhit];
 
     if (error_code == 0) { // add trkhit to map associating trkhits and sites
       m_hit_used_for_sites[trkhit] = site;
@@ -550,7 +553,7 @@ int GaudiDDKalTestTrack::fit(double maxChi2Increment) {
 
 /** smooth track states from the last filtered hit back to the measurement site associated with the given hit
  */
-int GaudiDDKalTestTrack::smooth(const edm4hep::TrackerHitPlane* trkhit) {
+int GaudiDDKalTestTrack::smooth(const edm4hep::TrackerHit* trkhit) {
   m_thisAlg->debug() << "GaudiDDKalTestTrack::smooth( EVENT::TrackerHit* " << trkhit << "  ) " << endmsg;
 
   if (!trkhit) {
@@ -574,7 +577,7 @@ int GaudiDDKalTestTrack::smooth(const edm4hep::TrackerHitPlane* trkhit) {
   return 0;
 }
 
-int GaudiDDKalTestTrack::getTrackState(const edm4hep::TrackerHitPlane* trkhit, edm4hep::TrackState& ts, double& chi2,
+int GaudiDDKalTestTrack::getTrackState(const edm4hep::TrackerHit* trkhit, edm4hep::TrackState& ts, double& chi2,
                                        int& ndf) const {
   m_thisAlg->debug()
       << "GaudiDDKalTestTrack::getTrackState( EVENT::TrackerHit* trkhit, IMPL::TrackStateImpl& ts ) using hit: "
@@ -593,7 +596,7 @@ int GaudiDDKalTestTrack::getTrackState(const edm4hep::TrackerHitPlane* trkhit, e
   return 0;
 }
 
-const std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>>& GaudiDDKalTestTrack::getHitsInFit() const {
+const std::vector<std::pair<const edm4hep::TrackerHit*, double>>& GaudiDDKalTestTrack::getHitsInFit() const {
   return m_hit_chi2_values;
 
   // this needs more thought. What about when the hits are added using addAndFit?
@@ -609,7 +612,7 @@ const std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>>& GaudiDDKa
   //    }
 }
 
-const std::vector<std::pair<const edm4hep::TrackerHitPlane*, double>>& GaudiDDKalTestTrack::getOutliers() const {
+const std::vector<std::pair<const edm4hep::TrackerHit*, double>>& GaudiDDKalTestTrack::getOutliers() const {
   return m_outlier_chi2_values;
   // this needs more thought. What about when the hits are added using addAndFit?
   //    // need to check the order so that we can return the list ordered in time
@@ -631,11 +634,9 @@ int GaudiDDKalTestTrack::getNDF() const {
   return const_cast<TKalTrack&>(*m_kaltrack).GetNDF();
 }
 
-const edm4hep::TrackerHitPlane* GaudiDDKalTestTrack::getTrackerHitAtPositiveNDF() const {
-  return m_trackHitAtPositiveNDF;
-}
+const edm4hep::TrackerHit* GaudiDDKalTestTrack::getTrackerHitAtPositiveNDF() const { return m_trackHitAtPositiveNDF; }
 
-int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHitPlane* trkhit,
+int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHit* trkhit,
                                    edm4hep::TrackState& ts, double& chi2, int& ndf) {
   TKalTrackSite* site = nullptr;
   int error_code = getSiteFromLCIOHit(trkhit, site);
@@ -727,7 +728,7 @@ int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const TKalTra
   return 0;
 }
 
-int GaudiDDKalTestTrack::propagateToLayer(int layerID, const edm4hep::TrackerHitPlane* trkhit, edm4hep::TrackState& ts,
+int GaudiDDKalTestTrack::propagateToLayer(int layerID, const edm4hep::TrackerHit* trkhit, edm4hep::TrackState& ts,
                                           double& chi2, int& ndf, int& detElementID, int mode) {
   TKalTrackSite* site = nullptr;
   int error_code = getSiteFromLCIOHit(trkhit, site);
@@ -919,7 +920,7 @@ void GaudiDDKalTestTrack::ToLCIOTrackState(const TKalTrackSite& site, edm4hep::T
   this->ToLCIOTrackState(trkState.GetHelix(), c0, ts, chi2, ndf);
 }
 
-int GaudiDDKalTestTrack::getSiteFromLCIOHit(const edm4hep::TrackerHitPlane* trkhit, TKalTrackSite*& site) const {
+int GaudiDDKalTestTrack::getSiteFromLCIOHit(const edm4hep::TrackerHit* trkhit, TKalTrackSite*& site) const {
   const auto it = m_hit_used_for_sites.find(trkhit);
 
   if (it == m_hit_used_for_sites.end()) { // hit not associated with any site
