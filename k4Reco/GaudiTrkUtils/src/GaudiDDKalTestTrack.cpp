@@ -24,7 +24,6 @@
 #include <kaltest/TKalFilterCond.h>
 #include <kaltest/TKalTrack.h>
 #include <kaltest/TKalTrackSite.h>
-#include <kaltest/TKalDetCradle.h>
 
 // Remove when the warnings are fixed in DDKalTest
 #pragma GCC diagnostic push

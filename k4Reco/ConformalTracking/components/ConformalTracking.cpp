@@ -70,7 +70,6 @@ inline bool sort_by_radius(const edm4hep::TrackerHit* hit1, const edm4hep::Track
          edm4hep::utils::magnitudeTransverse(hit2->getPosition());
 }
 
-
 // Sort kd hits from smaller to larger radius
 inline bool sort_by_lower_radiusKD(const SKDCluster& hit1, const SKDCluster& hit2) {
   return hit1->getR() < hit2->getR();
@@ -645,8 +644,7 @@ edm4hep::TrackCollection ConformalTracking::operator()(
     }
 
     // Sort the hits from smaller to larger radius
-    std::ranges::sort(trackHits,
-                      (bool (*)(const edm4hep::TrackerHit*, const edm4hep::TrackerHit*))sort_by_radius);
+    std::ranges::sort(trackHits, (bool (*)(const edm4hep::TrackerHit*, const edm4hep::TrackerHit*))sort_by_radius);
 
     // Now we can make the track object and relations object, and fit the track
     edm4hep::MutableTrack track;

@@ -54,8 +54,7 @@ inline bool sort_by_z(const edm4hep::TrackerHit* hit1, const edm4hep::TrackerHit
 }
 
 template <typename T>
-std::vector<const T*>
-TruthTrackFinder::removeHitsSameLayer(const std::vector<const T*>& trackHits) const {
+std::vector<const T*> TruthTrackFinder::removeHitsSameLayer(const std::vector<const T*>& trackHits) const {
   std::vector<const T*> trackFilteredHits;
 
   trackFilteredHits.push_back(*(trackHits.begin()));
