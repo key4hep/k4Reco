@@ -134,8 +134,8 @@ public:
   /** propagate the fit at the measurement site associated with the given hit, to the point of closest approach to the
    * given point, returning TrackState, chi2 and ndf via reference
    */
-  int propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHit* hit, edm4hep::TrackState& ts,
-                double& chi2, int& ndf);
+  int propagate(const edm4hep::Vector3d& point, const edm4hep::TrackerHit* hit, edm4hep::TrackState& ts, double& chi2,
+                int& ndf);
 
   /** propagate the fit at the provided measurement site, to the point of closest approach to the given point,
    *  returning TrackState, chi2 and ndf via reference
@@ -146,8 +146,8 @@ public:
   /** propagate the fit at the measurement site associated with the given hit, to numbered sensitive layer,
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
    */
-  int propagateToLayer(int layerID, const edm4hep::TrackerHit* hit, edm4hep::TrackState& ts, double& chi2,
-                       int& ndf, int& detElementID, int mode = modeClosest);
+  int propagateToLayer(int layerID, const edm4hep::TrackerHit* hit, edm4hep::TrackState& ts, double& chi2, int& ndf,
+                       int& detElementID, int mode = modeClosest);
 
   /** propagate the fit at the measurement site, to numbered sensitive layer,
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
@@ -199,7 +199,7 @@ public:
     return phi;
   }
 
-  std::unique_ptr<TKalTrack> m_kaltrack{}; //unique ptr to be able to forward declare
+  std::unique_ptr<TKalTrack> m_kaltrack{}; // unique ptr to be able to forward declare
   TObjArray* m_kalhits = nullptr;
   GaudiDDKalTest* m_ktest = nullptr;
   // used to store whether initial track state has been supplied or created
