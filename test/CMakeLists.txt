@@ -50,6 +50,7 @@ set_tests_properties("run_marlin_wrapper_truth_tracking" PROPERTIES DEPENDS "clo
 
 add_test(NAME "run_wrapper"
   COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
+)
 set_test_env("run_wrapper")
 set_tests_properties("run_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
 
@@ -85,7 +86,6 @@ if(BUILD_TRACKING)
   set_test_env("compare_ConformalTracking")
   set_tests_properties("compare_ConformalTracking" PROPERTIES DEPENDS "run_ConformalTracking")
 
-
   add_test(NAME "run_ClonesAndSplitTracksFinder"
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runClonesAndSplitTracksFinder.py
   )
@@ -97,7 +97,6 @@ if(BUILD_TRACKING)
   )
   set_test_env("compare_ClonesAndSplitTracksFinder")
   set_tests_properties("compare_ClonesAndSplitTracksFinder" PROPERTIES DEPENDS "run_ConformalTracking")
-
 
   add_test(NAME "run_RefitFinal"
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runRefitFinal.py
