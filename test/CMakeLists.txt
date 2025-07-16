@@ -45,7 +45,7 @@ set_tests_properties("run_marlin_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;ru
 # as this doesn't always happen with the current setting (but does for the current seed)
 add_test(NAME "run_ddsim_lumical"
   COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim_lumical.edm4hep.root --gun.energy "50*GeV" --gun.particle "gamma" --gun.distribution uniform --gun.multiplicity 10 --random.seed 123"
-  )
+)
 set_test_env("run_ddsim_lumical")
 
 add_test(NAME "run_marlin_wrapper_truth_tracking"
