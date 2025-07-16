@@ -24,8 +24,7 @@ GlobalMethodsClass: Remove the members `_forwardCalo` and `_backwardCalo`
 
 GaudiLumiCalClusterer: Originally `MarlinLumiCalClusterer`.
 `TryMarlinLumiCalClusterer` has been moved inside `operator()`. The
-`OutputManager` has not been implemented. The `OutputManager` has not been
-implemented.
+`OutputManager` has not been implemented.
 
 LumiCalClusterer: Remove templates where they are not needed. Removed
 ```
