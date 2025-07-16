@@ -52,11 +52,12 @@ void LumiCalClustererClass::init(GlobalMethodsClass const& gmc) {
   _armsToCluster.push_back(-1);
   _armsToCluster.push_back(1);
      -------------------------------------------------------------------------- */
-  m_methodCM = gmc.getMethod(gmc.m_globalParamS.at(GlobalMethodsClass::WeightingMethod)); // GlobalMethodsClass::LogMethod
-  m_clusterMinNumHits = gmc.m_globalParamI.at(GlobalMethodsClass::ClusterMinNumHits);     // = 15
-  m_hitMinEnergy = gmc.m_globalParamD.at(GlobalMethodsClass::MinHitEnergy);               // = 5e-6
-  m_zLayerThickness = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerThickness);         // = 4.5
-  m_zLayerPhiOffset = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);         // = 3.75 [deg]
+  m_methodCM =
+      gmc.getMethod(gmc.m_globalParamS.at(GlobalMethodsClass::WeightingMethod));      // GlobalMethodsClass::LogMethod
+  m_clusterMinNumHits = gmc.m_globalParamI.at(GlobalMethodsClass::ClusterMinNumHits); // = 15
+  m_hitMinEnergy = gmc.m_globalParamD.at(GlobalMethodsClass::MinHitEnergy);           // = 5e-6
+  m_zLayerThickness = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerThickness);     // = 4.5
+  m_zLayerPhiOffset = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);     // = 3.75 [deg]
   m_elementsPercentInShowerPeakLayer =
       gmc.m_globalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
   m_nNearNeighbor =
@@ -142,21 +143,10 @@ LumiCalClustererClass::processEvent(edm4hep::SimCalorimeterHitCollection& col) {
   m_superClusterIdToCellEngy.clear();
   m_superClusterIdClusterInfo.clear();
 
-  /* --------------------------------------------------------------------------
-     Loop over all hits in the LCCollection and write the hits into std::vectors
-     of IMPL::CalorimeterHitImpl. Hits are split in two std::vectors, one for each arm
-     of LumiCal.
-     -------------------------------------------------------------------------- */
   auto [retval, calohits] = getCalHits(col, calHits);
   if (!retval)
     return {RETVAL::NOK, std::move(calohits)};
 
-  /* --------------------------------------------------------------------------
-     cccccccccccccc
-     --------------------------------------------------------------------------
-  const int numArmsToCluster = _armsToCluster.size();
-    int armNow = _armsToCluster[armToClusterNow];
- */
   for (const int armNow : {-1, 1}) {
     m_alg->debug() << endmsg << "ARM = " << armNow << " : " << endmsg << endmsg;
     /* --------------------------------------------------------------------------
