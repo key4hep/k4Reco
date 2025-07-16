@@ -41,11 +41,30 @@ add_test(NAME "run_marlin_wrapper"
 set_test_env("run_marlin_wrapper")
 set_tests_properties("run_marlin_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
 
-add_test(NAME "run_marlin_wrapper with Truth Tracking"
+# If this is modified, make sure that this simulations produces clusters and reconstructed particles in the LumiCal
+# as this doesn't always happen with the current setting (but does for the current seed)
+add_test(NAME "run_ddsim_lumical"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim_lumical.edm4hep.root --gun.energy "50*GeV" --gun.particle "gamma" --gun.distribution uniform --gun.multiplicity 10 --random.seed 123"
+  )
+set_test_env("run_ddsim_lumical")
+
+add_test(NAME "run_marlin_wrapper_truth_tracking"
   COMMAND k4run CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
 )
-set_test_env("run_marlin_wrapper with Truth Tracking")
-set_tests_properties("run_marlin_wrapper with Truth Tracking" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
+set_test_env("run_marlin_wrapper_truth_tracking")
+set_tests_properties("run_marlin_wrapper_truth_tracking" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
+
+add_test(NAME "run_marlin_wrapper_lumical"
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
+)
+set_test_env("run_marlin_wrapper_lumical")
+set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;run_ddsim_lumical")
+
+add_test(NAME "Compare LumiCalClusterer between Marlin and Gaudi"
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/scripts/compare-lumical.py --marlin-file output_lumical_REC.edm4hep.root"
+)
+set_test_env("Compare LumiCalClusterer between Marlin and Gaudi")
+set_tests_properties("Compare LumiCalClusterer between Marlin and Gaudi" PROPERTIES DEPENDS "run_marlin_wrapper_lumical")
 
 if(BUILD_TRACKING)
 
@@ -91,7 +110,7 @@ if(BUILD_TRACKING)
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runTruthTrackFinder.py
   )
   set_test_env("run_TruthTrackFinder")
-  set_tests_properties("run_TruthTrackFinder" PROPERTIES DEPENDS "run_marlin_wrapper with Truth Tracking")
+  set_tests_properties("run_TruthTrackFinder" PROPERTIES DEPENDS "run_marlin_wrapper_truth_tracking")
 
   add_test(NAME "compare_TruthTrackFinder"
     COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --marlin-file output_truth_tracking_REC.edm4hep.root --gaudi-file output_truth_track_finder.root --marlin-tracks SiTracks --gaudi-tracks GaudiSiTracks

@@ -20,6 +20,21 @@ limitations under the License.
 set(sources
   DDPlanarDigi/components/DDPlanarDigi.cpp
   Overlay/components/OverlayTiming.cpp
+  GaudiLumiCalClusterer/components/GaudiLumiCalClusterer.cpp
+  GaudiLumiCalClusterer/src/GlobalMethodsClass.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_getCalHits.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_buildClusters.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_buildClusters_auxiliary.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_auxiliary.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_clusterMerger.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_fiducialVolumeCuts.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_fiducialVolumeCuts.cpp
+  GaudiLumiCalClusterer/src/LumiCalClusterer_energyCorrections.cpp
+  GaudiLumiCalClusterer/src/LCCluster.cpp
+  GaudiLumiCalClusterer/src/VirtualCluster.cpp
+  GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
+  GaudiLumiCalClusterer/src/ProjectionInfo.cpp
 )
 
 set(libs
@@ -106,6 +121,11 @@ set(k4RecoPlugins_public_includes
 )
 
 target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
+target_include_directories(k4RecoPlugins PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if(BUILD_TRACKING)
   target_include_directories(k4RecoPlugins
