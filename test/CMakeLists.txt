@@ -58,7 +58,14 @@ add_test(NAME "run_marlin_wrapper_lumical"
   COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
 )
 set_test_env("run_marlin_wrapper_lumical")
-set_tests_properties("Run the Marlin wrapper" PROPERTIES DEPENDS "Clone CLDConfig;run_ddsim_lumical")
+set_tests_properties("run_marlin_wrapper_lumical" PROPERTIES DEPENDS "Clone CLDConfig;run_ddsim_lumical")
+
+add_test(NAME "Run the Marlin wrapper with Truth Tracking"
+  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
+)
+set_test_env("Run the Marlin wrapper with Truth Tracking")
+set_tests_properties("Run the Marlin wrapper with Truth Tracking" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
+
 
 add_test(NAME "Compare LumiCalClusterer between Marlin and Gaudi"
   COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/scripts/compare-lumical.py --marlin-file output_lumical_REC.edm4hep.root"
@@ -105,6 +112,12 @@ if(BUILD_TRACKING)
   )
   set_test_env("compare_RefitFinal")
   set_tests_properties("compare_RefitFinal" PROPERTIES DEPENDS "run_ConformalTracking")
+
+  add_test(NAME "Run the Marlin wrapper with Truth Tracking"
+    COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
+  )
+  set_test_env("Run the Marlin wrapper with Truth Tracking")
+  set_tests_properties("Run the Marlin wrapper with Truth Tracking" PROPERTIES DEPENDS "Clone CLDConfig;Run ddsim")
 
   add_test(NAME "run_TruthTrackFinder"
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runTruthTrackFinder.py
