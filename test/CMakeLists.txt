@@ -52,7 +52,7 @@ add_test(NAME "run_wrapper"
   COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
 )
 set_test_env("run_wrapper")
-set_tests_properties("run_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
+set_tests_properties("run_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim;run_wrapper")
 
 add_test(NAME "run_wrapper_LumiCal"
   COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
