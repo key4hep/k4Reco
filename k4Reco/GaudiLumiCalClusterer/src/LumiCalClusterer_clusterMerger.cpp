@@ -99,7 +99,7 @@ void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy, Ma
       break;
 
     // choose the pair with the shortest weight (distance)
-    sort(clusterPairWeightsV.begin(), clusterPairWeightsV.end(), SuperTrueClusterWeights::Compare);
+    std::ranges::sort(clusterPairWeightsV, SuperTrueClusterWeights::Compare);
 
     clusterId1 = clusterPairWeightsV[0]->superClusterId;
     clusterId2 = clusterPairWeightsV[0]->trueClusterId;
@@ -173,7 +173,7 @@ void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy, Ma
      verbosity
      -------------------------------------------------------------------------- */
 #if _GENERAL_CLUSTERER_DEBUG == 1
-  if (not clusterIdToCellId.empty()) {
+  if (!clusterIdToCellId.empty()) {
     m_alg->debug() << "Clusters:" << endmsg;
   } else {
     m_alg->debug() << "No Clusters on this side" << endmsg;
