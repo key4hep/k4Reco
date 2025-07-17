@@ -40,7 +40,7 @@ int LumiCalClustererClass::getNeighborId(int cellId, const int neighborIndex) {
 
   int cellZ, cellPhi, cellR, arm;
   // compute Z,Phi,R coordinates according to the cellId
-  GlobalMethodsClass::CellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
+  GlobalMethodsClass::cellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
 
   // change iRho cell index  according to the neighborIndex
   if (neighborIndex >= 2) {
@@ -65,7 +65,7 @@ int LumiCalClustererClass::getNeighborId(int cellId, const int neighborIndex) {
   else if (cellPhi < 0)
     cellPhi = m_cellPhiMax - 1;
   // compute neighbor cellId according to the new Z,Phi,R coordinates
-  cellId = GlobalMethodsClass::CellIdZPR(cellZ, cellPhi, cellR, arm);
+  cellId = GlobalMethodsClass::cellIdZPR(cellZ, cellPhi, cellR, arm);
 
   return cellId;
 }

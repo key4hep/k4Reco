@@ -78,7 +78,7 @@ LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& co
     layer = m_mydecoder->get(calHitIn.getCellID(), "layer"); // from 1
 
     // Calculate internal cellID
-    int cellId = GlobalMethodsClass::CellIdZPR(layer, phiCell, rCell, arm);
+    int cellId = GlobalMethodsClass::cellIdZPR(layer, phiCell, rCell, arm);
 
     // skip this hit if the following conditions are met
     if (layer >= static_cast<int>(m_maxLayerToAnalyse) || layer < 0)
