@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef LumiCalClusterer_h
-#define LumiCalClusterer_h 1
+#ifndef K4RECO_LUMICALCLUSTERER_H
+#define K4RECO_LUMICALCLUSTERER_H 1
 
 // clustering options
 #define _CLUSTER_MIDDLE_RANGE_ENGY_HITS 1
@@ -26,13 +26,11 @@
 
 // verbosity
 #define _GENERAL_CLUSTERER_DEBUG 0
-#define _CREATE_CLUSTERS_DEBUG 0
 #define _CLUSTER_BUILD_DEBUG 0
 #define _VIRTUALCLUSTER_BUILD_DEBUG 0
 #define _MOL_RAD_CORRECT_DEBUG 0
 
 #include "Global.h"
-
 #include "GlobalMethodsClass.h"
 #include "LCCluster.h"
 
@@ -184,4 +182,4 @@ protected:
   std::string printClusters(MapIntLCCluster const& superClusterCM) const;
 };
 
-#endif // LumiCalClusterer_h
+#endif // K4RECO_LUMICALCLUSTERER_H

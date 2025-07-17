@@ -23,6 +23,7 @@
 #include <edm4hep/ReconstructedParticle.h>
 #include <edm4hep/Vector3f.h>
 
+#include <array>
 #include <map>
 #include <optional>
 #include <string>
@@ -103,7 +104,7 @@ public:
 
   inline double getCalibrationFactor() const { return m_globalParamD.at(Signal_to_GeV); }
 
-  void rotateToLumiCal(const edm4hep::Vector3f& glob, double* loc) const;
+  std::array<double, 3> rotateToLumiCal(const edm4hep::Vector3f& glob) const;
 
   std::tuple<std::optional<edm4hep::MutableCluster>, std::optional<edm4hep::MutableReconstructedParticle>>
   getLCIOObjects(const LCCluster& thisClusterInfo, const double minClusterEnergy, const bool cutOnFiducialVolume,

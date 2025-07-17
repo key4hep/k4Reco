@@ -63,11 +63,13 @@ GlobalMethodsClass::GlobalMethodsClass()
 #define MASK_K_32Fcal (unsigned int)0x3FF00000
 #define MASK_S_32Fcal (unsigned int)0xC0000000
 
-void GlobalMethodsClass::rotateToLumiCal(const edm4hep::Vector3f& glob, double* loc) const {
+std::array<double, 3> GlobalMethodsClass::rotateToLumiCal(const edm4hep::Vector3f& glob) const {
   const int armNow = (glob[2] < 0) ? -1 : 1;
+  std::array<double, 3> loc;
   loc[0] = +m_armCosAngle.at(armNow) * glob[0] - m_armSinAngle.at(armNow) * glob[2];
   loc[1] = glob[1];
   loc[2] = +m_armSinAngle.at(armNow) * glob[0] + m_armCosAngle.at(armNow) * glob[2];
+  return loc;
 }
 
 edm4hep::Vector3f GlobalMethodsClass::rotateToGlobal(const edm4hep::Vector3f& loc) const {

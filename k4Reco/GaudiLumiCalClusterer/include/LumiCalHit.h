@@ -65,7 +65,7 @@ public:
   void setEnergy(double e) { m_energy = e; }
   void setCellID0(int i) { m_cellID0 = i; }
   void setCellID1(int i) { m_cellID1 = i; }
-  void setPosition(double const* pos) {
+  void setPosition(const std::array<double, 3>& pos) {
     m_position[0] = pos[0];
     m_position[1] = pos[1];
     m_position[2] = pos[2];

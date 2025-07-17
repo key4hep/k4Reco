@@ -84,9 +84,7 @@ LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& co
     if (layer >= static_cast<int>(m_maxLayerToAnalyse) || layer < 0)
       continue;
 
-    const auto Pos = calHitIn.getPosition();
-    double locPos[3] = {0.0, 0.0, 0.0};
-    m_gmc.rotateToLumiCal(Pos, locPos);
+    const auto locPos = m_gmc.rotateToLumiCal(calHitIn.getPosition());
 
     // streamlog_message(DEBUG2, std::stringstream p;
     //                   p << std::scientific << std::setprecision(3) << "\t Arm, CellId, Pos(x,y,z), hit energy [MeV]:
