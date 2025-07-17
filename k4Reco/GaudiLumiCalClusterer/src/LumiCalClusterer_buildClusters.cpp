@@ -21,7 +21,6 @@
 #include "LCCluster.h"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
-#include "SortingFunctions.h"
 #include "VirtualCluster.h"
 
 #include <TF1.h>
@@ -233,8 +232,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
     }
   }
 
-  MapIntInt::iterator maxCluster =
-      std::max_element(numClustersCounter.begin(), numClustersCounter.end(), compareByValue<std::pair<int, int>>);
+  auto maxCluster = std::ranges::max_element(numClustersCounter, {}, &std::pair<const int, int>::second);
   int numClustersMajority = maxCluster->first;
 
   m_alg->debug() << "\t -> Found that there are " << maxCluster->second << " ShowerPeakLayers \n"
@@ -332,8 +330,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
           weightedDistanceV[clusterNow2] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
         }
 
-        std::map<int, double>::iterator closestCluster = std::max_element(
-            weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+        auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
         // add the CM to the right vector
         engyPosCMLayer[closestCluster->first].push_back(thisCluster);
         thisLayer[closestCluster->first].push_back(layerNow);
