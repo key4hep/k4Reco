@@ -55,10 +55,10 @@ set_test_env("run_wrapper")
 set_tests_properties("run_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
 
 add_test(NAME "run_wrapper_LumiCal"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
+  COMMAND k4run CLDReconstruction.py --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
 )
 set_test_env("run_wrapper_LumiCal")
-set_tests_properties("run_wrapper_LumiCal" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim_LumiCal;run_wrapper")
+set_tests_properties("run_wrapper_LumiCal" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim_LumiCal")
 
 add_test(NAME "run_GaudiLumiCalClusterer"
   COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/options/runGaudiLumiCalClusterer.py --IOSvc.Input output_lumical_REC.edm4hep.root
