@@ -73,7 +73,7 @@ void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
 
   double thetaTemp(0.0), weightsTemp(0.0), xTemp(0.0), yTemp(0.0), zTemp(0.0);
   for (auto const& calHit : _caloHits) {
-    const auto* pos = calHit->getPosition();
+    const auto pos = calHit->getPosition();
     const double rCell = sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
     // cell area scales with radius, reduce weight for cells at larger radii
     const double weight =
