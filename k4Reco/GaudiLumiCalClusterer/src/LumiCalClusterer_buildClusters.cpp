@@ -112,17 +112,16 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   // 2. fill calHitsCellId with layer tagged calhits, skip hits with energy below <minHitEnergy>
   // 3. for ShowerPeak layers optionally split hits according to value <middleEnergyHitBound>
 
-  for (auto calHitsIt = calHits.cbegin(); calHitsIt != calHits.cend(); ++calHitsIt) {
-    std::size_t numHitsInLayer = calHitsIt->second.size();
-    int layerNow = calHitsIt->first;
+  for (const auto& [layerNow, hitsVec] : calHits) {
+    std::size_t numHitsInLayer = hitsVec.size();
     isShowerPeakLayer[layerNow] = ((int)numHitsInLayer > minNumElementsInShowerPeakLayer) ? 1 : 0;
 #if _CLUSTER_BUILD_DEBUG == 1
     if (isShowerPeakLayer[layerNow] == 1)
       m_alg->debug() << "\t" << layerNow << "\t nhits(" << numHitsInLayer << ")\n";
 #endif
     for (std::size_t j = 0; j < numHitsInLayer; j++) {
-      int cellIdHit = calHitsIt->second[j]->getCellID0();
-      double cellEngy = calHitsIt->second[j]->getEnergy();
+      int cellIdHit = hitsVec[j]->getCellID0();
+      double cellEngy = hitsVec[j]->getEnergy();
       if (cellEngy >= m_hitMinEnergy) {
 #if _CLUSTER_MIDDLE_RANGE_ENGY_HITS == 1
         /* split hits in ShowerPeakLayer into two sets one with hit energy below
@@ -130,16 +129,16 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
          */
         if (isShowerPeakLayer[layerNow]) {
           if (cellEngy <= middleEnergyHitBound) {
-            calHitsSmallEngyCellId[layerNow][cellIdHit] = calHitsIt->second[j];
+            calHitsSmallEngyCellId[layerNow][cellIdHit] = hitsVec[j];
           } else {
-            calHitsCellId[layerNow][cellIdHit] = calHitsIt->second[j];
+            calHitsCellId[layerNow][cellIdHit] = hitsVec[j];
           }
         } else {
-          calHitsCellId[layerNow][cellIdHit] = calHitsIt->second[j];
+          calHitsCellId[layerNow][cellIdHit] = hitsVec[j];
         }
 #else
         // all hits assigned to one set
-        calHitsCellId[layerNow][cellIdHit] = calHitsIt->second[j];
+        calHitsCellId[layerNow][cellIdHit] = hitsVec[j];
 #endif
       }
     }
@@ -184,7 +183,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   initialClusterControlVar[2] = 1; // mergeLargeToSmallClusters
   initialClusterControlVar[3] = 1; // forceMergeSmallToLargeClusters
 
-  for (size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++)
+  for (size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
     if (isShowerPeakLayer[layerNow] == 1) {
       // run the initial clustering algorithm for the high energy hits
       m_alg->debug() << "\t layer " << layerNow << endmsg;
@@ -209,12 +208,13 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       initialLowEngyClusterBuild(calHitsSmallEngyCellId[layerNow], calHitsCellId[layerNow], cellIdToClusterId[layerNow],
                                  clusterIdToCellId[layerNow], clusterCM[layerNow]);
 #endif
-    // store max number of hits in ShowerPeakLayer
+      // store max number of hits in ShowerPeakLayer
 
 #if _CLUSTER_BUILD_DEBUG == 1
       dumpClusters(clusterCM[layerNow]);
 #endif
     }
+  }
 
   /* --------------------------------------------------------------------------
      check how many global clusters there are
