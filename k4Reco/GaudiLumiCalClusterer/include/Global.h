@@ -25,7 +25,6 @@
 
 class LumiCalHit;
 class LCCluster;
-class VirtualCluster;
 
 using CalHit = std::shared_ptr<LumiCalHit>;
 using VecCalHit = std::vector<CalHit>;
@@ -43,7 +42,8 @@ using MapIntMapIntLCCluster = std::map<int, MapIntLCCluster>;
 using MapIntMapIntVCalHit = std::map<int, MapIntVCalHit>;
 using MapIntMapIntVDouble = std::map<int, MapIntVDouble>;
 using MapIntMapIntVInt = std::map<int, MapIntVInt>;
-using MapIntVirtualCluster = std::map<int, VirtualCluster>;
+#include <edm4hep/Vector3d.h>
+using MapIntVector3d = std::map<int, edm4hep::Vector3d>;
 using MapIntDouble = std::map<int, double>;
 using MapIntInt = std::map<int, int>;
 
@@ -53,7 +53,7 @@ using VMapIntCalHit = std::vector<MapIntCalHit>;
 using VMapIntInt = std::vector<MapIntInt>;
 using VMapIntLCCluster = std::vector<MapIntLCCluster>;
 using VMapIntVInt = std::vector<MapIntVInt>;
-using VMapIntVirtualCluster = std::vector<MapIntVirtualCluster>;
+using VMapIntVector3d = std::vector<MapIntVector3d>;
 
 using VVDouble = std::vector<VDouble>;
 

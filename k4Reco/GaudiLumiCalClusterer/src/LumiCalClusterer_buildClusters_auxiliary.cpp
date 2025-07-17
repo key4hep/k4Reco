@@ -22,7 +22,6 @@
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
 #include "ProjectionInfo.h"
-#include "VirtualCluster.h"
 
 #include <algorithm>
 #include <cassert>
@@ -30,9 +29,9 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <ranges>
 #include <utility>
 #include <vector>
-#include <ranges>
 
 int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId, MapIntInt& cellIdToClusterId,
                                                MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
@@ -602,7 +601,7 @@ int LumiCalClustererClass::initialLowEngyClusterBuild(MapIntCalHit const& calHit
 
 int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCellId, MapIntInt& cellIdToClusterId,
                                                  MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
-                                                 MapIntVirtualCluster const& virtualClusterCM) {
+                                                 MapIntVector3d const& virtualClusterCM) {
   std::vector<int> unClusteredCellId;
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
@@ -620,10 +619,10 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
     std::map<int, double> weightedDistanceV;
 
     for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM) {
-      double CM2[2] = {virtualCluster.getX(), virtualCluster.getY()};
+      double CM2[2] = {virtualCluster.x, virtualCluster.y};
       const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
-      if (distanceCM <= virtualClusterCM.at(virtualClusterId).getZ()) {
+      if (distanceCM <= virtualClusterCM.at(virtualClusterId).z) {
         weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
       }
 
@@ -719,7 +718,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
 
 int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCellId, MapIntInt& cellIdToClusterId,
                                                   MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
-                                                  MapIntVirtualCluster virtualClusterCM) {
+                                                  MapIntVector3d virtualClusterCM) {
   // general variables
   std::vector<std::vector<double>> unClusteredCellId;
 
@@ -775,7 +774,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
 
     double CM1[2] = {clusterCM[clusterId].getX(), clusterCM[clusterId].getY()};
     for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM) {
-      const double distanceCM = std::hypot(CM1[0] - virtualCluster.getX(), CM1[1] - virtualCluster.getY());
+      const double distanceCM = std::hypot(CM1[0] - virtualCluster.x, CM1[1] - virtualCluster.y);
       weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
     }
 
@@ -802,9 +801,9 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
       if (virtualToRealClusterId[virtualClusterId] == 1)
         continue;
 
-      const double distanceCM = std::hypot(thisHit->getPosition()[0] - virtualCluster.getX(),
-                                           thisHit->getPosition()[1] - virtualCluster.getY());
-      if (distanceCM <= virtualCluster.getZ()) {
+      const double distanceCM =
+          std::hypot(thisHit->getPosition()[0] - virtualCluster.x, thisHit->getPosition()[1] - virtualCluster.y);
+      if (distanceCM <= virtualCluster.z) {
         weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
       }
     }
@@ -855,7 +854,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
 int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
                                               VMapIntCalHit const& calHitsCellIdLayer,
                                               VMapIntVInt const& clusterIdToCellId, VMapIntLCCluster const& clusterCM,
-                                              VMapIntVirtualCluster const& virtualClusterCM,
+                                              VMapIntVector3d const& virtualClusterCM,
                                               MapIntInt& cellIdToSuperClusterId, MapIntVInt& superClusterIdToCellId,
                                               MapIntLCCluster& superClusterCM) {
 /* --------------------------------------------------------------------------
@@ -883,10 +882,10 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
            << CM1[1] << " \t " << clusterCM[layerNow][clusterId][0] << endl;
 #endif
 
-      for (std::map<int, VirtualCluster>::const_iterator virtualClusterCMIterator =
+      for (std::map<int, edm4hep::Vector3d>::const_iterator virtualClusterCMIterator =
                virtualClusterCM.at(layerNow).begin();
            virtualClusterCMIterator != virtualClusterCM.at(layerNow).end(); ++virtualClusterCMIterator) {
-        const double CM2[2] = {virtualClusterCMIterator->second.getX(), virtualClusterCMIterator->second.getY()};
+        const double CM2[2] = {virtualClusterCMIterator->second.x, virtualClusterCMIterator->second.y};
         const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
@@ -961,7 +960,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
 #endif
 
         for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM[layerNow]) {
-          const double CM2[2] = {virtualCluster.getX(), virtualCluster.getY()};
+          const double CM2[2] = {virtualCluster.x, virtualCluster.y};
           const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
@@ -1180,9 +1179,8 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
     int engyInMoliereFlag = 0;
     for (const auto& [clusterId, cluster] : clusterCM[m_maxLayerToAnalyse]) {
-      const double thisProjectionClusterEngyInMoliere =
-          getEngyInMoliereFraction(calHitsCellIdProjection, clusterIdToCellId[m_maxLayerToAnalyse][clusterId],
-                                   cluster, molRadPercentage);
+      const double thisProjectionClusterEngyInMoliere = getEngyInMoliereFraction(
+          calHitsCellIdProjection, clusterIdToCellId[m_maxLayerToAnalyse][clusterId], cluster, molRadPercentage);
 
       const double engyPercentInMol = thisProjectionClusterEngyInMoliere / cluster.getE();
 
@@ -1256,9 +1254,8 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
          find the percentage of energy for each cluster within m_moliereRadius
          -------------------------------------------------------------------------- */
       for (const auto& [clusterIdHit, cluster] : clusterCM[m_maxLayerToAnalyse]) {
-        const double thisProjectionClusterEngyInMoliere =
-            getEngyInMoliereFraction(calHitsCellIdProjection, clusterIdToCellId[m_maxLayerToAnalyse][clusterIdHit],
-                                     cluster, molRadPercentage);
+        const double thisProjectionClusterEngyInMoliere = getEngyInMoliereFraction(
+            calHitsCellIdProjection, clusterIdToCellId[m_maxLayerToAnalyse][clusterIdHit], cluster, molRadPercentage);
 
         double engyPercentInMol =
             thisProjectionClusterEngyInMoliere / clusterCM[m_maxLayerToAnalyse][clusterIdHit].getE();

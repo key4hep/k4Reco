@@ -124,15 +124,15 @@ protected:
 
   int virtualCMClusterBuild(MapIntCalHit const& calHitsCellId, MapIntInt& cellIdToClusterId,
                             MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
-                            MapIntVirtualCluster const& virtualClusterCM);
+                            MapIntVector3d const& virtualClusterCM);
 
   int virtualCMPeakLayersFix(MapIntCalHit const& calHitsCellId, MapIntInt& cellIdToClusterId,
                              MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
-                             MapIntVirtualCluster virtualClusterCM);
+                             MapIntVector3d virtualClusterCM);
 
   int buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal, VMapIntCalHit const& calHitsCellId,
                          VMapIntVInt const& clusterIdToCellId, VMapIntLCCluster const& clusterCM,
-                         VMapIntVirtualCluster const& virtualClusterCM, MapIntInt& cellIdToSuperClusterId,
+                         VMapIntVector3d const& virtualClusterCM, MapIntInt& cellIdToSuperClusterId,
                          MapIntVInt& superClusterIdToCellId, MapIntLCCluster& superClusterCM);
 
   int engyInMoliereCorrections(MapIntCalHit const& calHitsCellIdGlobal, MapIntVCalHit const& calHits,

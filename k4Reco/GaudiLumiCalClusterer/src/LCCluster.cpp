@@ -18,11 +18,10 @@
  */
 #include "LCCluster.h"
 #include "LumiCalHit.h"
-#include "VirtualCluster.h"
 
 #include <iomanip>
 
-LCCluster::LCCluster(const VirtualCluster& vc) : m_position{vc.getX(), vc.getY(), vc.getZ()} {}
+LCCluster::LCCluster(const edm4hep::Vector3d& vc) : m_position{vc.x, vc.y, vc.z} {}
 
 LCCluster::LCCluster(double energy, double x, double y, double z, double weight,
                      GlobalMethodsClass::WeightingMethod_t method, double theta, double phi,
