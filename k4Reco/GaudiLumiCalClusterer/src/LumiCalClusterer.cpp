@@ -129,7 +129,7 @@ void LumiCalClustererClass::init(GlobalMethodsClass const& gmc) {
    main actions in each event:
    ========================================================================= */
 std::pair<RETVAL, edm4hep::CalorimeterHitCollection>
-LumiCalClustererClass::processEvent(edm4hep::SimCalorimeterHitCollection& col) {
+LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& col) {
   // increment / initialize global variables
   m_totEngyArm[-1] = m_totEngyArm[1] = 0.;
   m_numHitsInArm[-1] = m_numHitsInArm[1] = 0;
