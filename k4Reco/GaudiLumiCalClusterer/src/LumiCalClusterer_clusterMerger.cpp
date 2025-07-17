@@ -87,7 +87,7 @@ void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy, Ma
         }
         */
         clusterPairWeightsNow->setWeight("distance");
-        if (clusterPairWeightsNow->weight < m_minSeparationDistance)
+        if (clusterPairWeightsNow->m_weight < m_minSeparationDistance)
           clusterPairWeightsV.push_back(clusterPairWeightsNow);
         else
           delete clusterPairWeightsNow;
@@ -99,10 +99,10 @@ void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy, Ma
       break;
 
     // choose the pair with the shortest weight (distance)
-    std::ranges::sort(clusterPairWeightsV, SuperTrueClusterWeights::Compare);
+    std::ranges::sort(clusterPairWeightsV, {}, &SuperTrueClusterWeights::m_weight);
 
-    clusterId1 = clusterPairWeightsV[0]->superClusterId;
-    clusterId2 = clusterPairWeightsV[0]->trueClusterId;
+    clusterId1 = clusterPairWeightsV[0]->m_superClusterId;
+    clusterId2 = clusterPairWeightsV[0]->m_trueClusterId;
 
     /* --------------------------------------------------------------------------
        go over all hits in the discarded cluster write a new hit-energy std::map

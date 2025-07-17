@@ -40,7 +40,6 @@ public:
   int m_superClusterId, m_trueClusterId;
   double m_distance, m_deltaEngy, m_minEngy, m_weight;
 
-  static inline bool Compare(SuperTrueClusterWeights* a, SuperTrueClusterWeights* b) { return a->m_weight < b->m_weight; }
 };
 
 #endif // SuperTrueClusterWeights_hh
