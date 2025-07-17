@@ -32,7 +32,6 @@ set(sources
   GaudiLumiCalClusterer/src/LumiCalClusterer_fiducialVolumeCuts.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_energyCorrections.cpp
   GaudiLumiCalClusterer/src/LCCluster.cpp
-  GaudiLumiCalClusterer/src/VirtualCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
 )
