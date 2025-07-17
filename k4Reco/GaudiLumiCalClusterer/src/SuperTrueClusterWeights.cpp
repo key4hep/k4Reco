@@ -30,19 +30,7 @@ SuperTrueClusterWeights::SuperTrueClusterWeights(int superClusterIdNow, int true
       m_superClusterId(superClusterIdNow), m_trueClusterId(trueClusterIdNow),
       m_distance(
           std::hypot(superClusterCM.getX() - trueClusterCM.getX(), superClusterCM.getY() - trueClusterCM.getY())),
-      m_deltaEngy(fabs(superClusterCM.getE() - trueClusterCM.getE())),
+      m_deltaEngy(std::abs(superClusterCM.getE() - trueClusterCM.getE())),
       m_minEngy(std::min(superClusterCM.getE(), trueClusterCM.getE())), m_weight(-1) {}
 
-void SuperTrueClusterWeights::setWeight(std::string weightMethod) {
-
-  m_weight = (weightMethod == "distance") ? m_distance : m_deltaEngy;
-}
-
-void SuperTrueClusterWeights::setWeight(std::string weightMethod, double minSeparationDistance,
-                                        double minClusterEngyGeV) {
-
-  if (weightMethod == "minEngyDistance") {
-
-    m_weight = (m_distance > minSeparationDistance && m_minEngy > minClusterEngyGeV) ? 1. : -1.;
-  }
-}
+void SuperTrueClusterWeights::setWeight() { m_weight = m_distance; }

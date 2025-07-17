@@ -16,10 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef SuperTrueClusterWeights_hh
-#define SuperTrueClusterWeights_hh 1
-
-#include <string>
+#ifndef K4RECO_SUPERTRUECLUSTERWEIGHTS_H
+#define K4RECO_SUPERTRUECLUSTERWEIGHTS_H 1
 
 class LCCluster;
 
@@ -30,16 +28,13 @@ class LCCluster;
 class SuperTrueClusterWeights {
 
 public:
-  SuperTrueClusterWeights(int superClusterIdNow, int trueClusterIdNow, LCCluster const& superClusterCM,
-                          LCCluster const& trueClusterCM);
+  SuperTrueClusterWeights(int superClusterIdNow, int trueClusterIdNow, const LCCluster& superClusterCM,
+                          const LCCluster& trueClusterCM);
 
-  double distance2D(double* pos1, double* pos2);
-  void setWeight(std::string weightMethod);
-  void setWeight(std::string weightMethod, double minSeparationDistance, double minClusterEngyGeV);
+  void setWeight();
 
   int m_superClusterId, m_trueClusterId;
   double m_distance, m_deltaEngy, m_minEngy, m_weight;
-
 };
 
-#endif // SuperTrueClusterWeights_hh
+#endif // K4RECO_SUPERTRUECLUSTERWEIGHTS_H
