@@ -41,7 +41,6 @@
 class LCCluster;
 class ClusterClass;
 
-typedef std::map<int, ClusterClass*> MapIntPClusterClass;
 typedef std::map<int, std::vector<int>> MapIntVInt;
 
 struct GaudiLumiCalClusterer
@@ -57,9 +56,6 @@ public:
   std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::ClusterCollection, edm4hep::ReconstructedParticleCollection>
   operator()(const edm4hep::SimCalorimeterHitCollection&) const override;
 
-  // Processor Parameters
-  std::string LumiInColName;
-  std::string LumiOutColName = "LumiCalHits";
   double m_BeamCrossingAngle;
 
   GlobalMethodsClass gmc;
