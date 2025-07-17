@@ -120,7 +120,9 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
   }
 
   // sort acording to energy in ascending order (lowest energy is first)
-  std::ranges::sort(calHitsLayer, HitEnergyCmpAsc<CalHit>);
+  std::ranges::sort(calHitsLayer, [](const auto& a, const auto& b) {
+    return a->getEnergy() < b->getEnergy();
+  });
 
   /* --------------------------------------------------------------------------
      connect each cal hit to it's highest-energy near neighbor.
@@ -182,7 +184,9 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
      create clusters from each connected bunch of cal hits.
      -------------------------------------------------------------------------- */
   // sort according to energy in descending order (highest energy is first)
-  std::ranges::sort(calHitsLayer, HitEnergyCmpDesc<VecCalHit::value_type>);
+  std::ranges::sort(calHitsLayer, [](const auto& a, const auto& b) {
+    return a->getEnergy() > b->getEnergy();
+  });
 
   for (const auto& calHit : calHitsLayer) {
 
@@ -307,7 +311,9 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
       clusterIdEngyV2.back()[1] = clsID;
     }
 
-    std::ranges::sort(clusterIdEngyV2, clusterCMEnergyCmpAsc<VVDouble::value_type>);
+    std::ranges::sort(clusterIdEngyV2, [](const auto& a, const auto& b) {
+      return a[0] < b[0]; // sort by energy in ascending order
+    });
 
     // copy the Ids that are now in order to a std::vector
     for (const auto& id : clusterIdEngyV2)
@@ -403,7 +409,9 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
       clusterIdEngyV2.back()[1] = clsID;
     }
 
-    std::ranges::sort(clusterIdEngyV2, clusterCMEnergyCmpDesc<VVDouble::value_type>);
+    std::ranges::sort(clusterIdEngyV2, [](const auto& a, const auto& b) {
+      return a[0] > b[0]; // sort by energy in descending order
+    });
 
     // copy the Ids that are now in order to a std::vector
     for (const auto& id : clusterIdEngyV2)
