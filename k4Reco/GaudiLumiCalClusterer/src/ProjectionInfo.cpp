@@ -19,17 +19,17 @@
 #include "ProjectionInfo.h"
 #include "LumiCalHit.h"
 
-ProjectionInfo::ProjectionInfo() : energy(0.0), cellIdHitZ(0), newObject(true) {
-  position[0] = 0.0;
-  position[1] = 0.0;
-  position[2] = 0.0;
+ProjectionInfo::ProjectionInfo() : m_energy(0.0), m_cellIdHitZ(0), newObject(true) {
+  m_position[0] = 0.0;
+  m_position[1] = 0.0;
+  m_position[2] = 0.0;
 }
 
 ProjectionInfo::ProjectionInfo(CalHit const& calHit, int cellIdZ)
-    : energy(calHit->getEnergy()), cellIdHitZ(cellIdZ), newObject(false) {
-  position[0] = calHit->getPosition()[0];
-  position[1] = calHit->getPosition()[1];
-  position[2] = calHit->getPosition()[2];
+    : m_energy(calHit->getEnergy()), m_cellIdHitZ(cellIdZ), newObject(false) {
+  m_position[0] = calHit->getPosition()[0];
+  m_position[1] = calHit->getPosition()[1];
+  m_position[2] = calHit->getPosition()[2];
   // TODO: Actually insert
   // hits.insert(calHit->beginHits(), calHit->endHits());
 }
@@ -37,5 +37,5 @@ ProjectionInfo::ProjectionInfo(CalHit const& calHit, int cellIdZ)
 void ProjectionInfo::addHit(CalHit const& calHit) {
   // TODO: Actually insert
   // hits.insert(calHit->beginHits(), calHit->endHits());
-  energy += calHit->getEnergy();
+  m_energy += calHit->getEnergy();
 }

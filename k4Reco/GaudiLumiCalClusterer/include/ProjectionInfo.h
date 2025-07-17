@@ -26,9 +26,9 @@
 
 class LumiCalHit;
 
-using CalHit = std::shared_ptr<LumiCalHit>;
-
 class ProjectionInfo {
+
+  using CalHit = std::shared_ptr<LumiCalHit>;
 
 public:
   ProjectionInfo();
@@ -41,16 +41,16 @@ public:
 
   void addHit(const CalHit& calHit);
 
-  const double* getPosition() const { return position; }
-  double getEnergy() const { return energy; }
-  int getCellIdHitZ() const { return cellIdHitZ; }
-  std::set<const edm4hep::CalorimeterHit*> const& getCaloHits() const { return hits; }
+  const std::array<double, 3> getPosition() const { return m_position; }
+  double getEnergy() const { return m_energy; }
+  int getCellIdHitZ() const { return m_cellIdHitZ; }
+  std::set<const edm4hep::CalorimeterHit*> const& getCaloHits() const { return m_hits; }
 
 private:
-  double energy;
-  double position[3];
-  int cellIdHitZ;
-  std::set<const edm4hep::CalorimeterHit*> hits{};
+  double m_energy;
+  std::array<double, 3> m_position;
+  int m_cellIdHitZ;
+  std::set<const edm4hep::CalorimeterHit*> m_hits{};
 
 public:
   bool newObject;
