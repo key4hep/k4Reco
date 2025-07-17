@@ -49,7 +49,7 @@ set_test_env("run_marlin_wrapper_truth_tracking")
 set_tests_properties("run_marlin_wrapper_truth_tracking" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
 
 add_test(NAME "run_wrapper"
-  COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
+  COMMAND k4run CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
 )
 set_test_env("run_wrapper")
 set_tests_properties("run_wrapper" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim")
