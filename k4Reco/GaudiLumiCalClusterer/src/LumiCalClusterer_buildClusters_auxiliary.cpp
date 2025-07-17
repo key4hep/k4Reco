@@ -69,7 +69,7 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
   // -------------------------------------------------------------------------------------------------------------------
   //	(1). definitions of 'small' and 'large' sizes
   const unsigned int numElementsSmallClusterToMergeForced =
-      .08 * numElementsInLayer; // 5;  // max number of elements in small cluster
+      .08 * numElementsInLayer; // max number of elements in small cluster
 
   //	(2). the weight for merging two clusters is a Power() function of the energy of the
   //		large cluster and the distance to its CM.
@@ -407,7 +407,7 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
 
     // copy the Ids that are now in order to a std::vector
     for (const auto& id : clusterIdEngyV2)
-      clusterIdV.push_back((int)id[1]);
+      clusterIdV.push_back(static_cast<int>(id[1]));
 
     // cleanUp
     clusterIdEngyV2.clear();
@@ -1037,7 +1037,6 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
   double midEngyPercentInMol = 0.8;
   double baseEngyPercentInMol = 0.9;
 
-  // general variables
   MapIntCalHit calHitsCellIdProjection, calHitsCellIdProjectionFull;
 
   int rejectFlag;
@@ -1053,9 +1052,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
   double totEngyArmAboveMin = 0.;
   double totEngyInAllMol = 0.;
 
-  /* --------------------------------------------------------------------------
-     find the percentage of energy for each cluster within m_moliereRadius
-     -------------------------------------------------------------------------- */
+  // find the percentage of energy for each cluster within m_moliereRadius
   for (const auto& [superClusterId, superCluster] : superClusterCM) {
     superClusterEngyInMoliere[superClusterId] =
         getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId[superClusterId], superCluster, 1.);
@@ -1111,9 +1108,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
      -------------------------------------------------------------------------- */
   if (rejectFlag == 1) {
 
-    /* --------------------------------------------------------------------------
-       sum up the energy for each Phi/R cell for all Z layers
-       -------------------------------------------------------------------------- */
+    // sum up the energy for each Phi/R cell for all Z layers
     for (const auto& [layerId, hitsVec] : calHits) {
       for (const auto& thisCalHit : hitsVec) {
         const int cellIdHit = thisCalHit->getCellID0();
@@ -1128,7 +1123,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
         int cellIdProjection = GlobalMethodsClass::cellIdZPR(cellIdHitZ, cellIdHitPhi, cellIdHitR, cellIdHitArm);
 
         // the original hit's layer number is stored in (the previously unused) CellID1
-        cellIdHitZ = (cellIdHit >> 0) & (int)((1 << 10) - 1);
+        cellIdHitZ = (cellIdHit >> 0) & ((1 << 10) - 1);
         // only high energy projection hits will be considered in the first stage
         if (cellEngy > middleEnergyHitBound * engyHitBoundMultiply) {
           ProjectionInfo& thisProjection = calHitsProjection[cellIdProjection];
@@ -1214,20 +1209,19 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       // remove hits that are of low energy
       std::vector<int> idsToErase;
       for (const auto& [cellIdProjection, hitPtr] : calHitsCellIdProjection) {
-        double engyHit = (double)hitPtr->getEnergy();
+        double engyHit = hitPtr->getEnergy();
         if (engyHit < middleEnergyHitBound * engyHitBoundMultiply)
           idsToErase.push_back(cellIdProjection);
       }
 
-      int numIdsToErase = idsToErase.size();
-      int numHitsRemaining = (int)calHitsCellIdProjection.size() - numIdsToErase;
+      size_t numIdsToErase = idsToErase.size();
+      size_t numHitsRemaining = calHitsCellIdProjection.size() - numIdsToErase;
       if (numHitsRemaining < 5) {
         m_alg->debug() << "  -- optimization of the projection clusters has failed ... --" << endmsg;
         break;
       }
 
-      for (int hitNow = 0; hitNow < numIdsToErase; hitNow++) {
-        int idsToEraseNow = idsToErase[hitNow];
+      for (const auto idsToEraseNow : idsToErase) {
         // erase entry from map
         calHitsCellIdProjection.erase(idsToEraseNow);
       }
@@ -1339,11 +1333,8 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
        -------------------------------------------------------------------------- */
     MapIntLCCluster superClusterCM_Tmp;
 
-    for (MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId_Tmp.begin();
-         superClusterIdToCellIdIterator != superClusterIdToCellId_Tmp.end(); ++superClusterIdToCellIdIterator) {
-      // calculate/update the energy/position of the CM
-      superClusterCM_Tmp[superClusterIdToCellIdIterator->first] =
-          calculateEngyPosCM(superClusterIdToCellIdIterator->second, calHitsCellIdGlobal, m_methodCM);
+    for (const auto& [superClusterId, cellIdV] : superClusterIdToCellId_Tmp) {
+      superClusterCM_Tmp[superClusterId] = calculateEngyPosCM(cellIdV, calHitsCellIdGlobal, m_methodCM);
     }
 
     /* --------------------------------------------------------------------------
