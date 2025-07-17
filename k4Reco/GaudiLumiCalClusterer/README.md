@@ -37,3 +37,10 @@ double distance2DPolar(double * pos1, double * pos2 );
 double getDistanceAroundCMWithEnergyPercent(LCCluster const& clusterCM, VInt const& clusterIdToCellId, MapIntCalHit const& calHitsCellId, double engyPercentage);
 double getMoliereRadius(MapIntCalHit const& calHitsCellId, VInt const& clusterIdToCellId, LCCluster const& clusterCM );
 ```
+
+GlobalMethodsClass:
+Removed
+```
+void thetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
+double toSignal(const double valNow) const;
+```
