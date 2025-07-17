@@ -39,7 +39,7 @@ GaudiLumiCalClusterer::GaudiLumiCalClusterer(const std::string& name, ISvcLocato
                            KeyValues("LumiCal_Clusters", {"LumiCalClusters"}),
                            KeyValues("LumiCal_RecoParticles", {"LumiCalRecoParticles"}),
                        }),
-      LumiCalClusterer(this) {}
+      m_lumiCalClusterer(this) {}
 
 StatusCode GaudiLumiCalClusterer::initialize() {
 
@@ -51,7 +51,7 @@ StatusCode GaudiLumiCalClusterer::initialize() {
   const auto readout = m_geoSvc->getDetector()->readout("LumiCalCollection");
   const auto fieldDescription = readout->id.fieldDescription();
 
-  LumiCalClusterer.createDecoder(fieldDescription);
+  m_lumiCalClusterer.createDecoder(fieldDescription);
 
   // Set parameters for the GlobalMethodsClass
   std::map<std::string, std::variant<int, float, std::string>> parameters;
@@ -67,20 +67,20 @@ StatusCode GaudiLumiCalClusterer::initialize() {
   parameters["WeightingMethod"] = m_WeightingMethod;
   parameters["NumOfNearNeighbor"] = static_cast<int>(m_NumOfNearNeighbor);
 
-  gmc.setConstants(parameters);
+  m_gmc.setConstants(parameters);
 
-  m_BeamCrossingAngle = gmc.m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.;
+  m_BeamCrossingAngle = m_gmc.m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.;
 
   // printParameters();
   // /* --------------------------------------------------------------------------
   //    Print out Processor Parameters
   //    -------------------------------------------------------------------------- */
   // info() << "Global parameters for Processor:" << name() << "\t" << type() << endmsg;
-  // gmc.printAllParameters();
+  // m_gmc.printAllParameters();
   // info() << endmsg;
 
-  LumiCalClusterer.init(gmc);
-  LumiCalClusterer.setCutOnFiducialVolume(m_cutOnFiducialVolume);
+  m_lumiCalClusterer.init(m_gmc);
+  m_lumiCalClusterer.setCutOnFiducialVolume(m_cutOnFiducialVolume);
 
   return StatusCode::SUCCESS;
 }
@@ -91,7 +91,7 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
      create clusters using: LumiCalClustererClass
      -------------------------------------------------------------------------- */
   // TODO: Remove const_cast
-  auto [status, calhits] = LumiCalClusterer.processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
+  auto [status, calhits] = m_lumiCalClusterer.processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
 
   auto LCalClusterCol = edm4hep::ClusterCollection();
 
@@ -101,15 +101,16 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
     debug() << " Transfering reco results to LCalClusterCollection....." << endmsg;
 
     for (const int armNow : {-1, 1}) {
-      const auto& pairIDCellsVector = LumiCalClusterer.m_superClusterIdToCellId.at(armNow);
+      const auto& pairIDCellsVector = m_lumiCalClusterer.m_superClusterIdToCellId.at(armNow);
       debug() << " Arm  " << std::setw(4) << armNow << "\t Number of clusters: " << pairIDCellsVector.size() << endmsg;
 
       for (const auto& pairIDCells : pairIDCellsVector) {
         const int clusterId = pairIDCells.first;
         LCCluster& thisClusterInfo =
-            const_cast<LCCluster&>(LumiCalClusterer.m_superClusterIdClusterInfo.at(armNow).at(clusterId));
-        thisClusterInfo.recalculatePositionFromHits(gmc);
-        const auto& objectTuple = gmc.getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
+            const_cast<LCCluster&>(m_lumiCalClusterer.m_superClusterIdClusterInfo.at(armNow).at(clusterId));
+        thisClusterInfo.recalculatePositionFromHits(m_gmc);
+        const auto& objectTuple =
+            m_gmc.getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
         if (!std::get<0>(objectTuple).has_value())
           continue;
 

@@ -58,8 +58,8 @@ public:
 
   double m_BeamCrossingAngle;
 
-  GlobalMethodsClass gmc;
-  mutable LumiCalClustererClass LumiCalClusterer;
+  GlobalMethodsClass m_gmc;
+  mutable LumiCalClustererClass m_lumiCalClusterer;
 
   // void CreateClusters(std::map<int, MapIntPClusterClass>& clusterClassMapP, EVENT::LCEvent* evt);
   // std::tuple<ClusterImpl*, ReconstructedParticleImpl*> getLCIOObjects(LCCluster const& clusterInfo) const;
