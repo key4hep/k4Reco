@@ -1125,11 +1125,8 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     /* --------------------------------------------------------------------------
        sum up the energy for each Phi/R cell for all Z layers
        -------------------------------------------------------------------------- */
-    MapIntVCalHit::const_iterator calHitsIt = calHits.begin(), calHitsEnd = calHits.end();
-    for (; calHitsIt != calHitsEnd; ++calHitsIt) {
-      const int numElementsInLayer = (int)calHitsIt->second.size();
-      for (int j = 0; j < numElementsInLayer; j++) {
-        const auto& thisCalHit = calHitsIt->second.at(j);
+    for (const auto& [layerId, hitsVec] : calHits) {
+      for (const auto& thisCalHit : hitsVec) {
         const int cellIdHit = thisCalHit->getCellID0();
 
         double cellEngy = thisCalHit->getEnergy();
@@ -1167,10 +1164,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     /* --------------------------------------------------------------------------
        input the results into new cal hit objects
        -------------------------------------------------------------------------- */
-    for (auto calHitsProjectionIterator = calHitsProjection.begin();
-         calHitsProjectionIterator != calHitsProjection.end(); ++calHitsProjectionIterator) {
-      const int cellIdProjection = calHitsProjectionIterator->first;
-      ProjectionInfo const& projection = calHitsProjectionIterator->second;
+    for (const auto& [cellIdProjection, projection] : calHitsProjection) {
       auto calHitNew = std::make_shared<LumiCalHit>(cellIdProjection, projection);
 
       calHitsCellIdProjection[cellIdProjection] = std::move(calHitNew);
@@ -1195,15 +1189,12 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     m_alg->debug() << "Projection clusters (initial clustering with all hits):" << endmsg;
 
     int engyInMoliereFlag = 0;
-    for (MapIntLCCluster::const_iterator clusterCMIterator = clusterCM[m_maxLayerToAnalyse].begin();
-         clusterCMIterator != clusterCM[m_maxLayerToAnalyse].end(); ++clusterCMIterator) {
-
-      const int clusterId = clusterCMIterator->first;
+    for (const auto& [clusterId, cluster] : clusterCM[m_maxLayerToAnalyse]) {
       const double thisProjectionClusterEngyInMoliere =
           getEngyInMoliereFraction(calHitsCellIdProjection, clusterIdToCellId[m_maxLayerToAnalyse][clusterId],
-                                   clusterCMIterator->second, molRadPercentage);
+                                   cluster, molRadPercentage);
 
-      const double engyPercentInMol = thisProjectionClusterEngyInMoliere / clusterCMIterator->second.getE();
+      const double engyPercentInMol = thisProjectionClusterEngyInMoliere / cluster.getE();
 
       if (engyPercentInMol < engyPercentInMolFrac)
         engyInMoliereFlag = 1;
@@ -1274,13 +1265,10 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       /* --------------------------------------------------------------------------
          find the percentage of energy for each cluster within m_moliereRadius
          -------------------------------------------------------------------------- */
-      for (MapIntLCCluster::const_iterator clusterCMIterator = clusterCM[m_maxLayerToAnalyse].begin();
-           clusterCMIterator != clusterCM[m_maxLayerToAnalyse].end(); ++clusterCMIterator) {
-        const int clusterIdHit = clusterCMIterator->first;
-
+      for (const auto& [clusterIdHit, cluster] : clusterCM[m_maxLayerToAnalyse]) {
         const double thisProjectionClusterEngyInMoliere =
             getEngyInMoliereFraction(calHitsCellIdProjection, clusterIdToCellId[m_maxLayerToAnalyse][clusterIdHit],
-                                     clusterCMIterator->second, molRadPercentage);
+                                     cluster, molRadPercentage);
 
         double engyPercentInMol =
             thisProjectionClusterEngyInMoliere / clusterCM[m_maxLayerToAnalyse][clusterIdHit].getE();
@@ -1311,17 +1299,14 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
        -------------------------------------------------------------------------- */
     totEngyInAllMol = 0.;
 
-    for (MapIntLCCluster::iterator clusterCMIterator = clusterCM[m_maxLayerToAnalyse].begin();
-         clusterCMIterator != clusterCM[m_maxLayerToAnalyse].end(); ++clusterCMIterator) {
-      int clusterIdHit = clusterCMIterator->first;
-
+    for (const auto& [clusterIdHit, cluster] : clusterCM[m_maxLayerToAnalyse]) {
       const double thisProjectionClusterEngyInMoliere =
           getEngyInMoliereFraction(calHitsCellIdProjectionFull, clusterIdToCellId[m_maxLayerToAnalyse][clusterIdHit],
-                                   clusterCMIterator->second, 1., projectionFlag);
+                                   cluster, 1., projectionFlag);
 
       totEngyInAllMol += thisProjectionClusterEngyInMoliere;
 
-      m_alg->debug() << "\tfull-Projection " << clusterIdHit << clusterCMIterator->second
+      m_alg->debug() << "\tfull-Projection " << clusterIdHit << cluster
                      << ")   \t engy in m_moliereRadius  \t=   " << thisProjectionClusterEngyInMoliere
                      << " (possibly under-counted...)" << endmsg;
     }
@@ -1485,7 +1470,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       totEngyArmAboveMin += superCluster.getE();
 
 #if _MOL_RAD_CORRECT_DEBUG == 1
-      double engyPercentInMol = superClusterEngyInMoliere[superClusterId] / superClusterCM[superClusterId][0];
+      double engyPercentInMol = superClusterEngyInMoliere[superClusterId] / superCluster.getE();
       cout << "superCluster " << superClusterId << " \tat (x,y) = (" << superCluster.getX() << " , "
            << superCluster.getY()
            << ")   \t engy in m_moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterId]
