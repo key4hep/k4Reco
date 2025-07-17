@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef LCCluster_hh
-#define LCCluster_hh 1
+#ifndef K4RECO_LCClUSTER_H
+#define K4RECO_LCClUSTER_H 1
 
 #include "Global.h"
 #include "GlobalMethodsClass.h"
@@ -110,4 +110,4 @@ inline void LCCluster::CalculateTheta() {
 
 using SLCCluster = std::shared_ptr<LCCluster>;
 
-#endif // LCCluster_hh
+#endif // K4RECO_LCClUSTER_H

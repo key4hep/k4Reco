@@ -86,7 +86,7 @@ void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy, Ma
           delete clusterPairWeightsNow;
         }
         */
-        clusterPairWeightsNow->setWeight("distance");
+        clusterPairWeightsNow->setWeight();
         if (clusterPairWeightsNow->m_weight < m_minSeparationDistance)
           clusterPairWeightsV.push_back(clusterPairWeightsNow);
         else
