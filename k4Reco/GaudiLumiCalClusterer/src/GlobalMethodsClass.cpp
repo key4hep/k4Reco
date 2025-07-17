@@ -168,40 +168,7 @@ void GlobalMethodsClass::setConstants(
   initializeAdditionalParameters();
 }
 
-double GlobalMethodsClass::toSignal(const double value) const { return value * getCalibrationFactor(); }
-
 double GlobalMethodsClass::toGev(const double value) const { return value / getCalibrationFactor(); }
-
-void GlobalMethodsClass::thetaPhiCell(const int cellId,
-                                      std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const {
-  // compute Z,Phi,R coordinates according to the cellId
-  // returned Phi is in the range (-M_PI, M_PI )
-
-  int cellIdZ, cellIdPhi, cellIdR, arm;
-  cellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
-
-  // theta
-  double rCell =
-      m_globalParamD.at(RMin) + (cellIdR + 0.5) * m_globalParamD.at(RCellLength) - m_globalParamD.at(RCellOffset);
-  double zCell = fabs(m_globalParamD.at(ZStart)) + m_globalParamD.at(ZLayerThickness) * (cellIdZ) +
-                 m_globalParamD.at(ZLayerZOffset);
-  double thetaCell = atan(rCell / zCell);
-
-  // phi
-  //(BP) use phiCell size and account for possible layers relative offset/stagger
-  // double phiCell   = 2 * M_PI * (double(cellIdPhi) + .5) / double(m_globalParamI[NumCellsPhi]) + double( cellIdZ % 2
-  // )
-  // * m_globalParamD[;
-  double phiCell = (double(cellIdPhi)) * m_globalParamD.at(PhiCellLength) +
-                   double((cellIdZ) % 2) * m_globalParamD.at(ZLayerPhiOffset) + m_globalParamD.at(PhiCellOffset);
-  phiCell = (phiCell > M_PI) ? phiCell - 2. * M_PI : phiCell;
-  // fill output container
-  thetaPhiCell[GlobalMethodsClass::COTheta] = thetaCell;
-  thetaPhiCell[GlobalMethodsClass::COPhi] = phiCell;
-  thetaPhiCell[GlobalMethodsClass::COR] = rCell;
-  thetaPhiCell[GlobalMethodsClass::COZ] = zCell;
-  return;
-}
 
 std::string GlobalMethodsClass::getParameterName(Parameter_t par) {
 

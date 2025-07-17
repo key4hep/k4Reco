@@ -88,10 +88,7 @@ public:
   void setConstants(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars);
   WeightingMethod_t getMethod(const std::string& methodName) const;
 
-  double toSignal(const double valNow) const;
   double toGev(const double valNow) const;
-
-  void thetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
 
   static void cellIdZPR(const int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
   static int cellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm);
