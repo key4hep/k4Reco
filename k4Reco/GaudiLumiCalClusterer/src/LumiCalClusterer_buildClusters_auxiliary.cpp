@@ -290,8 +290,6 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
      -------------------------------------------------------------------------- */
   clusterCM.clear();
 
-  // for (std::map<int, std::vector<int>>::iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
-  //      clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator) {
   for (const auto& [clsID, cellIds] : clusterIdToCellId) {
     clusterCM[clsID] = calculateEngyPosCM(cellIds, calHitsCellId, m_methodCM);
   }
@@ -497,14 +495,12 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
     std::vector<int> smallClusterIdV, largeClusterIdV;
 
     // sort clusters into two std::vectors according to the number of elements in each cluster
-    for (std::map<int, std::vector<int>>::iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
-         clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator) {
-
+    for (const auto& [clusterId, cellIds] : clusterIdToCellId) {
       // ???????? DECIDE/FIX - improve this number ????????
-      if (clusterIdToCellIdIterator->second.size() <= numElementsSmallClusterToMergeForced)
-        smallClusterIdV.push_back(clusterIdToCellIdIterator->first);
+      if (cellIds.size() <= numElementsSmallClusterToMergeForced)
+        smallClusterIdV.push_back(clusterId);
       else
-        largeClusterIdV.push_back(clusterIdToCellIdIterator->first);
+        largeClusterIdV.push_back(clusterId);
     }
 
     for (size_t j = 0; j < smallClusterIdV.size(); j++) {
@@ -576,21 +572,15 @@ int LumiCalClustererClass::initialLowEngyClusterBuild(MapIntCalHit const& calHit
   /* --------------------------------------------------------------------------
      merge the unclustered cal hits with the existing clusters
      -------------------------------------------------------------------------- */
-  for (auto calHitsCellIdIterator = calHitsSmallEngyCellId.begin();
-       calHitsCellIdIterator != calHitsSmallEngyCellId.end(); ++calHitsCellIdIterator) {
-    const int cellIdHit = calHitsCellIdIterator->first;
-
+  for (const auto& [cellIdHit, thisHit] : calHitsSmallEngyCellId) {
     // add the small energy hits that have now been clustred to the cal hit list at calHitsCellId
-    auto const& thisHit = calHitsCellIdIterator->second;
     calHitsCellId[cellIdHit] = thisHit;
     // position of the cal hit
     double CM1[2] = {thisHit->getPosition()[0], thisHit->getPosition()[1]};
 
     std::map<int, double> weightedDistanceV;
     // compute weight for the cal hit and each cluster
-    std::map<int, std::vector<int>>::iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
-    for (; clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator) {
-      const int clusterId = clusterIdToCellIdIterator->first;
+    for (const auto& [clusterId, cellIds] : clusterIdToCellId) {
       LCCluster const& thisCluster = clusterCM[clusterId];
       double CM2[2] = {thisCluster.getX(), thisCluster.getY()};
       const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
@@ -630,29 +620,25 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
   /* --------------------------------------------------------------------------
      form clusters by gathering hits inside the virtual cluster radius
      -------------------------------------------------------------------------- */
-  for (MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
-       calHitsCellIdIterator != calHitsCellId.end(); ++calHitsCellIdIterator) {
-    const auto& thisHit = calHitsCellIdIterator->second;
+  for (const auto& [cellIdHit, thisHit] : calHitsCellId) {
     double CM1[2] = {thisHit->getPosition()[0], thisHit->getPosition()[1]};
 
     // compute the distance of the cal hit from the virtual cluster CMs, and keep score of
     // the clusters that the hit is in range of
     std::map<int, double> weightedDistanceV;
 
-    for (std::map<int, VirtualCluster>::const_iterator virtualClusterCMIterator = virtualClusterCM.begin();
-         virtualClusterCMIterator != virtualClusterCM.end(); ++virtualClusterCMIterator) {
-
-      double CM2[2] = {virtualClusterCMIterator->second.getX(), virtualClusterCMIterator->second.getY()};
+    for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM) {
+      double CM2[2] = {virtualCluster.getX(), virtualCluster.getY()};
       const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
-      if (distanceCM <= virtualClusterCM.at(virtualClusterCMIterator->first).getZ()) {
-        weightedDistanceV[virtualClusterCMIterator->first] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
+      if (distanceCM <= virtualClusterCM.at(virtualClusterId).getZ()) {
+        weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
       }
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
-      cout << "\tclusterId: " << virtualClusterCMIterator->first << " \t hit(x,y): " << CM1[0] << " \t " << CM1[1]
+      cout << "\tclusterId: " << virtualClusterId << " \t hit(x,y): " << CM1[0] << " \t " << CM1[1]
            << " \t virtualCM(x,y):" << CM2[0] << " \t " << CM2[1] << endl
-           << "\t\tvirtualRadius: " << virtualClusterCM[virtualClusterCMIterator->first][0]
+           << "\t\tvirtualRadius: " << virtualClusterCM[virtualClusterId][0]
            << " \t distance: " << distanceCM << endl
            << endl;
 #endif
@@ -665,8 +651,8 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
     // create clusters from the hits which made the cut, and keep score of those which didnt
     if (closestCluster != weightedDistanceV.end()) {
       // add the hit to the chosen cluster
-      clusterIdToCellId[closestCluster->first].push_back(calHitsCellIdIterator->first);
-      cellIdToClusterId[calHitsCellIdIterator->first] = closestCluster->first;
+      clusterIdToCellId[closestCluster->first].push_back(cellIdHit);
+      cellIdToClusterId[cellIdHit] = closestCluster->first;
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
       std::cout << "\tnum possible -  " << weightedDistanceV.size() << " \t chosen - " << closestCluster->first
@@ -675,7 +661,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
 #endif
 
     } else {
-      unClusteredCellId.push_back(calHitsCellIdIterator->first);
+      unClusteredCellId.push_back(cellIdHit);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
       cout << "\tno cluster is within range ..." << coutDefault << endl << endl;
@@ -688,21 +674,19 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
      -------------------------------------------------------------------------- */
   clusterCM.clear();
 
-  for (std::map<int, std::vector<int>>::iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
-       clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator) {
+  for (const auto& [clusterId, cellIds] : clusterIdToCellId) {
     // calculate the energy/position of the CM
-    clusterCM[clusterIdToCellIdIterator->first] =
-        calculateEngyPosCM(clusterIdToCellIdIterator->second, calHitsCellId, m_methodCM);
+    clusterCM[clusterId] =
+        calculateEngyPosCM(cellIds, calHitsCellId, m_methodCM);
   }
 
   /* --------------------------------------------------------------------------
      if no clusters were created, make them into temporary clusters with
      zero energy (and no cal hits), so that hits will have a chance to merge with them
      -------------------------------------------------------------------------- */
-  for (std::map<int, VirtualCluster>::const_iterator virtualClusterCMIterator = virtualClusterCM.begin();
-       virtualClusterCMIterator != virtualClusterCM.end(); ++virtualClusterCMIterator) {
-    if (clusterIdToCellId[virtualClusterCMIterator->first].empty()) {
-      clusterCM[virtualClusterCMIterator->first] = LCCluster(virtualClusterCM.at(virtualClusterCMIterator->first));
+  for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM) {
+    if (clusterIdToCellId[virtualClusterId].empty()) {
+      clusterCM[virtualClusterId] = LCCluster(virtualClusterCM.at(virtualClusterId));
     }
   }
 
@@ -834,24 +818,17 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
      the empty virtual clusters to that of the virtual cluster
      -------------------------------------------------------------------------- */
 
-  for (MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
-       calHitsCellIdIterator != calHitsCellId.end(); ++calHitsCellIdIterator) {
-
+  for (const auto& [cellIdHit, thisHit] : calHitsCellId) {
     std::map<int, double> weightedDistanceV;
 
     // compute the distance of the cal hit from the virtual cluster CMs
-    const auto& thisHit = calHitsCellIdIterator->second;
-
-    for (std::map<int, VirtualCluster>::const_iterator virtualClusterCMIterator = virtualClusterCM.begin();
-         virtualClusterCMIterator != virtualClusterCM.end(); ++virtualClusterCMIterator) {
-      const int virtualClusterId = virtualClusterCMIterator->first;
-
+    for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM) {
       if (virtualToRealClusterId[virtualClusterId] == 1)
         continue;
 
-      const double distanceCM = std::hypot(thisHit->getPosition()[0] - virtualClusterCMIterator->second.getX(),
-                                           thisHit->getPosition()[1] - virtualClusterCMIterator->second.getY());
-      if (distanceCM <= virtualClusterCMIterator->second.getZ()) {
+      const double distanceCM = std::hypot(thisHit->getPosition()[0] - virtualCluster.getX(),
+                                           thisHit->getPosition()[1] - virtualCluster.getY());
+      if (distanceCM <= virtualCluster.getZ()) {
         weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
       }
     }
@@ -863,29 +840,26 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
         std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
-    cout << " - num possible -  " << weightedDistanceV.size() << " \t id of chosen - (" << maxWeightClusterId
+    cout << " - num possible -  " << weightedDistanceV.size() << " \t id of chosen - (" << closestCluster->first
          << ") \t virtualClusterId/hit(x,y): "
-         << " \t " << virtualClusterCM[maxWeightClusterId][1] << " \t " << virtualClusterCM[maxWeightClusterId][2]
+         << " \t " << virtualClusterCM[closestCluster->first][1] << " \t " << virtualClusterCM[closestCluster->first][2]
          << endl;
 #endif
 
     // add the hit to the chosen cluster
-    clusterIdToCellId[closestCluster->first].push_back(calHitsCellIdIterator->first);
-    cellIdToClusterId[calHitsCellIdIterator->first] = closestCluster->first;
+    clusterIdToCellId[closestCluster->first].push_back(cellIdHit);
+    cellIdToClusterId[cellIdHit] = closestCluster->first;
   }
 
   /* --------------------------------------------------------------------------
      initialize and rewrite the clusterIdToCellId[] std::vectors for all clusters
      -------------------------------------------------------------------------- */
 
-  for (MapIntVInt::iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
-       clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator) {
-    clusterIdToCellIdIterator->second.clear();
+  for (auto& [clusterId, cellIds] : clusterIdToCellId) {
+    cellIds.clear();
   }
 
-  for (MapIntCalHit::const_iterator calHitsCellIdIterator = calHitsCellId.begin();
-       calHitsCellIdIterator != calHitsCellId.end(); ++calHitsCellIdIterator) {
-    const int cellIdHit = calHitsCellIdIterator->first;
+  for (const auto& [cellIdHit, _] : calHitsCellId) {
     const int clusterId = cellIdToClusterId[cellIdHit];
     clusterIdToCellId[clusterId].push_back(cellIdHit);
   }
@@ -894,11 +868,8 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
      compute total energy and center of mass of each new cluster
      -------------------------------------------------------------------------- */
   clusterCM.clear();
-  for (MapIntVInt::const_iterator clusterIdToCellIdIterator = clusterIdToCellId.begin();
-       clusterIdToCellIdIterator != clusterIdToCellId.end(); ++clusterIdToCellIdIterator) {
-    const int clusterId = clusterIdToCellIdIterator->first;              // Id of cluster
-    std::vector<int> const& cellIdV = clusterIdToCellIdIterator->second; // cal-hit-Ids in cluster
-    if (clusterIdToCellIdIterator->second.empty())
+  for (const auto& [clusterId, cellIdV] : clusterIdToCellId) {
+    if (cellIdV.empty())
       continue;
     clusterCM[clusterId] = calculateEngyPosCM(cellIdV, calHitsCellId, m_methodCM);
   }
@@ -994,18 +965,16 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
        real clusters far away from virtualCMs are dismanteled and each hit is
        assigned to a virtualCluster separatly according to distance
        -------------------------------------------------------------------------- */
-    for (std::vector<int>::iterator reCluIter = reClusterHits.begin(); reCluIter != reClusterHits.end(); ++reCluIter) {
+    for (const auto& clusterId : reClusterHits) {
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
-      const int clusterId = *reCluIter;
       cout << coutBlue << "\t - dismantel cluster " << clusterId << " and assign each hit to a virtualCluster "
            << coutDefault << endl;
 #endif
-      std::vector<int> const& cellIdsInThisCluster = clusterIdToCellId.at(layerNow).at(*reCluIter);
+      std::vector<int> const& cellIdsInThisCluster = clusterIdToCellId.at(layerNow).at(clusterId);
 
-      for (size_t j = 0; j < cellIdsInThisCluster.size(); ++j) {
+      for (const auto& cellIdHit : cellIdsInThisCluster) {
         // add hit from clusterIdToCellId with clusterId to one with maxWDClusterId
-        const int cellIdHit = cellIdsInThisCluster.at(j);
 
         std::map<int, double> weightedDistanceV;
 
@@ -1017,18 +986,16 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
         cout << "\t cellId " << cellIdHit << " \t x,y : " << CM1[0] << " \t " << CM1[1] << endl;
 #endif
 
-        for (std::map<int, VirtualCluster>::const_iterator virtualClusterCMIterator =
-                 virtualClusterCM[layerNow].begin();
-             virtualClusterCMIterator != virtualClusterCM[layerNow].end(); ++virtualClusterCMIterator) {
-          const double CM2[2] = {virtualClusterCMIterator->second.getX(), virtualClusterCMIterator->second.getY()};
+        for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM[layerNow]) {
+          const double CM2[2] = {virtualCluster.getX(), virtualCluster.getY()};
           const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
-          cout << "\t\t virtual cluster id,x,y : " << virtualClusterCMIterator->first
-               << virtualClusterCMIterator->second << " \t distanceCM : " << distanceCM << endl;
+          cout << "\t\t virtual cluster id,x,y : " << virtualClusterId
+               << virtualCluster << " \t distanceCM : " << distanceCM << endl;
 #endif
 
-          weightedDistanceV[virtualClusterCMIterator->first] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
+          weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
         }
 
         // decide to which superCluster to merge the cluster according to a proper weight
@@ -1050,9 +1017,8 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
 
     // write all the layer cal hits from calHitsCellIdLayer to the global calHitsCellId map
     MapIntCalHit const& layerHits = calHitsCellIdLayer.at(layerNow);
-    for (MapIntCalHit::const_iterator calHitsCellIdIterator = layerHits.begin();
-         calHitsCellIdIterator != layerHits.end(); ++calHitsCellIdIterator) {
-      calHitsCellIdGlobal[calHitsCellIdIterator->first] = calHitsCellIdIterator->second;
+    for (const auto& [cellIdHit, hitPtr] : layerHits) {
+      calHitsCellIdGlobal[cellIdHit] = hitPtr;
     }
   }
 
@@ -1061,11 +1027,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
      -------------------------------------------------------------------------- */
   superClusterCM.clear();
 
-  for (MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
-       superClusterIdToCellIdIterator != superClusterIdToCellId.end(); ++superClusterIdToCellIdIterator) {
-    const int superClusterId = superClusterIdToCellIdIterator->first;         // Id of cluster
-    std::vector<int> const& cellIdV = superClusterIdToCellIdIterator->second; // cal-hit-Ids in cluster
-
+  for (const auto& [superClusterId, cellIdV] : superClusterIdToCellId) {
     // calculate/update the energy/position of the CM
     superClusterCM[superClusterId] = calculateEngyPosCM(cellIdV, calHitsCellIdGlobal, m_methodCM);
   }
@@ -1553,21 +1515,20 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     cout << endl << coutBlue << "Merged superCluster(s):" << coutDefault << endl;
 #endif
 
-    for (MapIntLCCluster::iterator superClusterCMIterator = superClusterCM.begin();
-         superClusterCMIterator != superClusterCM.end(); ++superClusterCMIterator) {
-      superClusterEngyInMoliere[superClusterCMIterator->first] =
-          getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId[superClusterCMIterator->first],
-                                   superClusterCMIterator->second, 1.);
+    for (auto& [superClusterId, superCluster] : superClusterCM) {
+      superClusterEngyInMoliere[superClusterId] =
+          getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId[superClusterId],
+                                   superCluster, 1.);
 
-      totEngyInAllMol += superClusterEngyInMoliere[superClusterCMIterator->first];
-      totEngyArmAboveMin += superClusterCMIterator->second.getE();
+      totEngyInAllMol += superClusterEngyInMoliere[superClusterId];
+      totEngyArmAboveMin += superCluster.getE();
 
 #if _MOL_RAD_CORRECT_DEBUG == 1
       double engyPercentInMol =
-          superClusterEngyInMoliere[superClusterCMIterator->first] / superClusterCM[superClusterId][0];
-      cout << "superCluster " << superClusterId << " \tat (x,y) = (" << superClusterCMIterator->second.getX() << " , "
-           << superClusterCMIterator->second->getY()
-           << ")   \t engy in m_moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterCMIterator->first]
+          superClusterEngyInMoliere[superClusterId] / superClusterCM[superClusterId][0];
+      cout << "superCluster " << superClusterId << " \tat (x,y) = (" << superCluster.getX() << " , "
+           << superCluster.getY()
+           << ")   \t engy in m_moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterId]
            << " \t-> % totEngy = \t " << engyPercentInMol << coutDefault << endl;
 #endif
     }
@@ -1586,10 +1547,9 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
   /* --------------------------------------------------------------------------
      re-compute total energy and center of mass of each superCluster (just in case...)
      -------------------------------------------------------------------------- */
-  for (MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
-       superClusterIdToCellIdIterator != superClusterIdToCellId.end(); ++superClusterIdToCellIdIterator) {
-    superClusterCM[superClusterIdToCellIdIterator->first] =
-        calculateEngyPosCM(superClusterIdToCellIdIterator->second, calHitsCellIdGlobal, m_methodCM);
+  for (const auto& [superClusterId, cellIds] : superClusterIdToCellId) {
+    superClusterCM[superClusterId] =
+        calculateEngyPosCM(cellIds, calHitsCellIdGlobal, m_methodCM);
   }
 
   return 1;
