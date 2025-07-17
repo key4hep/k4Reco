@@ -1145,10 +1145,10 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
         /// APS: This encoding needs to be fixed, now using
         // get the new cellId for the projection
         int cellIdHitZ = m_maxLayerToAnalyse + 1;
-        int cellIdHitPhi = GlobalMethodsClass::CellIdZPR(cellIdHit, GlobalMethodsClass::COP);
-        int cellIdHitR = GlobalMethodsClass::CellIdZPR(cellIdHit, GlobalMethodsClass::COR);
-        int cellIdHitArm = GlobalMethodsClass::CellIdZPR(cellIdHit, GlobalMethodsClass::COA);
-        int cellIdProjection = GlobalMethodsClass::CellIdZPR(cellIdHitZ, cellIdHitPhi, cellIdHitR, cellIdHitArm);
+        int cellIdHitPhi = GlobalMethodsClass::cellIdZPR(cellIdHit, GlobalMethodsClass::COP);
+        int cellIdHitR = GlobalMethodsClass::cellIdZPR(cellIdHit, GlobalMethodsClass::COR);
+        int cellIdHitArm = GlobalMethodsClass::cellIdZPR(cellIdHit, GlobalMethodsClass::COA);
+        int cellIdProjection = GlobalMethodsClass::cellIdZPR(cellIdHitZ, cellIdHitPhi, cellIdHitR, cellIdHitArm);
 
         // the original hit's layer number is stored in (the previously unused) CellID1
         cellIdHitZ = (cellIdHit >> 0) & (int)((1 << 10) - 1);

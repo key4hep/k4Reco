@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef k4RECO_GLOBALMETHODSCLASS_H
-#define k4RECO_GLOBALMETHODSCLASS_H
+#ifndef K4RECO_GLOBALMETHODSCLASS_H
+#define K4RECO_GLOBALMETHODSCLASS_H
 
 #include <edm4hep/Cluster.h>
 #include <edm4hep/ReconstructedParticle.h>
@@ -80,8 +80,6 @@ public:
   std::map<Parameter_t, double> m_globalParamD;
   std::map<Parameter_t, std::string> m_globalParamS;
 
-  WeightingMethod_t method = LogMethod;
-
   enum Coordinate_t { COTheta, COPhi, COZ, COR, COP, COA };
 
   static std::string getParameterName(Parameter_t par);
@@ -94,9 +92,9 @@ public:
 
   void thetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
 
-  static void CellIdZPR(const int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
-  static int CellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm);
-  static int CellIdZPR(const int cellId, const Coordinate_t ZPR);
+  static void cellIdZPR(const int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
+  static int cellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm);
+  static int cellIdZPR(const int cellId, const Coordinate_t ZPR);
 
   void initializeAdditionalParameters();
 

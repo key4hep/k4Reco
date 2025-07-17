@@ -79,7 +79,7 @@ edm4hep::Vector3f GlobalMethodsClass::rotateToGlobal(const edm4hep::Vector3f& lo
   return glob;
 }
 
-int GlobalMethodsClass::CellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm) {
+int GlobalMethodsClass::cellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm) {
 
   int cellId = 0;
   int side = (arm < 0) ? 0 : arm;
@@ -88,7 +88,7 @@ int GlobalMethodsClass::CellIdZPR(const int cellZ, const int cellPhi, const int 
   return cellId;
 }
 
-void GlobalMethodsClass::CellIdZPR(const int cellID, int& cellZ, int& cellPhi, int& cellR, int& arm) {
+void GlobalMethodsClass::cellIdZPR(const int cellID, int& cellZ, int& cellPhi, int& cellR, int& arm) {
 
   // compute Z,Phi,R indices according to the cellId
 
@@ -98,10 +98,10 @@ void GlobalMethodsClass::CellIdZPR(const int cellID, int& cellZ, int& cellPhi, i
   arm = ((((unsigned int)cellID) & MASK_S_32Fcal) >> SHIFT_S_32Fcal);
 }
 
-int GlobalMethodsClass::CellIdZPR(const int cellId, const GlobalMethodsClass::Coordinate_t ZPR) {
+int GlobalMethodsClass::cellIdZPR(const int cellId, const GlobalMethodsClass::Coordinate_t ZPR) {
 
   int cellZ, cellPhi, cellR, arm;
-  CellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
+  cellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
   arm = (arm == 0) ? -1 : 1;
   if (ZPR == GlobalMethodsClass::COZ)
     return cellZ;
@@ -176,7 +176,7 @@ void GlobalMethodsClass::thetaPhiCell(const int cellId,
   // returned Phi is in the range (-M_PI, M_PI )
 
   int cellIdZ, cellIdPhi, cellIdR, arm;
-  CellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
+  cellIdZPR(cellId, cellIdZ, cellIdPhi, cellIdR, arm);
 
   // theta
   double rCell =
