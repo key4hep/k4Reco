@@ -37,10 +37,10 @@ public:
   void setWeight(std::string weightMethod);
   void setWeight(std::string weightMethod, double minSeparationDistance, double minClusterEngyGeV);
 
-  int superClusterId, trueClusterId;
-  double distance, deltaEngy, minEngy, weight;
+  int m_superClusterId, m_trueClusterId;
+  double m_distance, m_deltaEngy, m_minEngy, m_weight;
 
-  static inline bool Compare(SuperTrueClusterWeights* a, SuperTrueClusterWeights* b) { return a->weight < b->weight; }
+  static inline bool Compare(SuperTrueClusterWeights* a, SuperTrueClusterWeights* b) { return a->m_weight < b->m_weight; }
 };
 
 #endif // SuperTrueClusterWeights_hh
