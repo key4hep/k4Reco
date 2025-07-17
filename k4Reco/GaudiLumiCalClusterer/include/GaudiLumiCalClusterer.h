@@ -51,6 +51,9 @@ struct GaudiLumiCalClusterer
 public:
   GaudiLumiCalClusterer(const std::string& name, ISvcLocator* svcLoc);
 
+  // LumiCalClusterer keeps an internal state, so it cannot be reentrant
+  bool isReEntrant() const override { return false; }
+
   StatusCode initialize() override;
 
   std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::ClusterCollection, edm4hep::ReconstructedParticleCollection>
