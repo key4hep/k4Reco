@@ -22,18 +22,18 @@
 #include "Global.h"
 #include "GlobalMethodsClass.h"
 
+#include <edm4hep/Vector3d.h>
+
 #include <array>
 #include <cmath>
 #include <memory>
 #include <ostream>
 
-class VirtualCluster;
-
 class LCCluster {
 
 public:
   LCCluster() = default;
-  explicit LCCluster(const VirtualCluster& vc);
+  explicit LCCluster(const edm4hep::Vector3d& position);
   LCCluster(double energy, double x, double y, double z, double weight, GlobalMethodsClass::WeightingMethod_t method,
             double theta, double phi, VecCalHit const& caloHitVector);
   // LCCluster( const LCCluster& rhs ) = delete;

@@ -21,7 +21,6 @@
 #include "LCCluster.h"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
-#include "VirtualCluster.h"
 
 #include <TF1.h>
 #include <TH1.h>
@@ -65,7 +64,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
 
   std::map<int, std::vector<int>> thisLayer;
 
-  std::vector<std::map<int, VirtualCluster>> virtualClusterCM(m_maxLayerToAnalyse);
+  std::vector<std::map<int, edm4hep::Vector3d>> virtualClusterCM(m_maxLayerToAnalyse);
 
   std::map<int, TH1F> xLineFitCM, yLineFitCM;
   std::vector<std::vector<double>> fitParamX, fitParamY;
@@ -498,11 +497,11 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       if (fitParamX[clusterNow].empty())
         continue; // APS
 
-      VirtualCluster virtualClusterCMV;
+      edm4hep::Vector3d virtualClusterCMV;
 
       // extrapolated x/y positions
-      virtualClusterCMV.setX(fitParamX[clusterNow][0] + fitParamX[clusterNow][1] * layerNow); // x position
-      virtualClusterCMV.setY(fitParamY[clusterNow][0] + fitParamY[clusterNow][1] * layerNow); // y position
+      virtualClusterCMV.x = fitParamX[clusterNow][0] + fitParamX[clusterNow][1] * layerNow; // x position
+      virtualClusterCMV.y = fitParamY[clusterNow][0] + fitParamY[clusterNow][1] * layerNow; // y position
 
       // ???????? DECIDE/FIX - incorparate the parameters given here better in the code ????????
       // ???????? DECIDE/FIX - consider a different middle layer for the else condition ????????
@@ -519,9 +518,9 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       }
 
       if (static_cast<int>(layerNow) < maxLayerToRaiseVirtualClusterSize)
-        virtualClusterCMV.setZ(exp((fitPar0 + fitPar1 * layerNow) * hitLayerRatio));
+        virtualClusterCMV.z = exp((fitPar0 + fitPar1 * layerNow) * hitLayerRatio);
       else
-        virtualClusterCMV.setZ(exp((fitPar0 + fitPar1 * maxLayerToRaiseVirtualClusterSize) * hitLayerRatio));
+        virtualClusterCMV.z = exp((fitPar0 + fitPar1 * maxLayerToRaiseVirtualClusterSize) * hitLayerRatio);
 
       // The numbers above for fitPar0/1 were derived for a detector with moliereRadius=18.2
       // they must, therefore, they must be corrected for according to the m_moliereRadius used now
