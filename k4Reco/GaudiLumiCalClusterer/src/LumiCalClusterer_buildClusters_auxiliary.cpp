@@ -22,7 +22,6 @@
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
 #include "ProjectionInfo.h"
-#include "SortingFunctions.h"
 #include "VirtualCluster.h"
 
 #include <algorithm>
@@ -33,6 +32,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <ranges>
 
 int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId, MapIntInt& cellIdToClusterId,
                                                MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
@@ -358,8 +358,7 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
 
       if (!weightedDistanceV.empty()) {
         // find the close cluster with the highest weightedDistance
-        std::map<int, double>::iterator maxElement = std::max_element(
-            weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+        auto maxElement = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
         // merge the two clusters
         const int clusterId1 = clusterIdV[0];
         const int clusterId2 = maxElement->first;
@@ -453,8 +452,7 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
 
       if (not weightedDistanceV.empty()) {
         // find the close cluster with the highest weightedDistance
-        std::map<int, double>::iterator maxElement = std::max_element(
-            weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+        auto maxElement = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
         // merge the two clusters
         const int clusterId1 = maxElement->first;
         const int clusterId2 = clusterIdV[0];
@@ -528,8 +526,7 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
 
       if (!weightedDistanceV.empty()) {
         // find the close cluster with the highest weightedDistance
-        std::map<int, double>::iterator maxElement = std::max_element(
-            weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+        auto maxElement = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
         // merge the two clusters
         const int clusterId1 = smallClusterIdV[j];
         const int clusterId2 = maxElement->first;
@@ -588,8 +585,7 @@ int LumiCalClustererClass::initialLowEngyClusterBuild(MapIntCalHit const& calHit
     }
 
     // decide to which cluster to merge the hit according to a proper weight
-    std::map<int, double>::iterator closestCluster =
-        std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+    auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
     // add the hit to the cluster with the max weight
     if (closestCluster != weightedDistanceV.end()) {
@@ -640,8 +636,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
     }
 
     // decide to which cluster to merge the hit according to a proper weight
-    std::map<int, double>::iterator closestCluster =
-        std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+    auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
     // create clusters from the hits which made the cut, and keep score of those which didnt
     if (closestCluster != weightedDistanceV.end()) {
@@ -707,8 +702,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
     }
 
     // decide to which cluster to merge the hit according to a proper weight
-    std::map<int, double>::iterator closestCluster =
-        std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+    auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
     // add the hit to the cluster with the max weight
     if (closestCluster != weightedDistanceV.end()) {
@@ -786,14 +780,13 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
     }
 
     // decide which virtualCluster to associate with the real cluster
-    std::map<int, double>::iterator closestVirtualCluster =
-        std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+    auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
-    cout << "cluster " << clusterId << " is associated with virtualCluster " << closestVirtualCluster->first << endl;
+    cout << "cluster " << clusterId << " is associated with virtualCluster " << closestCluster->first << endl;
 #endif
 
-    virtualToRealClusterId[closestVirtualCluster->first] = 1;
+    virtualToRealClusterId[closestCluster->first] = 1;
   }
 
   /* --------------------------------------------------------------------------
@@ -819,8 +812,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
     if (weightedDistanceV.empty())
       continue;
     // decide to which virtualCluster to merge the hit according to a proper weight
-    std::map<int, double>::iterator closestCluster =
-        std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+    auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
     cout << " - num possible -  " << weightedDistanceV.size() << " \t id of chosen - (" << closestCluster->first
@@ -905,8 +897,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
         weightedDistanceV[virtualClusterCMIterator->first] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
       }
 
-      std::map<int, double>::iterator closestCluster =
-          std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+      auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
       // make sure that all clusters have been added to superclusters
       if (closestCluster == weightedDistanceV.end())
@@ -982,8 +973,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
         }
 
         // decide to which superCluster to merge the cluster according to a proper weight
-        std::map<int, double>::iterator closestCluster = std::max_element(
-            weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+        auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
         // make sure that all clusters have been added to superclusters
         assert(closestCluster != weightedDistanceV.end());
@@ -1339,8 +1329,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       }
 
       // decide to which superCluster to merge the cluster according to a proper weight
-      std::map<int, double>::iterator closestCluster =
-          std::max_element(weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+      auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
       // make sure that all hits have have been added to clusters
       assert(closestCluster != weightedDistanceV.end());
       // add the hit to the chosen superCluster
@@ -1435,8 +1424,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
         }
 
         // decide to which superCluster to merge the hit according to a proper weight
-        std::map<int, double>::iterator closestCluster = std::max_element(
-            weightedDistanceV.begin(), weightedDistanceV.end(), compareByValue<std::pair<int, double>>);
+        auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
         // make sure that all hits have have been added to clusters
         assert(closestCluster != weightedDistanceV.end());
 
