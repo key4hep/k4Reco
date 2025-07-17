@@ -120,9 +120,7 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
   }
 
   // sort acording to energy in ascending order (lowest energy is first)
-  std::ranges::sort(calHitsLayer, [](const auto& a, const auto& b) {
-    return a->getEnergy() < b->getEnergy();
-  });
+  std::ranges::sort(calHitsLayer, [](const auto& a, const auto& b) { return a->getEnergy() < b->getEnergy(); });
 
   /* --------------------------------------------------------------------------
      connect each cal hit to it's highest-energy near neighbor.
@@ -178,15 +176,13 @@ int LumiCalClustererClass::initialClusterBuild(const MapIntCalHit& calHitsCellId
         neighborFound = true;
       }
     } while (!neighborFound); // while not neighborFound
-  }                           // for all hits in layer
+  } // for all hits in layer
 
   /* --------------------------------------------------------------------------
      create clusters from each connected bunch of cal hits.
      -------------------------------------------------------------------------- */
   // sort according to energy in descending order (highest energy is first)
-  std::ranges::sort(calHitsLayer, [](const auto& a, const auto& b) {
-    return a->getEnergy() > b->getEnergy();
-  });
+  std::ranges::sort(calHitsLayer, [](const auto& a, const auto& b) { return a->getEnergy() > b->getEnergy(); });
 
   for (const auto& calHit : calHitsLayer) {
 
@@ -638,8 +634,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
       cout << "\tclusterId: " << virtualClusterId << " \t hit(x,y): " << CM1[0] << " \t " << CM1[1]
            << " \t virtualCM(x,y):" << CM2[0] << " \t " << CM2[1] << endl
-           << "\t\tvirtualRadius: " << virtualClusterCM[virtualClusterId][0]
-           << " \t distance: " << distanceCM << endl
+           << "\t\tvirtualRadius: " << virtualClusterCM[virtualClusterId][0] << " \t distance: " << distanceCM << endl
            << endl;
 #endif
     }
@@ -676,8 +671,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
 
   for (const auto& [clusterId, cellIds] : clusterIdToCellId) {
     // calculate the energy/position of the CM
-    clusterCM[clusterId] =
-        calculateEngyPosCM(cellIds, calHitsCellId, m_methodCM);
+    clusterCM[clusterId] = calculateEngyPosCM(cellIds, calHitsCellId, m_methodCM);
   }
 
   /* --------------------------------------------------------------------------
@@ -787,8 +781,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
 
     double CM1[2] = {clusterCM[clusterId].getX(), clusterCM[clusterId].getY()};
     for (const auto& [virtualClusterId, virtualCluster] : virtualClusterCM) {
-      const double distanceCM = std::hypot(CM1[0] - virtualCluster.getX(),
-                                           CM1[1] - virtualCluster.getY());
+      const double distanceCM = std::hypot(CM1[0] - virtualCluster.getX(), CM1[1] - virtualCluster.getY());
       weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
     }
 
@@ -981,8 +974,8 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
           const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
 #if _VIRTUALCLUSTER_BUILD_DEBUG == 1
-          cout << "\t\t virtual cluster id,x,y : " << virtualClusterId
-               << virtualCluster << " \t distanceCM : " << distanceCM << endl;
+          cout << "\t\t virtual cluster id,x,y : " << virtualClusterId << virtualCluster
+               << " \t distanceCM : " << distanceCM << endl;
 #endif
 
           weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
@@ -1075,21 +1068,19 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
      find the percentage of energy for each cluster within m_moliereRadius
      -------------------------------------------------------------------------- */
   for (const auto& [superClusterId, superCluster] : superClusterCM) {
-    superClusterEngyInMoliere[superClusterId] = getEngyInMoliereFraction(
-        calHitsCellIdGlobal, superClusterIdToCellId[superClusterId], superCluster, 1.);
+    superClusterEngyInMoliere[superClusterId] =
+        getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId[superClusterId], superCluster, 1.);
 
     totEngyInAllMol += superClusterEngyInMoliere[superClusterId];
     totEngyArmAboveMin += superCluster.getE();
 
-    m_alg->debug() << "\t Id " << superClusterId << "  \t energy " << superCluster.getE()
-                   << "     \t pos(x,y) =  ( " << superCluster.getX() << " , "
-                   << superCluster.getY() << " )"
-                   << "     \t pos(theta,phi) =  ( " << superCluster.getTheta() << " , "
-                   << superCluster.getPhi() << " )" << endmsg
+    m_alg->debug() << "\t Id " << superClusterId << "  \t energy " << superCluster.getE() << "     \t pos(x,y) =  ( "
+                   << superCluster.getX() << " , " << superCluster.getY() << " )"
+                   << "     \t pos(theta,phi) =  ( " << superCluster.getTheta() << " , " << superCluster.getPhi()
+                   << " )" << endmsg
                    << "\t\t engy in m_moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterId]
                    << " \t -> totEngy in Moliere = \t "
-                   << superClusterEngyInMoliere[superClusterId] / superCluster.getE() << " %"
-                   << endmsg;
+                   << superClusterEngyInMoliere[superClusterId] / superCluster.getE() << " %" << endmsg;
   }
 
   superClusterMolRatio = totEngyInAllMol / totEngyArmAboveMin;
@@ -1357,8 +1348,8 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
       std::map<int, double> weightedDistanceV;
 
       for (const auto& [clusterId, cluster] : clusterCM[m_maxLayerToAnalyse]) {
-        const double distanceCM = std::hypot(thisHit->getPosition()[0] - cluster.getX(),
-                                             thisHit->getPosition()[1] - cluster.getY());
+        const double distanceCM =
+            std::hypot(thisHit->getPosition()[0] - cluster.getX(), thisHit->getPosition()[1] - cluster.getY());
         weightedDistanceV[clusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
       }
 
@@ -1395,17 +1386,16 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     std::map<int, double> superClusterEngyInMoliere_Tmp;
 
     for (const auto& [superClusterId, superCluster] : superClusterCM_Tmp) {
-      superClusterEngyInMoliere_Tmp[superClusterId] = getEngyInMoliereFraction(
-          calHitsCellIdGlobal, superClusterIdToCellId_Tmp[superClusterId], superCluster, 1.);
+      superClusterEngyInMoliere_Tmp[superClusterId] =
+          getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId_Tmp[superClusterId], superCluster, 1.);
 
       totEngyInAllMol += superClusterEngyInMoliere_Tmp[superClusterId];
       totEngyArmAboveMin += superCluster.getE();
 
-      m_alg->debug() << "superCluster " << superClusterId << " \tat (x,y) = ("
-                     << superCluster.getX() << " , " << superCluster.getY()
+      m_alg->debug() << "superCluster " << superClusterId << " \tat (x,y) = (" << superCluster.getX() << " , "
+                     << superCluster.getY()
                      << ")   \t engy in m_moliereRadius  \t=   " << superClusterEngyInMoliere_Tmp[superClusterId]
-                     << " \t-> % totEngy = \t "
-                     << superClusterEngyInMoliere_Tmp[superClusterId] / superCluster.getE()
+                     << " \t-> % totEngy = \t " << superClusterEngyInMoliere_Tmp[superClusterId] / superCluster.getE()
                      << endmsg;
     }
 
@@ -1489,15 +1479,13 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
     for (auto& [superClusterId, superCluster] : superClusterCM) {
       superClusterEngyInMoliere[superClusterId] =
-          getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId[superClusterId],
-                                   superCluster, 1.);
+          getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId[superClusterId], superCluster, 1.);
 
       totEngyInAllMol += superClusterEngyInMoliere[superClusterId];
       totEngyArmAboveMin += superCluster.getE();
 
 #if _MOL_RAD_CORRECT_DEBUG == 1
-      double engyPercentInMol =
-          superClusterEngyInMoliere[superClusterId] / superClusterCM[superClusterId][0];
+      double engyPercentInMol = superClusterEngyInMoliere[superClusterId] / superClusterCM[superClusterId][0];
       cout << "superCluster " << superClusterId << " \tat (x,y) = (" << superCluster.getX() << " , "
            << superCluster.getY()
            << ")   \t engy in m_moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterId]
@@ -1520,8 +1508,7 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
      re-compute total energy and center of mass of each superCluster (just in case...)
      -------------------------------------------------------------------------- */
   for (const auto& [superClusterId, cellIds] : superClusterIdToCellId) {
-    superClusterCM[superClusterId] =
-        calculateEngyPosCM(cellIds, calHitsCellIdGlobal, m_methodCM);
+    superClusterCM[superClusterId] = calculateEngyPosCM(cellIds, calHitsCellIdGlobal, m_methodCM);
   }
 
   return 1;
