@@ -27,7 +27,7 @@ parser.add_argument(
     "--gaudi-file", default="output_gaudi_lumical_clustering.root", help="Gaudi output file"
 )
 parser.add_argument(
-    "--marlin-file", default="output_REC.edm4hep.root", help="Marlin output file"
+    "--marlin-file", default="output_lumical_REC.edm4hep.root", help="Marlin output file"
 )
 
 parser.add_argument(

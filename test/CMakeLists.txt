@@ -67,7 +67,7 @@ set_test_env("run_GaudiLumiCalClusterer")
 set_tests_properties("run_GaudiLumiCalClusterer" PROPERTIES DEPENDS "clone_CLDConfig;run_wrapper_LumiCal")
 
 add_test(NAME "compare_LumiCalClusterer"
-  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/scripts/compare-lumical.py" --marlin-file output_lumical_REC.edm4hep.root
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/GaudiLumiCalClusterer/scripts/compare-lumical.py"
 )
 set_test_env("compare_LumiCalClusterer")
 set_tests_properties("compare_LumiCalClusterer" PROPERTIES DEPENDS "run_wrapper_LumiCal;run_GaudiLumiCalClusterer")
