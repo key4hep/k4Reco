@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 #include "SuperTrueClusterWeights.h"
+
 #include "LCCluster.h"
 
 #include <algorithm>
@@ -27,7 +28,8 @@ SuperTrueClusterWeights::SuperTrueClusterWeights(int superClusterIdNow, int true
     :
 
       m_superClusterId(superClusterIdNow), m_trueClusterId(trueClusterIdNow),
-      m_distance(std::hypot(superClusterCM.getX() - trueClusterCM.getX(), superClusterCM.getY() - trueClusterCM.getY())),
+      m_distance(
+          std::hypot(superClusterCM.getX() - trueClusterCM.getX(), superClusterCM.getY() - trueClusterCM.getY())),
       m_deltaEngy(fabs(superClusterCM.getE() - trueClusterCM.getE())),
       m_minEngy(std::min(superClusterCM.getE(), trueClusterCM.getE())), m_weight(-1) {}
 
