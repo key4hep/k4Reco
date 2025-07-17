@@ -38,8 +38,7 @@ double getDistanceAroundCMWithEnergyPercent(LCCluster const& clusterCM, VInt con
 double getMoliereRadius(MapIntCalHit const& calHitsCellId, VInt const& clusterIdToCellId, LCCluster const& clusterCM );
 ```
 
-GlobalMethodsClass:
-Removed
+GlobalMethodsClass: Removed
 ```
 void thetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
 double toSignal(const double valNow) const;

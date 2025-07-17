@@ -51,7 +51,7 @@ private:
   int m_cellID0 = 0;
   int m_cellID1 = 0;
   double m_energy = 0.0;
-  double m_position[3] = {0.0, 0.0, 0.0};
+  std::array<double, 3> m_position = {0.0, 0.0, 0.0};
   /// original CalorimeterHits indexes (in the global coordinate system)
   std::set<size_t> m_caloHits{};
 
@@ -75,7 +75,7 @@ public:
   double getEnergy() const { return m_energy; }
   int getCellID0() const { return m_cellID0; }
   int getCellID1() const { return m_cellID1; }
-  const double* getPosition() const { return m_position; }
+  const std::array<double, 3> getPosition() const { return m_position; }
 };
 
 #endif // K4RECO_LUMICALHIT_H
