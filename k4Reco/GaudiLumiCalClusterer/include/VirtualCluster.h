@@ -16,19 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef K4RECO_VIRTUALCLUSTER_h
-#define K4RECO_VIRTUALCLUSTER_h
+#ifndef K4RECO_VIRTUALCLUSTER_H
+#define K4RECO_VIRTUALCLUSTER_H
 
 #include <array>
+#include <iomanip>
 #include <iostream>
 
 class VirtualCluster {
 
 public:
-  VirtualCluster();
-  VirtualCluster(double x, double y, double z);
-
-  void clear();
+  VirtualCluster() = default;
 
   inline double getX() const { return m_position[0]; }
   inline double getY() const { return m_position[1]; }
@@ -38,12 +36,13 @@ public:
   inline void setY(double y) { m_position[1] = y; }
   inline void setZ(double z) { m_position[2] = z; }
 
-  inline const std::array<double, 3> getPosition() const { return m_position; }
-
-  friend std::ostream& operator<<(std::ostream& o, const VirtualCluster& rhs);
+  friend std::ostream& operator<<(std::ostream& o, const VirtualCluster& rhs) {
+    o << std::setw(13) << rhs.m_position[0] << std::setw(13) << rhs.m_position[1] << std::setw(13) << rhs.m_position[2];
+    return o;
+  }
 
 private:
-  std::array<double, 3> m_position; // Not sure the first parameter is Z or E, or Distance??
+  std::array<double, 3> m_position{}; // Not sure the first parameter is Z or E, or Distance??
 };
 
-#endif // K4RECO_VIRTUALCLUSTER_h
+#endif // K4RECO_VIRTUALCLUSTER_H

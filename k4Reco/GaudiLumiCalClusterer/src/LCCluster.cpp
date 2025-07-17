@@ -21,9 +21,6 @@
 #include "VirtualCluster.h"
 
 #include <iomanip>
-#include <memory>
-
-LCCluster::LCCluster() {}
 
 LCCluster::LCCluster(const VirtualCluster& vc) : m_position{vc.getX(), vc.getY(), vc.getZ()} {}
 
@@ -49,9 +46,9 @@ void LCCluster::clear() {
 
 std::ostream& operator<<(std::ostream& o, const LCCluster& rhs) {
   o << "  Energy " << std::setw(10) << rhs.m_energy << "  Method " << std::setw(4) << rhs.m_method << "  Weight "
-    << std::setw(10) << rhs.m_weight << "  N Calo Hits " << std::setw(7) << rhs.m_caloHits.size() << "  pos(x,y,z) =  ( "
-    << std::setw(10) << rhs.m_position[0] << " , " << std::setw(10) << rhs.m_position[1] << " , " << std::setw(10)
-    << rhs.m_position[2] << " )"
+    << std::setw(10) << rhs.m_weight << "  N Calo Hits " << std::setw(7) << rhs.m_caloHits.size()
+    << "  pos(x,y,z) =  ( " << std::setw(10) << rhs.m_position[0] << " , " << std::setw(10) << rhs.m_position[1]
+    << " , " << std::setw(10) << rhs.m_position[2] << " )"
     << "  pos(theta,phi) =  ( " << std::setw(10) << rhs.m_theta << " , " << std::setw(10) << rhs.m_phi << " )";
   return o;
 }
@@ -60,7 +57,7 @@ std::ostream& operator<<(std::ostream& o, const LCCluster& rhs) {
  *
  * Resolution in Theta (R) is better than in RPhi so averaging theta gives better results
  */
-void LCCluster::recalculatePositionFromHits(GlobalMethodsClass const& gmc) {
+void LCCluster::recalculatePositionFromHits(const GlobalMethodsClass& gmc) {
   const double logConstant(gmc.m_globalParamD.at(GlobalMethodsClass::LogWeightConstant));
 
   // re-set new cluster energy

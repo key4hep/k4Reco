@@ -22,17 +22,17 @@
 #include "Global.h"
 #include "GlobalMethodsClass.h"
 
+#include <array>
 #include <cmath>
 #include <memory>
 #include <ostream>
-#include <array>
 
 class VirtualCluster;
 
 class LCCluster {
 
 public:
-  LCCluster();
+  LCCluster() = default;
   explicit LCCluster(const VirtualCluster& vc);
   LCCluster(double energy, double x, double y, double z, double weight, GlobalMethodsClass::WeightingMethod_t method,
             double theta, double phi, VecCalHit const& caloHitVector);
@@ -87,7 +87,7 @@ public:
   inline VecCalHit const& getCaloHits() const { return m_caloHits; }
 
   /// calculate the cluster position based on the caloHits associated to the cluster
-  void recalculatePositionFromHits(GlobalMethodsClass const& gmc);
+  void recalculatePositionFromHits(const GlobalMethodsClass& gmc);
 
 private:
   void CalculatePhi();
@@ -100,13 +100,9 @@ private:
   VecCalHit m_caloHits{};
 };
 
-inline void LCCluster::CalculatePhi() {
-  m_phi = atan2(m_position[1], m_position[0]);
-  return;
-}
+inline void LCCluster::CalculatePhi() { m_phi = atan2(m_position[1], m_position[0]); }
 inline void LCCluster::CalculateTheta() {
   m_theta = atan(sqrt(m_position[1] * m_position[1] + m_position[0] * m_position[0]) / fabs(m_position[2]));
-  return;
 }
 
 using SLCCluster = std::shared_ptr<LCCluster>;
