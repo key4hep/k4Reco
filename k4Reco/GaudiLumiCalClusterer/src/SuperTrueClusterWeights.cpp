@@ -26,14 +26,14 @@ SuperTrueClusterWeights::SuperTrueClusterWeights(int superClusterIdNow, int true
                                                  LCCluster const& superClusterCM, LCCluster const& trueClusterCM)
     :
 
-      superClusterId(superClusterIdNow), trueClusterId(trueClusterIdNow),
-      distance(std::hypot(superClusterCM.getX() - trueClusterCM.getX(), superClusterCM.getY() - trueClusterCM.getY())),
-      deltaEngy(fabs(superClusterCM.getE() - trueClusterCM.getE())),
-      minEngy(std::min(superClusterCM.getE(), trueClusterCM.getE())), weight(-1) {}
+      m_superClusterId(superClusterIdNow), m_trueClusterId(trueClusterIdNow),
+      m_distance(std::hypot(superClusterCM.getX() - trueClusterCM.getX(), superClusterCM.getY() - trueClusterCM.getY())),
+      m_deltaEngy(fabs(superClusterCM.getE() - trueClusterCM.getE())),
+      m_minEngy(std::min(superClusterCM.getE(), trueClusterCM.getE())), m_weight(-1) {}
 
 void SuperTrueClusterWeights::setWeight(std::string weightMethod) {
 
-  weight = (weightMethod == "distance") ? distance : deltaEngy;
+  m_weight = (weightMethod == "distance") ? m_distance : m_deltaEngy;
 }
 
 void SuperTrueClusterWeights::setWeight(std::string weightMethod, double minSeparationDistance,
@@ -41,6 +41,6 @@ void SuperTrueClusterWeights::setWeight(std::string weightMethod, double minSepa
 
   if (weightMethod == "minEngyDistance") {
 
-    weight = (distance > minSeparationDistance && minEngy > minClusterEngyGeV) ? 1. : -1.;
+    m_weight = (m_distance > minSeparationDistance && m_minEngy > minClusterEngyGeV) ? 1. : -1.;
   }
 }
