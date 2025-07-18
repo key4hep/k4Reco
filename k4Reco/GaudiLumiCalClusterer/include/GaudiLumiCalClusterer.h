@@ -21,7 +21,6 @@
 
 #include "GlobalMethodsClass.h"
 #include "LumiCalClusterer.h"
-// #include "OutputManagerClass.h"
 
 #include <edm4hep/CalorimeterHitCollection.h>
 #include <edm4hep/ClusterCollection.h>

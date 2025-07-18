@@ -39,19 +39,9 @@ void LumiCalClustererClass::createDecoder(const std::string& decoderString) {
   m_mydecoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(decoderString);
 }
 
-/* ============================================================================
-   initial action before first event analysis starts:
-   Called at the begining of the job before anything is read.
-   ========================================================================= */
-void LumiCalClustererClass::init(GlobalMethodsClass const& gmc) {
+void LumiCalClustererClass::init(const GlobalMethodsClass& gmc) {
 
   m_gmc = gmc;
-  /* --------------------------------------------------------------------------
-     constants specific to this class
-  _armsToCluster.clear();
-  _armsToCluster.push_back(-1);
-  _armsToCluster.push_back(1);
-     -------------------------------------------------------------------------- */
   m_methodCM =
       gmc.getMethod(gmc.m_globalParamS.at(GlobalMethodsClass::WeightingMethod));      // GlobalMethodsClass::LogMethod
   m_clusterMinNumHits = gmc.m_globalParamI.at(GlobalMethodsClass::ClusterMinNumHits); // = 15
@@ -96,33 +86,33 @@ void LumiCalClustererClass::init(GlobalMethodsClass const& gmc) {
   /* --------------------------------------------------------------------------
      Print out Parameters
      -------------------------------------------------------------------------- */
-#if _GENERAL_CLUSTERER_DEBUG == 1
-  info() << std::endl << "Global parameters for LumiCalClustererClass:" << std::endl;
-  info() << " m_cellRMax: " << m_cellRMax << std::endl
-         << " m_cellPhiMax: " << m_cellPhiMax << std::endl
-         << " m_zFirstLayer: " << m_zFirstLayer << std::endl
-         << " m_zLayerThickness: " << m_zLayerThickness << std::endl
-         << " m_zLayerPhiOffset[deg]: " << m_zLayerPhiOffset * 180. / M_PI << std::endl
-         << " m_rMin: " << m_rMin << std::endl
-         << " m_rMax: " << m_rMax << std::endl
-         << " m_rCellLength [mm]: " << m_rCellLength << std::endl
-         << " m_phiCellLength [rad]:" << m_phiCellLength << std::endl
-         << " m_methodCM: " << m_methodCM << std::endl
-         << " m_logWeightConst: " << m_logWeightConst << std::endl
-         << " m_elementsPercentInShowerPeakLayer: " << m_elementsPercentInShowerPeakLayer << std::endl
-         << " m_moliereRadius: " << m_moliereRadius << std::endl
-         << " m_minSeparationDistance: " << m_minSeparationDistance << std::endl
-         << " m_minClusterEngy - GeV: " << m_minClusterEngyGeV << std::endl
-         << " m_hitMinEnergy: " << m_hitMinEnergy << std::endl
-         << " m_thetaContainmentBounds[0]: " << m_thetaContainmentBounds[0] << std::endl
-         << " m_thetaContainmentBounds[1]: " << m_thetaContainmentBounds[1] << std::endl
-         << " m_middleEnergyHitBoundFrac: " << m_middleEnergyHitBoundFrac << std::endl
-         << " Clustering Options : " << std::endl
-         << "           _CLUSTER_MIDDLE_RANGE_ENGY_HITS    " << _CLUSTER_MIDDLE_RANGE_ENGY_HITS << std::endl
-         << "           _MOLIERE_RADIUS_CORRECTIONS        " << _MOLIERE_RADIUS_CORRECTIONS << std::endl
-         << "           _CLUSTER_MIXING_ENERGY_CORRECTIONS " << _CLUSTER_MIXING_ENERGY_CORRECTIONS << std::endl
-         << std::endl;
-#endif
+// #if _GENERAL_CLUSTERER_DEBUG == 1
+//   info() << std::endl << "Global parameters for LumiCalClustererClass:" << std::endl;
+//   info() << " m_cellRMax: " << m_cellRMax << std::endl
+//          << " m_cellPhiMax: " << m_cellPhiMax << std::endl
+//          << " m_zFirstLayer: " << m_zFirstLayer << std::endl
+//          << " m_zLayerThickness: " << m_zLayerThickness << std::endl
+//          << " m_zLayerPhiOffset[deg]: " << m_zLayerPhiOffset * 180. / M_PI << std::endl
+//          << " m_rMin: " << m_rMin << std::endl
+//          << " m_rMax: " << m_rMax << std::endl
+//          << " m_rCellLength [mm]: " << m_rCellLength << std::endl
+//          << " m_phiCellLength [rad]:" << m_phiCellLength << std::endl
+//          << " m_methodCM: " << m_methodCM << std::endl
+//          << " m_logWeightConst: " << m_logWeightConst << std::endl
+//          << " m_elementsPercentInShowerPeakLayer: " << m_elementsPercentInShowerPeakLayer << std::endl
+//          << " m_moliereRadius: " << m_moliereRadius << std::endl
+//          << " m_minSeparationDistance: " << m_minSeparationDistance << std::endl
+//          << " m_minClusterEngy - GeV: " << m_minClusterEngyGeV << std::endl
+//          << " m_hitMinEnergy: " << m_hitMinEnergy << std::endl
+//          << " m_thetaContainmentBounds[0]: " << m_thetaContainmentBounds[0] << std::endl
+//          << " m_thetaContainmentBounds[1]: " << m_thetaContainmentBounds[1] << std::endl
+//          << " m_middleEnergyHitBoundFrac: " << m_middleEnergyHitBoundFrac << std::endl
+//          << " Clustering Options : " << std::endl
+//          << "           _CLUSTER_MIDDLE_RANGE_ENGY_HITS    " << _CLUSTER_MIDDLE_RANGE_ENGY_HITS << std::endl
+//          << "           _MOLIERE_RADIUS_CORRECTIONS        " << _MOLIERE_RADIUS_CORRECTIONS << std::endl
+//          << "           _CLUSTER_MIXING_ENERGY_CORRECTIONS " << _CLUSTER_MIXING_ENERGY_CORRECTIONS << std::endl
+//          << std::endl;
+// #endif
 }
 
 /* ============================================================================
