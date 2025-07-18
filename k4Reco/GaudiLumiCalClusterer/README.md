@@ -42,7 +42,9 @@ GlobalMethodsClass: Removed
 ```
 void thetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
 double toSignal(const double valNow) const;
+static std::string getParameterName(Parameter_t par);
 ```
 
 VirtualCluster: The class has been removed since it's a wrapper around a
 3-vector, so `edm4hep::Vector3d` is used instead.
+

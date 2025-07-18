@@ -83,8 +83,6 @@ public:
 
   enum Coordinate_t { COTheta, COPhi, COZ, COR, COP, COA };
 
-  static std::string getParameterName(Parameter_t par);
-
   void setConstants(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars);
   WeightingMethod_t getMethod(const std::string& methodName) const;
 
