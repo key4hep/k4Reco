@@ -113,10 +113,7 @@ public:
   double m_rCellLength{0.0};
   double m_rCellOffset{0.0};
   double m_phiCellLength{0.0};
-  double m_phiCellOffset{0.0};
-  double m_zLayerThickness{0.0};
   double m_zLayerPhiOffset{0.0};
-  double m_zLayerZOffset{0.0};
   double m_thetaMin{0.0};
   double m_thetaMax{0.0};
   double m_logWeightConstant{0.0};
@@ -130,24 +127,18 @@ public:
   double m_middleEnergyHitBoundFrac{0.01};
   std::string m_weightingMethod{"LogMethod"};
   double m_signalToGeV{1.0};
-  double m_betaGamma{0.0};
-  double m_gamma{1.0};
 
 private:
   // Processor Parameters
   double m_hitMinEnergy{5 * 1e-6};
 
   // global variables
-  int m_numEventsPerTree{0};
-  int m_resetRootTrees{0};
   size_t m_maxLayerToAnalyse{0};
-  int m_zFirstLayer{0};
   double m_logWeightConst{0.0};
   int m_nNearNeighbor{6};
   int m_cellRMax{0};
   int m_cellPhiMax{0};
   WeightingMethod_t m_methodCM{LogMethod};
-  double m_thetaContainmentBounds[2]{0.0, 0.0};
   double m_minSeparationDistance{0.0};
 
   MapIntDouble m_totEngyArm;
