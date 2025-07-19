@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 #include "Global.h"
-#include "GlobalMethodsClass.h"
 #include "LCCluster.h"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
@@ -40,7 +39,7 @@ int LumiCalClustererClass::getNeighborId(int cellId, const int neighborIndex) {
 
   int cellZ, cellPhi, cellR, arm;
   // compute Z,Phi,R coordinates according to the cellId
-  GlobalMethodsClass::cellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
+  cellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
 
   // change iRho cell index  according to the neighborIndex
   if (neighborIndex >= 2) {
@@ -65,7 +64,7 @@ int LumiCalClustererClass::getNeighborId(int cellId, const int neighborIndex) {
   else if (cellPhi < 0)
     cellPhi = m_cellPhiMax - 1;
   // compute neighbor cellId according to the new Z,Phi,R coordinates
-  cellId = GlobalMethodsClass::cellIdZPR(cellZ, cellPhi, cellR, arm);
+  cellId = cellIdZPR(cellZ, cellPhi, cellR, arm);
 
   return cellId;
 }
@@ -75,16 +74,15 @@ int LumiCalClustererClass::getNeighborId(int cellId, const int neighborIndex) {
    - provide cellEnergy to use
    -------------------------------------------------------------------------- */
 double LumiCalClustererClass::posWeightTrueCluster(const CalHit& calHit, const double cellEngy,
-                                                   const GlobalMethodsClass::WeightingMethod_t method) const {
+                                                   const WeightingMethod_t method) const {
   int detectorArm = ((calHit->getPosition()[2] < 0) ? -1 : 1);
-  return GlobalMethodsClass::posWeight(cellEngy, m_totEngyArm.at(detectorArm), method, m_logWeightConst);
+  return posWeight(cellEngy, m_totEngyArm.at(detectorArm), method, m_logWeightConst);
 }
 
 // /* --------------------------------------------------------------------------
 //    calculate weight for cluster CM according to different methods
 //    -------------------------------------------------------------------------- */
-double LumiCalClustererClass::posWeight(const CalHit& calHit,
-                                        const GlobalMethodsClass::WeightingMethod_t method) const {
+double LumiCalClustererClass::posWeight(const CalHit& calHit, const WeightingMethod_t method) const {
   return posWeightTrueCluster(calHit, calHit->getEnergy(), method);
 }
 
@@ -93,7 +91,7 @@ double LumiCalClustererClass::posWeight(const CalHit& calHit,
 //    (3). calculate the map clusterCM from scratch
 //    -------------------------------------------------------------------------- */
 LCCluster LumiCalClustererClass::calculateEngyPosCM(VInt const& cellIdV, MapIntCalHit const& calHitsCellId,
-                                                    GlobalMethodsClass::WeightingMethod_t method) {
+                                                    WeightingMethod_t method) {
 
   double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);
   int loopFlag = 1;
@@ -123,7 +121,7 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM(VInt const& cellIdV, MapIntC
 
     } else {
       // initialize counters and recalculate with the Energy-weights method
-      method = GlobalMethodsClass::EnergyMethod;
+      method = LumiCalClustererClass::EnergyMethod;
       totEngy = xHit = yHit = zHit = thetaHit = weightSum = 0.;
     }
   }
@@ -137,7 +135,7 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM(VInt const& cellIdV, MapIntC
 //    -------------------------------------------------------------------------- */
 void LumiCalClustererClass::calculateEngyPosCM_EngyV(VInt const& cellIdV, VDouble const& cellEngyV,
                                                      MapIntCalHit const& calHitsCellId, MapIntLCCluster& clusterCM,
-                                                     int clusterId, GlobalMethodsClass::WeightingMethod_t method) {
+                                                     int clusterId, WeightingMethod_t method) {
 
   double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);
   int loopFlag = 1;
@@ -167,7 +165,7 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(VInt const& cellIdV, VDoubl
 
     } else {
       // initialize counters and recalculate with the Energy-weights method
-      method = GlobalMethodsClass::EnergyMethod;
+      method = LumiCalClustererClass::EnergyMethod;
       totEngy = xHit = yHit = zHit = thetaHit = weightSum = 0.;
     }
   }
@@ -181,7 +179,8 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(VInt const& cellIdV, VDoubl
 //    -------------------------------------------------------------------------- */
 void LumiCalClustererClass::updateEngyPosCM(const CalHit& calHit, LCCluster& clusterCM) {
   double engyHit = calHit->getEnergy();
-  GlobalMethodsClass::WeightingMethod_t method = clusterCM.getMethod();
+  WeightingMethod_t method = clusterCM.getMethod() == WeightingMethod_t::LogMethod ? WeightingMethod_t::LogMethod
+                                                                                   : WeightingMethod_t::EnergyMethod;
 
   clusterCM.addToEnergy(engyHit);
 
@@ -216,8 +215,7 @@ void LumiCalClustererClass::updateEngyPosCM(const CalHit& calHit, LCCluster& clu
 //    -------------------------------------------------------------------------- */
 int LumiCalClustererClass::checkClusterMergeCM(int clusterId1, int clusterId2, MapIntVInt const& clusterIdToCellId,
                                                MapIntCalHit const& calHitsCellId, double distanceAroundCM,
-                                               double percentOfEngyAroungCM,
-                                               GlobalMethodsClass::WeightingMethod_t method) {
+                                               double percentOfEngyAroungCM, WeightingMethod_t method) {
 
   // std::vector for holding the Ids of clusters
   VInt cellIdV;

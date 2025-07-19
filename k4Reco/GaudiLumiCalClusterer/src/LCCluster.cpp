@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 #include "LCCluster.h"
+#include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
 
 #include <iomanip>
 
 LCCluster::LCCluster(const edm4hep::Vector3d& vc) : m_position{vc.x, vc.y, vc.z} {}
 
-LCCluster::LCCluster(double energy, double x, double y, double z, double weight,
-                     GlobalMethodsClass::WeightingMethod_t method, double theta, double phi,
+LCCluster::LCCluster(double energy, double x, double y, double z, double weight, int method, double theta, double phi,
                      VecCalHit const& caloHitVector)
     : m_position{x, y, z}, m_energy(energy), m_weight(weight), m_method(method), m_theta(theta), m_phi(phi),
       m_caloHits(caloHitVector) {
@@ -37,7 +37,7 @@ void LCCluster::clear() {
   m_position[1] = 0.0;
   m_position[2] = 0.0;
   m_weight = 0.0;
-  m_method = GlobalMethodsClass::LogMethod;
+  m_method = LumiCalClustererClass::LogMethod;
   m_theta = 0.0;
   m_phi = 0.0;
   m_caloHits.clear();
@@ -56,8 +56,8 @@ std::ostream& operator<<(std::ostream& o, const LCCluster& rhs) {
  *
  * Resolution in Theta (R) is better than in RPhi so averaging theta gives better results
  */
-void LCCluster::recalculatePositionFromHits(const GlobalMethodsClass& gmc) {
-  const double logConstant(gmc.m_globalParamD.at(GlobalMethodsClass::LogWeightConstant));
+void LCCluster::recalculatePositionFromHits(const LumiCalClustererClass& clusterer) {
+  const double logConstant(clusterer.m_logWeightConstant);
 
   // re-set new cluster energy
   m_energy = 0.0;
@@ -65,15 +65,22 @@ void LCCluster::recalculatePositionFromHits(const GlobalMethodsClass& gmc) {
     m_energy += calHit->getEnergy();
   }
 
-  const double rMin = gmc.m_globalParamD.at(GlobalMethodsClass::RMin);
+  const double rMin = clusterer.m_rMin;
 
   double thetaTemp(0.0), weightsTemp(0.0), xTemp(0.0), yTemp(0.0), zTemp(0.0);
   for (auto const& calHit : m_caloHits) {
     const auto pos = calHit->getPosition();
     const double rCell = sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
     // cell area scales with radius, reduce weight for cells at larger radii
+    // TODO:
+    // const double weight = posWeight(calHit->getEnergy(), m_energy, m_method, logConstant) * rMin / rCell;
     const double weight =
-        GlobalMethodsClass::posWeight(calHit->getEnergy(), m_energy, m_method, logConstant) * rMin / rCell;
+        LumiCalClustererClass::posWeight(calHit->getEnergy(), m_energy,
+                                         m_method == LumiCalClustererClass::WeightingMethod_t::LogMethod
+                                             ? LumiCalClustererClass::WeightingMethod_t::LogMethod
+                                             : LumiCalClustererClass::WeightingMethod_t::EnergyMethod,
+                                         logConstant) *
+        rMin / rCell;
 
     if (not(weight > 0))
       continue;
@@ -103,7 +110,7 @@ void LCCluster::recalculatePositionFromHits(const GlobalMethodsClass& gmc) {
   const double sign = zTemp < 0 ? -1.0 : 1.0;
 
   const double r = sqrt(xTemp * xTemp + yTemp * yTemp + zTemp * zTemp);
-  const double zStart = sign * gmc.m_globalParamD.at(GlobalMethodsClass::ZStart);
+  const double zStart = sign * clusterer.m_zStart;
 
   m_position[0] = r * sin(m_theta) * cos(m_phi);
   m_position[1] = r * sin(m_theta) * sin(m_phi);

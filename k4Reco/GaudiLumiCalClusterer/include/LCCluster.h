@@ -20,7 +20,6 @@
 #define K4RECO_LCCLUSTER_H 1
 
 #include "Global.h"
-#include "GlobalMethodsClass.h"
 
 #include <edm4hep/Vector3d.h>
 
@@ -29,13 +28,15 @@
 #include <memory>
 #include <ostream>
 
+class LumiCalClustererClass;
+
 class LCCluster {
 
 public:
   LCCluster() = default;
   explicit LCCluster(const edm4hep::Vector3d& position);
-  LCCluster(double energy, double x, double y, double z, double weight, GlobalMethodsClass::WeightingMethod_t method,
-            double theta, double phi, VecCalHit const& caloHitVector);
+  LCCluster(double energy, double x, double y, double z, double weight, int method, double theta, double phi,
+            VecCalHit const& caloHitVector);
   // LCCluster( const LCCluster& rhs ) = delete;
   // LCCluster& operator=( const LCCluster& rhs ) = delete;
   // LCCluster( LCCluster&& rhs ) = default;
@@ -48,7 +49,7 @@ public:
   inline double getZ() const { return m_position[2]; }
   inline double getE() const { return m_energy; }
   inline double getWeight() const { return m_weight; }
-  inline GlobalMethodsClass::WeightingMethod_t getMethod() const { return m_method; }
+  inline int getMethod() const { return m_method; }
   inline double getEnergy() const { return getE(); }
   inline double getTheta() const { return m_theta; }
   inline double getPhi() const { return m_phi; }
@@ -87,7 +88,7 @@ public:
   inline VecCalHit const& getCaloHits() const { return m_caloHits; }
 
   /// calculate the cluster position based on the caloHits associated to the cluster
-  void recalculatePositionFromHits(const GlobalMethodsClass& gmc);
+  void recalculatePositionFromHits(const LumiCalClustererClass& clusterer);
 
 private:
   void CalculatePhi();
@@ -95,7 +96,7 @@ private:
   std::array<double, 3> m_position{0.0, 0.0, 0.0};
   std::array<double, 3> m_positionAtFront{0.0, 0.0, 0.0};
   double m_energy = 0.0, m_weight = 0.0;
-  GlobalMethodsClass::WeightingMethod_t m_method = GlobalMethodsClass::LogMethod;
+  int m_method = -1; // LogMethod = -1
   double m_theta = 0.0, m_phi = 0.0, m_rzStart = 0.0;
   VecCalHit m_caloHits{};
 };

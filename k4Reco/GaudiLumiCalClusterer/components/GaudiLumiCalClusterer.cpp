@@ -53,7 +53,7 @@ StatusCode GaudiLumiCalClusterer::initialize() {
 
   m_lumiCalClusterer.createDecoder(fieldDescription);
 
-  // Set parameters for the GlobalMethodsClass
+  // Set parameters for the LumiCalClusterer
   std::map<std::string, std::variant<int, float, std::string>> parameters;
   parameters["ZLayerPhiOffset"] = static_cast<float>(m_zLayerPhiOffset);
   parameters["EnergyCalibConst"] = static_cast<float>(m_EnergyCalibConst);
@@ -67,19 +67,13 @@ StatusCode GaudiLumiCalClusterer::initialize() {
   parameters["WeightingMethod"] = m_WeightingMethod;
   parameters["NumOfNearNeighbor"] = static_cast<int>(m_NumOfNearNeighbor);
 
-  m_gmc.setConstants(parameters);
+  m_lumiCalClusterer.init(parameters);
 
-  m_BeamCrossingAngle = m_gmc.m_globalParamD[GlobalMethodsClass::BeamCrossingAngle] / 2.;
+  m_BeamCrossingAngle = m_lumiCalClusterer.m_beamCrossingAngle / 2.;
 
   // printParameters();
-  // /* --------------------------------------------------------------------------
-  //    Print out Processor Parameters
-  //    -------------------------------------------------------------------------- */
-  // info() << "Global parameters for Processor:" << name() << "\t" << type() << endmsg;
-  // m_gmc.printAllParameters();
-  // info() << endmsg;
+  // m_lumiCalClusterer.printAllParameters();
 
-  m_lumiCalClusterer.init(m_gmc);
   m_lumiCalClusterer.setCutOnFiducialVolume(m_cutOnFiducialVolume);
 
   return StatusCode::SUCCESS;
@@ -108,9 +102,9 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
         const int clusterId = pairIDCells.first;
         LCCluster& thisClusterInfo =
             const_cast<LCCluster&>(m_lumiCalClusterer.m_superClusterIdClusterInfo.at(armNow).at(clusterId));
-        thisClusterInfo.recalculatePositionFromHits(m_gmc);
+        thisClusterInfo.recalculatePositionFromHits(m_lumiCalClusterer);
         const auto& objectTuple =
-            m_gmc.getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
+            m_lumiCalClusterer.getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
         if (!std::get<0>(objectTuple).has_value())
           continue;
 

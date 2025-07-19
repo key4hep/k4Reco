@@ -17,102 +17,364 @@
  * limitations under the License.
  */
 #include "LumiCalClusterer.h"
+#include "LumiCalHit.h"
 
 #include <Gaudi/Algorithm.h>
 
+#include <DD4hep/Alignments.h>
+#include <DD4hep/DD4hepUnits.h>
+#include <DD4hep/DetElement.h>
+#include <DD4hep/Detector.h>
+#include <DD4hep/Objects.h>
+#include <DD4hep/Readout.h>
+#include <DD4hep/Segmentations.h>
+#include <DDRec/DetectorData.h>
+#include <DDSegmentation/Segmentation.h>
+#include <DDSegmentation/SegmentationParameter.h>
+
+#include <TGeoMatrix.h>
+
+#include <edm4hep/CalorimeterHitCollection.h>
+#include <edm4hep/MutableCluster.h>
+#include <edm4hep/MutableReconstructedParticle.h>
 #include <edm4hep/SimCalorimeterHitCollection.h>
 
+#include <algorithm>
+#include <cmath>
 #include <iomanip>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 LumiCalClustererClass::LumiCalClustererClass(const Gaudi::Algorithm* alg)
-    : m_superClusterIdToCellId(), m_superClusterIdToCellEngy(), m_superClusterIdClusterInfo(), m_clusterMinNumHits(15),
-      m_hitMinEnergy(5 * 1e-6),
+    : m_superClusterIdToCellId(), m_superClusterIdToCellEngy(), m_superClusterIdClusterInfo(), m_beamCrossingAngle(0.0),
+      m_zStart(0.0), m_zEnd(0.0), m_rMin(0.0), m_rMax(0.0), m_numCellsR(0), m_numCellsPhi(0), m_numCellsZ(0),
+      m_rCellLength(0.0), m_rCellOffset(0.0), m_phiCellLength(0.0), m_phiCellOffset(0.0), m_zLayerThickness(0.0),
+      m_zLayerPhiOffset(0.0), m_zLayerZOffset(0.0), m_thetaMin(0.0), m_thetaMax(0.0), m_logWeightConstant(0.0),
+      m_moliereRadius(0.0), m_minSeparationDist(0.0), m_elementsPercentInShowerPeakLayer(0.03), m_numOfNearNeighbor(6),
+      m_clusterMinNumHits(15), m_minHitEnergy(5 * 1e-6), m_minClusterEngyGeV(0.0), m_middleEnergyHitBoundFrac(0.01),
+      m_weightingMethod("LogMethod"), m_signalToGeV(1.0), m_betaGamma(0.0), m_gamma(1.0), m_hitMinEnergy(5 * 1e-6),
       // global variables
-      m_numEventsPerTree(0), m_resetRootTrees(0), m_maxLayerToAnalyse(0), m_zFirstLayer(0), m_zLayerThickness(0.0),
-      m_zLayerPhiOffset(0.0), m_rMin(0.0), m_rMax(0.0), m_rCellLength(0.0), m_phiCellLength(0.0),
-      m_beamCrossingAngle(0.), m_elementsPercentInShowerPeakLayer(0.03), m_logWeightConst(0.0), m_nNearNeighbor(6),
-      m_cellRMax(0), m_cellPhiMax(0), m_middleEnergyHitBoundFrac(0.01), m_methodCM(GlobalMethodsClass::LogMethod),
-      m_moliereRadius(), m_thetaContainmentBounds(), m_minSeparationDistance(), m_minClusterEngyGeV(), m_totEngyArm(),
-      m_numHitsInArm(), m_gmc(), m_alg(alg) {}
+      m_numEventsPerTree(0), m_resetRootTrees(0), m_maxLayerToAnalyse(0), m_zFirstLayer(0), m_logWeightConst(0.0),
+      m_nNearNeighbor(6), m_cellRMax(0), m_cellPhiMax(0), m_methodCM(LogMethod), m_thetaContainmentBounds(),
+      m_minSeparationDistance(), m_totEngyArm(), m_numHitsInArm(), m_alg(alg), m_backwardRotationPhi(0.0) {}
 
 void LumiCalClustererClass::createDecoder(const std::string& decoderString) {
   m_mydecoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(decoderString);
 }
 
-void LumiCalClustererClass::init(const GlobalMethodsClass& gmc) {
+void LumiCalClustererClass::init(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars) {
+  setConstants(_lcalRecoPars);
 
-  m_gmc = gmc;
-  m_methodCM =
-      gmc.getMethod(gmc.m_globalParamS.at(GlobalMethodsClass::WeightingMethod));      // GlobalMethodsClass::LogMethod
-  m_clusterMinNumHits = gmc.m_globalParamI.at(GlobalMethodsClass::ClusterMinNumHits); // = 15
-  m_hitMinEnergy = gmc.m_globalParamD.at(GlobalMethodsClass::MinHitEnergy);           // = 5e-6
-  m_zLayerThickness = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerThickness);     // = 4.5
-  m_zLayerPhiOffset = gmc.m_globalParamD.at(GlobalMethodsClass::ZLayerPhiOffset);     // = 3.75 [deg]
-  m_elementsPercentInShowerPeakLayer =
-      gmc.m_globalParamD.at(GlobalMethodsClass::ElementsPercentInShowerPeakLayer); // = 0.03  //APS 0.04;
-  m_nNearNeighbor =
-      gmc.m_globalParamI.at(GlobalMethodsClass::NumOfNearNeighbor); // = 6; // number of near neighbors to consider
-  m_beamCrossingAngle = gmc.m_globalParamD.at(GlobalMethodsClass::BeamCrossingAngle) / 2.;
+  m_methodCM = getMethod(m_weightingMethod);
+  m_hitMinEnergy = m_minHitEnergy;
+  m_nNearNeighbor = m_numOfNearNeighbor;
+  // m_beamCrossingAngle_cached = m_beamCrossingAngle / 2.;
 
-  // the minimal energy to take into account in the initial clustering pass is
-  // defined as m_middleEnergyHitBoundFrac of the minimal energy that is taken into
-  // account when computing weighted averages in the log' weighting method
-  m_middleEnergyHitBoundFrac = gmc.m_globalParamD.at(GlobalMethodsClass::MiddleEnergyHitBoundFrac); // =.01;
+  m_logWeightConst = m_logWeightConstant;
 
-  /* --------------------------------------------------------------------------
-     constants set by: GlobalMethodsClass
-     -------------------------------------------------------------------------- */
-  m_logWeightConst = gmc.m_globalParamD.at(GlobalMethodsClass::LogWeightConstant);
-  m_moliereRadius = gmc.m_globalParamD.at(GlobalMethodsClass::MoliereRadius);
+  m_minSeparationDistance = m_minSeparationDist;
 
-  // minimal separation distance and energy (of either cluster) to affect a merge
-  m_minSeparationDistance = gmc.m_globalParamD.at(GlobalMethodsClass::MinSeparationDist);
-  m_minClusterEngyGeV = gmc.m_globalParamD.at(GlobalMethodsClass::MinClusterEngyGeV);
+  m_thetaContainmentBounds[0] = m_thetaMin;
+  m_thetaContainmentBounds[1] = m_thetaMax;
 
-  m_thetaContainmentBounds[0] = gmc.m_globalParamD.at(GlobalMethodsClass::ThetaMin);
-  m_thetaContainmentBounds[1] = gmc.m_globalParamD.at(GlobalMethodsClass::ThetaMax);
+  m_maxLayerToAnalyse = m_numCellsZ;
+  m_cellRMax = m_numCellsR;
+  m_cellPhiMax = m_numCellsPhi;
 
-  m_maxLayerToAnalyse = gmc.m_globalParamI.at(GlobalMethodsClass::NumCellsZ);
-  m_cellRMax = gmc.m_globalParamI.at(GlobalMethodsClass::NumCellsR);
-  m_cellPhiMax = gmc.m_globalParamI.at(GlobalMethodsClass::NumCellsPhi);
+  m_zFirstLayer = m_zStart;
+}
 
-  m_zFirstLayer = gmc.m_globalParamD.at(GlobalMethodsClass::ZStart);
-  m_rMin = gmc.m_globalParamD.at(GlobalMethodsClass::RMin);
-  m_rMax = gmc.m_globalParamD.at(GlobalMethodsClass::RMax);
+/* --------------------------------------------------------------------------
+   (1):	return a cellId for a given Z (layer), R (cylinder) and Phi (sector)
+   (2):	return Z (layer), R (cylinder) and Phi (sector) for a given cellId
+   -------------------------------------------------------------------------- */
 
-  m_rCellLength = gmc.m_globalParamD.at(GlobalMethodsClass::RCellLength);
-  m_phiCellLength = gmc.m_globalParamD.at(GlobalMethodsClass::PhiCellLength);
+#define SHIFT_I_32Fcal 0  // I = 10 bits  ( ring )
+#define SHIFT_J_32Fcal 10 // J = 10 bits  ( sector)
+#define SHIFT_K_32Fcal 20 // K = 10 bits  ( layer )
+#define SHIFT_S_32Fcal 30 // S =  2 bits  ( side/arm )
 
-  /* --------------------------------------------------------------------------
-     Print out Parameters
-     -------------------------------------------------------------------------- */
-// #if _GENERAL_CLUSTERER_DEBUG == 1
-//   info() << std::endl << "Global parameters for LumiCalClustererClass:" << std::endl;
-//   info() << " m_cellRMax: " << m_cellRMax << std::endl
-//          << " m_cellPhiMax: " << m_cellPhiMax << std::endl
-//          << " m_zFirstLayer: " << m_zFirstLayer << std::endl
-//          << " m_zLayerThickness: " << m_zLayerThickness << std::endl
-//          << " m_zLayerPhiOffset[deg]: " << m_zLayerPhiOffset * 180. / M_PI << std::endl
-//          << " m_rMin: " << m_rMin << std::endl
-//          << " m_rMax: " << m_rMax << std::endl
-//          << " m_rCellLength [mm]: " << m_rCellLength << std::endl
-//          << " m_phiCellLength [rad]:" << m_phiCellLength << std::endl
-//          << " m_methodCM: " << m_methodCM << std::endl
-//          << " m_logWeightConst: " << m_logWeightConst << std::endl
-//          << " m_elementsPercentInShowerPeakLayer: " << m_elementsPercentInShowerPeakLayer << std::endl
-//          << " m_moliereRadius: " << m_moliereRadius << std::endl
-//          << " m_minSeparationDistance: " << m_minSeparationDistance << std::endl
-//          << " m_minClusterEngy - GeV: " << m_minClusterEngyGeV << std::endl
-//          << " m_hitMinEnergy: " << m_hitMinEnergy << std::endl
-//          << " m_thetaContainmentBounds[0]: " << m_thetaContainmentBounds[0] << std::endl
-//          << " m_thetaContainmentBounds[1]: " << m_thetaContainmentBounds[1] << std::endl
-//          << " m_middleEnergyHitBoundFrac: " << m_middleEnergyHitBoundFrac << std::endl
-//          << " Clustering Options : " << std::endl
-//          << "           _CLUSTER_MIDDLE_RANGE_ENGY_HITS    " << _CLUSTER_MIDDLE_RANGE_ENGY_HITS << std::endl
-//          << "           _MOLIERE_RADIUS_CORRECTIONS        " << _MOLIERE_RADIUS_CORRECTIONS << std::endl
-//          << "           _CLUSTER_MIXING_ENERGY_CORRECTIONS " << _CLUSTER_MIXING_ENERGY_CORRECTIONS << std::endl
-//          << std::endl;
-// #endif
+#define MASK_I_32Fcal (unsigned int)0x000003FF
+#define MASK_J_32Fcal (unsigned int)0x000FFC00
+#define MASK_K_32Fcal (unsigned int)0x3FF00000
+#define MASK_S_32Fcal (unsigned int)0xC0000000
+
+std::array<double, 3> LumiCalClustererClass::rotateToLumiCal(const edm4hep::Vector3f& glob) const {
+  const int armNow = (glob[2] < 0) ? -1 : 1;
+  std::array<double, 3> loc;
+  loc[0] = +m_armCosAngle.at(armNow) * glob[0] - m_armSinAngle.at(armNow) * glob[2];
+  loc[1] = glob[1];
+  loc[2] = +m_armSinAngle.at(armNow) * glob[0] + m_armCosAngle.at(armNow) * glob[2];
+  return loc;
+}
+
+edm4hep::Vector3f LumiCalClustererClass::rotateToGlobal(const edm4hep::Vector3f& loc) const {
+  const int armNow = (loc[2] < 0) ? -1 : 1;
+  edm4hep::Vector3f glob;
+  glob.x = +m_armCosAngle.at(armNow) * loc[0] + m_armSinAngle.at(armNow) * loc[2];
+  glob.y = loc[1];
+  glob.z = -m_armSinAngle.at(armNow) * loc[0] + m_armCosAngle.at(armNow) * loc[2];
+  return glob;
+}
+
+int LumiCalClustererClass::cellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm) {
+
+  int cellId = 0;
+  int side = (arm < 0) ? 0 : arm;
+  cellId = (((side << SHIFT_S_32Fcal) & MASK_S_32Fcal) | ((cellR << SHIFT_I_32Fcal) & MASK_I_32Fcal) |
+            ((cellPhi << SHIFT_J_32Fcal) & MASK_J_32Fcal) | ((cellZ << SHIFT_K_32Fcal) & MASK_K_32Fcal));
+  return cellId;
+}
+
+void LumiCalClustererClass::cellIdZPR(const int cellID, int& cellZ, int& cellPhi, int& cellR, int& arm) {
+
+  // compute Z,Phi,R indices according to the cellId
+
+  cellR = ((((unsigned int)cellID) & MASK_I_32Fcal) >> SHIFT_I_32Fcal);
+  cellPhi = ((((unsigned int)cellID) & MASK_J_32Fcal) >> SHIFT_J_32Fcal);
+  cellZ = ((((unsigned int)cellID) & MASK_K_32Fcal) >> SHIFT_K_32Fcal);
+  arm = ((((unsigned int)cellID) & MASK_S_32Fcal) >> SHIFT_S_32Fcal);
+}
+
+int LumiCalClustererClass::cellIdZPR(const int cellId, const Coordinate_t ZPR) {
+
+  int cellZ, cellPhi, cellR, arm;
+  cellIdZPR(cellId, cellZ, cellPhi, cellR, arm);
+  arm = (arm == 0) ? -1 : 1;
+  if (ZPR == COZ)
+    return cellZ;
+  else if (ZPR == COR)
+    return cellR;
+  else if (ZPR == COP)
+    return cellPhi;
+  else if (ZPR == COA)
+    return arm;
+
+  return 0;
+}
+
+void LumiCalClustererClass::setConstants(
+    const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars) {
+
+  setGeometryDD4hep();
+
+  //------------------------------------------------------------------------
+  // Processor Parameters
+  // Clustering/Reco parameters
+  //(BP) layer relative phi offset - must go sometimes to GEAR params
+  const std::string parname = "ZLayerPhiOffset";
+  double val = std::get<float>(_lcalRecoPars.at(parname));
+
+  // check units just in case ( convert to rad as needed )
+  val = (val <= m_phiCellLength) ? val : val * M_PI / 180.;
+  m_zLayerPhiOffset = val;
+
+  m_signalToGeV = 1. / std::get<float>(_lcalRecoPars.at("EnergyCalibConst"));
+
+  // logarithmic constant for position reconstruction
+  m_logWeightConstant = std::get<float>(_lcalRecoPars.at("LogWeigthConstant"));
+
+  m_minHitEnergy = toGev(std::get<float>(_lcalRecoPars.at("MinHitEnergy")));
+  m_middleEnergyHitBoundFrac = std::get<float>(_lcalRecoPars.at("MiddleEnergyHitBoundFrac"));
+  m_elementsPercentInShowerPeakLayer = std::get<float>(_lcalRecoPars.at("ElementsPercentInShowerPeakLayer"));
+  m_clusterMinNumHits = std::get<int>(_lcalRecoPars.at("ClusterMinNumHits"));
+
+  // Moliere radius of LumiCal [mm]
+  m_moliereRadius = std::get<float>(_lcalRecoPars.at("MoliereRadius"));
+
+  // Geometrical fiducial volume of LumiCal - minimal and maximal polar angles [rad]
+  // (BP) Note, this in local LumiCal Reference System ( crossing angle not accounted )
+  // quite large - conservative, further reco-particles selection can be done later if desired
+  m_thetaMin = (m_rMin + m_moliereRadius) / m_zEnd;
+  m_thetaMax = (m_rMax - m_moliereRadius) / m_zStart;
+
+  // minimal separation distance between any pair of clusters [mm]
+  m_minSeparationDist = m_moliereRadius;
+
+  // minimal energy of a single cluster
+  m_minClusterEngyGeV = std::get<float>(_lcalRecoPars.at("MinClusterEngy"));
+
+  // hits positions weighting method
+  m_weightingMethod = std::get<std::string>(_lcalRecoPars.at("WeightingMethod"));
+  m_elementsPercentInShowerPeakLayer = std::get<float>(_lcalRecoPars.at("ElementsPercentInShowerPeakLayer"));
+  m_numOfNearNeighbor = std::get<int>(_lcalRecoPars.at("NumOfNearNeighbor"));
+
+  const double beta = tan(m_beamCrossingAngle / 2.0);
+  m_betaGamma = beta;
+  m_gamma = sqrt(1. + beta * beta);
+
+  m_armCosAngle[-1] = cos(-m_beamCrossingAngle / 2.);
+  m_armCosAngle[1] = cos(m_beamCrossingAngle / 2.);
+  m_armSinAngle[-1] = sin(-m_beamCrossingAngle / 2.);
+  m_armSinAngle[1] = sin(m_beamCrossingAngle / 2.);
+}
+
+double LumiCalClustererClass::toGev(const double value) const { return value / getCalibrationFactor(); }
+
+void LumiCalClustererClass::printAllParameters() const {
+  // info() << "------------------------------------------------------------------" << std::endl;
+  // info() << "********* LumiCalReco Parameters set in LumiCalClustererClass ********" << std::endl;
+  // info() << "---------------------------------------------------------------" << std::endl;
+}
+
+bool LumiCalClustererClass::setGeometryDD4hep() {
+
+  const dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
+
+  if (theDetector.detectors().count("LumiCal") == 0)
+    return false;
+
+  const dd4hep::DetElement lumical(theDetector.detector("LumiCal"));
+  const dd4hep::Segmentation readout(theDetector.readout("LumiCalCollection").segmentation());
+
+  // info() << "Segmentation Type" << readout.type() << std::endl;
+  // info() << "FieldDef: " << readout.segmentation()->fieldDescription() << std::endl;
+
+  const dd4hep::rec::LayeredCalorimeterData* theExtension = lumical.extension<dd4hep::rec::LayeredCalorimeterData>();
+  const std::vector<dd4hep::rec::LayeredCalorimeterStruct::Layer>& layers = theExtension->layers;
+
+  m_rMin = theExtension->extent[0] / dd4hep::mm;
+  m_rMax = theExtension->extent[1] / dd4hep::mm;
+
+  // starting/end position [mm]
+  m_zStart = theExtension->extent[2] / dd4hep::mm;
+  m_zEnd = theExtension->extent[3] / dd4hep::mm;
+
+  // cell division numbers
+  typedef dd4hep::DDSegmentation::TypedSegmentationParameter<double> ParDou;
+  const ParDou* rPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_r"));
+  const ParDou* rOff = dynamic_cast<ParDou*>(readout.segmentation()->parameter("offset_r"));
+  const ParDou* pPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_phi"));
+  const ParDou* pOff = dynamic_cast<ParDou*>(readout.segmentation()->parameter("offset_phi"));
+
+  if (!rPar || !pPar) {
+    throw std::runtime_error("Could not obtain parameters from segmentation");
+  }
+
+  m_rCellLength = rPar->typedValue() / dd4hep::mm;
+  m_rCellOffset = 0.5 * m_rCellLength + m_rMin - rOff->typedValue() / dd4hep::mm;
+  m_phiCellLength = pPar->typedValue() / dd4hep::radian;
+  m_phiCellOffset = pOff->typedValue() / dd4hep::radian;
+  m_numCellsR = (int)((m_rMax - m_rMin) / m_rCellLength);
+  m_numCellsPhi = (int)(2.0 * M_PI / m_phiCellLength + 0.5);
+  m_numCellsZ = layers.size();
+
+  // beam crossing angle ( convert to rad )
+  const dd4hep::DetElement::Children children = lumical.children();
+
+  if (children.empty()) {
+    throw std::runtime_error("Cannot obtain crossing angle from this LumiCal, update lcgeo?");
+  }
+
+  for (auto it = children.begin(); it != children.end(); ++it) {
+    dd4hep::Position loc(0.0, 0.0, 0.0);
+    dd4hep::Position glob(0.0, 0.0, 0.0);
+    it->second.nominal().localToWorld(loc, glob);
+    m_beamCrossingAngle = 2.0 * fabs(atan(glob.x() / glob.z()) / dd4hep::rad);
+    if (glob.z() > 0.0) {
+    } else {
+      const auto& backwardCalo = &it->second.nominal().worldTransformation();
+
+      // get phi rotation from global to local transformation
+      TGeoHMatrix* tempMat = (TGeoHMatrix*)backwardCalo->Clone();
+      double nulltr[] = {0.0, 0.0, 0.0};
+      // undo backward and crossing angle rotation
+      tempMat->SetTranslation(nulltr);
+      // root matrices need degrees as argument
+      tempMat->RotateY(m_beamCrossingAngle / 2.0 * 180 / M_PI);
+      tempMat->RotateY(-180.0);
+      double local[] = {0.0, 1.0, 0.0};
+      double global[] = {0.0, 0.0, 0.0};
+
+      tempMat->LocalToMaster(local, global);
+
+      m_backwardRotationPhi = atan2(local[1], local[0]) - atan2(global[1], global[0]);
+      if (m_backwardRotationPhi < M_PI)
+        m_backwardRotationPhi += 2 * M_PI;
+
+      delete tempMat;
+    }
+  }
+
+  // layer thickness
+  m_zLayerThickness = (layers[0].inner_thickness + layers[0].outer_thickness) / dd4hep::mm;
+  m_zLayerZOffset = (layers[0].inner_thickness) / dd4hep::mm;
+
+  // successfully created geometry from DD4hep
+  return true;
+}
+
+LumiCalClustererClass::WeightingMethod_t LumiCalClustererClass::getMethod(const std::string& methodName) const {
+  if (methodName == "LogMethod") {
+    return LogMethod;
+  }
+  if (methodName == "EnergyMethod") {
+    return EnergyMethod;
+  }
+  throw std::runtime_error("Unkown weighting method");
+}
+
+double LumiCalClustererClass::posWeight(const double cellEngy, const double totEngy, const WeightingMethod_t method,
+                                        const double logWeightConstNow) {
+  if (method == EnergyMethod)
+    return cellEngy;
+  // ???????? DECIDE/FIX - improve the log weight constants ????????
+  if (method == LogMethod) {
+    return std::max(0.0, log(cellEngy / totEngy) + logWeightConstNow);
+  }
+  return -1;
+}
+
+std::tuple<std::optional<edm4hep::MutableCluster>, std::optional<edm4hep::MutableReconstructedParticle>>
+LumiCalClustererClass::getLCIOObjects(const LCCluster& thisClusterInfo, const double minClusterEnergy,
+                                      const bool cutOnFiducialVolume,
+                                      const edm4hep::CalorimeterHitCollection& calohits) const {
+  double ThetaMid = (m_thetaMin + m_thetaMax) / 2.;
+  double ThetaTol = (m_thetaMax - m_thetaMin) / 2.;
+
+  const double clusterEnergy = thisClusterInfo.getE();
+  if (clusterEnergy < minClusterEnergy)
+    return std::make_tuple(std::nullopt, std::nullopt);
+
+  if (cutOnFiducialVolume) {
+    const double clusterTheta = thisClusterInfo.getTheta();
+    if (fabs(clusterTheta - ThetaMid) > ThetaTol)
+      return std::make_tuple(std::nullopt, std::nullopt);
+  }
+
+  auto cluster = edm4hep::MutableCluster();
+  cluster.setEnergy(clusterEnergy);
+
+  auto particle = edm4hep::MutableReconstructedParticle();
+  particle.setMass(0.0);
+  particle.setCharge(0.0);
+  particle.setEnergy(clusterEnergy);
+  particle.addToClusters(cluster);
+
+  const edm4hep::Vector3f locPos{float(thisClusterInfo.getX()), float(thisClusterInfo.getY()),
+                                 float(thisClusterInfo.getZ())};
+  edm4hep::Vector3f gP = rotateToGlobal(locPos);
+  cluster.setPosition(gP);
+
+  const float norm = clusterEnergy / std::sqrt(gP[0] * gP[0] + gP[1] * gP[1] + gP[2] * gP[2]);
+  const float clusterMomentum[3] = {float(gP[0] * norm), float(gP[1] * norm), float(gP[2] * norm)};
+  particle.setMomentum(clusterMomentum);
+  for (const auto& lumicalHit : thisClusterInfo.getCaloHits()) {
+    for (const auto hitIndex : lumicalHit->getHits()) {
+      cluster.addToHits(calohits.at(hitIndex));
+    }
+  }
+  // cluster.subdetectorEnergies().resize(6);
+  // cluster.subdetectorEnergies()[3] = clusterEnergy;
+  // LCAL_INDEX=3 in DDPFOCreator.hh
+  for (const auto val : {0., 0., 0., clusterEnergy, 0., 0.}) {
+    cluster.addToSubdetectorEnergies(val);
+  }
+
+  return std::make_tuple(cluster, particle);
 }
 
 /* ============================================================================

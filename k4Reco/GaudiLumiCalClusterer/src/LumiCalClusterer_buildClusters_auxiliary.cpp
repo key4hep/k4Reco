@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 #include "Global.h"
-#include "GlobalMethodsClass.h"
 #include "LCCluster.h"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
@@ -1117,10 +1116,10 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
         /// APS: This encoding needs to be fixed, now using
         // get the new cellId for the projection
         int cellIdHitZ = m_maxLayerToAnalyse + 1;
-        int cellIdHitPhi = GlobalMethodsClass::cellIdZPR(cellIdHit, GlobalMethodsClass::COP);
-        int cellIdHitR = GlobalMethodsClass::cellIdZPR(cellIdHit, GlobalMethodsClass::COR);
-        int cellIdHitArm = GlobalMethodsClass::cellIdZPR(cellIdHit, GlobalMethodsClass::COA);
-        int cellIdProjection = GlobalMethodsClass::cellIdZPR(cellIdHitZ, cellIdHitPhi, cellIdHitR, cellIdHitArm);
+        int cellIdHitPhi = cellIdZPR(cellIdHit, Coordinate_t::COP);
+        int cellIdHitR = cellIdZPR(cellIdHit, Coordinate_t::COR);
+        int cellIdHitArm = cellIdZPR(cellIdHit, Coordinate_t::COA);
+        int cellIdProjection = cellIdZPR(cellIdHitZ, cellIdHitPhi, cellIdHitR, cellIdHitArm);
 
         // the original hit's layer number is stored in (the previously unused) CellID1
         cellIdHitZ = (cellIdHit >> 0) & ((1 << 10) - 1);

@@ -19,7 +19,6 @@
 
 // Local
 #include "Global.h"
-#include "GlobalMethodsClass.h"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
 
@@ -78,13 +77,13 @@ LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& co
     layer = m_mydecoder->get(calHitIn.getCellID(), "layer"); // from 1
 
     // Calculate internal cellID
-    int cellId = GlobalMethodsClass::cellIdZPR(layer, phiCell, rCell, arm);
+    int cellId = cellIdZPR(layer, phiCell, rCell, arm);
 
     // skip this hit if the following conditions are met
     if (layer >= static_cast<int>(m_maxLayerToAnalyse) || layer < 0)
       continue;
 
-    const auto locPos = m_gmc.rotateToLumiCal(calHitIn.getPosition());
+    const auto locPos = rotateToLumiCal(calHitIn.getPosition());
 
     // streamlog_message(DEBUG2, std::stringstream p;
     //                   p << std::scientific << std::setprecision(3) << "\t Arm, CellId, Pos(x,y,z), hit energy [MeV]:
@@ -126,7 +125,7 @@ edm4hep::CalorimeterHitCollection
 LumiCalClustererClass::createCaloHitCollection(const edm4hep::SimCalorimeterHitCollection& input) const {
   m_alg->debug() << "Creating the CalorimeterHit collection with dummy digitization" << endmsg;
 
-  const double calibrationFactor = m_gmc.getCalibrationFactor();
+  const double calibrationFactor = getCalibrationFactor();
 
   auto caloHitCollection = edm4hep::CalorimeterHitCollection();
   for (const auto& simCaloHit : input) {
