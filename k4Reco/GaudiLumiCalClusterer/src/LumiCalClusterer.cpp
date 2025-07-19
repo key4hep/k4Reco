@@ -66,14 +66,9 @@ void LumiCalClustererClass::init(const std::map<std::string, std::variant<int, f
 
   m_minSeparationDistance = m_minSeparationDist;
 
-  m_thetaContainmentBounds[0] = m_thetaMin;
-  m_thetaContainmentBounds[1] = m_thetaMax;
-
   m_maxLayerToAnalyse = m_numCellsZ;
   m_cellRMax = m_numCellsR;
   m_cellPhiMax = m_numCellsPhi;
-
-  m_zFirstLayer = m_zStart;
 }
 
 /* --------------------------------------------------------------------------
@@ -192,8 +187,6 @@ void LumiCalClustererClass::setConstants(
   m_numOfNearNeighbor = std::get<int>(_lcalRecoPars.at("NumOfNearNeighbor"));
 
   const double beta = tan(m_beamCrossingAngle / 2.0);
-  m_betaGamma = beta;
-  m_gamma = sqrt(1. + beta * beta);
 
   m_armCosAngle[-1] = cos(-m_beamCrossingAngle / 2.);
   m_armCosAngle[1] = cos(m_beamCrossingAngle / 2.);
@@ -246,7 +239,6 @@ bool LumiCalClustererClass::setGeometryDD4hep() {
   m_rCellLength = rPar->typedValue() / dd4hep::mm;
   m_rCellOffset = 0.5 * m_rCellLength + m_rMin - rOff->typedValue() / dd4hep::mm;
   m_phiCellLength = pPar->typedValue() / dd4hep::radian;
-  m_phiCellOffset = pOff->typedValue() / dd4hep::radian;
   m_numCellsR = (int)((m_rMax - m_rMin) / m_rCellLength);
   m_numCellsPhi = (int)(2.0 * M_PI / m_phiCellLength + 0.5);
   m_numCellsZ = layers.size();
@@ -287,10 +279,6 @@ bool LumiCalClustererClass::setGeometryDD4hep() {
       delete tempMat;
     }
   }
-
-  // layer thickness
-  m_zLayerThickness = (layers[0].inner_thickness + layers[0].outer_thickness) / dd4hep::mm;
-  m_zLayerZOffset = (layers[0].inner_thickness) / dd4hep::mm;
 
   // successfully created geometry from DD4hep
   return true;
