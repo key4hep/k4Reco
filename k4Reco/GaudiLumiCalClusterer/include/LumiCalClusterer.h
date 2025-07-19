@@ -102,51 +102,53 @@ public:
                  const edm4hep::CalorimeterHitCollection& calohits) const;
 
   // Direct parameter access
-  double m_beamCrossingAngle;
-  double m_zStart;
-  double m_zEnd;
-  double m_rMin;
-  double m_rMax;
-  int m_numCellsR;
-  int m_numCellsPhi;
-  int m_numCellsZ;
-  double m_rCellLength;
-  double m_rCellOffset;
-  double m_phiCellLength;
-  double m_phiCellOffset;
-  double m_zLayerThickness;
-  double m_zLayerPhiOffset;
-  double m_zLayerZOffset;
-  double m_thetaMin;
-  double m_thetaMax;
-  double m_logWeightConstant;
-  double m_moliereRadius;
-  double m_minSeparationDist;
-  double m_elementsPercentInShowerPeakLayer;
-  int m_numOfNearNeighbor;
-  int m_clusterMinNumHits;
-  double m_minHitEnergy;
-  double m_minClusterEngyGeV;
-  double m_middleEnergyHitBoundFrac;
-  std::string m_weightingMethod;
-  double m_signalToGeV;
-  double m_betaGamma;
-  double m_gamma;
+  double m_beamCrossingAngle{0.0};
+  double m_zStart{0.0};
+  double m_zEnd{0.0};
+  double m_rMin{0.0};
+  double m_rMax{0.0};
+  int m_numCellsR{0};
+  int m_numCellsPhi{0};
+  int m_numCellsZ{0};
+  double m_rCellLength{0.0};
+  double m_rCellOffset{0.0};
+  double m_phiCellLength{0.0};
+  double m_phiCellOffset{0.0};
+  double m_zLayerThickness{0.0};
+  double m_zLayerPhiOffset{0.0};
+  double m_zLayerZOffset{0.0};
+  double m_thetaMin{0.0};
+  double m_thetaMax{0.0};
+  double m_logWeightConstant{0.0};
+  double m_moliereRadius{0.0};
+  double m_minSeparationDist{0.0};
+  double m_elementsPercentInShowerPeakLayer{0.03};
+  int m_numOfNearNeighbor{6};
+  int m_clusterMinNumHits{15};
+  double m_minHitEnergy{5 * 1e-6};
+  double m_minClusterEngyGeV{0.0};
+  double m_middleEnergyHitBoundFrac{0.01};
+  std::string m_weightingMethod{"LogMethod"};
+  double m_signalToGeV{1.0};
+  double m_betaGamma{0.0};
+  double m_gamma{1.0};
 
 private:
   // Processor Parameters
-  double m_hitMinEnergy;
+  double m_hitMinEnergy{5 * 1e-6};
 
   // global variables
-  int m_numEventsPerTree, m_resetRootTrees;
-  size_t m_maxLayerToAnalyse;
-  int m_zFirstLayer;
-  double m_logWeightConst;
-  int m_nNearNeighbor;
-  int m_cellRMax, m_cellPhiMax;
-  WeightingMethod_t m_methodCM;
-  double m_thetaContainmentBounds[2];
-  double m_minSeparationDistance;
+  int m_numEventsPerTree{0};
+  int m_resetRootTrees{0};
+  size_t m_maxLayerToAnalyse{0};
+  int m_zFirstLayer{0};
+  double m_logWeightConst{0.0};
+  int m_nNearNeighbor{6};
+  int m_cellRMax{0};
+  int m_cellPhiMax{0};
+  WeightingMethod_t m_methodCM{LogMethod};
+  double m_thetaContainmentBounds[2]{0.0, 0.0};
+  double m_minSeparationDistance{0.0};
 
   MapIntDouble m_totEngyArm;
   MapIntInt m_numHitsInArm;
@@ -154,12 +156,12 @@ private:
 
   std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_mydecoder{};
 
-  bool m_cutOnFiducialVolume = false;
+  bool m_cutOnFiducialVolume{false};
 
   const Gaudi::Algorithm* m_alg;
 
   // From GlobalMethodsClass
-  double m_backwardRotationPhi;
+  double m_backwardRotationPhi{0.0};
   std::map<int, double> m_armCosAngle{};
   std::map<int, double> m_armSinAngle{};
 

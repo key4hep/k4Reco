@@ -2,7 +2,7 @@
  * Copyright (c) 2020-2024 Key4hep-Project.
  *
  * This file is part of Key4hep.
- * See https://key4hep.github.io/key4hep-doc/ for further info.
+ * See https://key4hep-doc/ for further info.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,18 +48,7 @@
 #include <utility>
 #include <vector>
 
-LumiCalClustererClass::LumiCalClustererClass(const Gaudi::Algorithm* alg)
-    : m_superClusterIdToCellId(), m_superClusterIdToCellEngy(), m_superClusterIdClusterInfo(), m_beamCrossingAngle(0.0),
-      m_zStart(0.0), m_zEnd(0.0), m_rMin(0.0), m_rMax(0.0), m_numCellsR(0), m_numCellsPhi(0), m_numCellsZ(0),
-      m_rCellLength(0.0), m_rCellOffset(0.0), m_phiCellLength(0.0), m_phiCellOffset(0.0), m_zLayerThickness(0.0),
-      m_zLayerPhiOffset(0.0), m_zLayerZOffset(0.0), m_thetaMin(0.0), m_thetaMax(0.0), m_logWeightConstant(0.0),
-      m_moliereRadius(0.0), m_minSeparationDist(0.0), m_elementsPercentInShowerPeakLayer(0.03), m_numOfNearNeighbor(6),
-      m_clusterMinNumHits(15), m_minHitEnergy(5 * 1e-6), m_minClusterEngyGeV(0.0), m_middleEnergyHitBoundFrac(0.01),
-      m_weightingMethod("LogMethod"), m_signalToGeV(1.0), m_betaGamma(0.0), m_gamma(1.0), m_hitMinEnergy(5 * 1e-6),
-      // global variables
-      m_numEventsPerTree(0), m_resetRootTrees(0), m_maxLayerToAnalyse(0), m_zFirstLayer(0), m_logWeightConst(0.0),
-      m_nNearNeighbor(6), m_cellRMax(0), m_cellPhiMax(0), m_methodCM(LogMethod), m_thetaContainmentBounds(),
-      m_minSeparationDistance(), m_totEngyArm(), m_numHitsInArm(), m_alg(alg), m_backwardRotationPhi(0.0) {}
+LumiCalClustererClass::LumiCalClustererClass(const Gaudi::Algorithm* alg) : m_alg(alg) {}
 
 void LumiCalClustererClass::createDecoder(const std::string& decoderString) {
   m_mydecoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(decoderString);
