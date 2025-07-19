@@ -38,12 +38,9 @@ double getDistanceAroundCMWithEnergyPercent(LCCluster const& clusterCM, VInt con
 double getMoliereRadius(MapIntCalHit const& calHitsCellId, VInt const& clusterIdToCellId, LCCluster const& clusterCM );
 ```
 
-GlobalMethodsClass: Removed
-```
-void thetaPhiCell(const int cellId, std::map<GlobalMethodsClass::Coordinate_t, double>& thetaPhiCell) const;
-double toSignal(const double valNow) const;
-static std::string getParameterName(Parameter_t par);
-```
+GlobalMethodsClass: The class has been removed and the parameters moved to
+`LumiCalClusterer.h` since they were in two different places but copied from one
+to another.
 
 VirtualCluster: The class has been removed since it's a wrapper around a
 3-vector, so `edm4hep::Vector3d` is used instead.

@@ -31,7 +31,6 @@
 #define _MOL_RAD_CORRECT_DEBUG 0
 
 #include "Global.h"
-#include "GlobalMethodsClass.h"
 #include "LCCluster.h"
 
 #include <DDSegmentation/BitFieldCoder.h>
@@ -39,10 +38,18 @@
 #include <Gaudi/Algorithm.h>
 
 #include <edm4hep/CalorimeterHitCollection.h>
+#include <edm4hep/Cluster.h>
+#include <edm4hep/ReconstructedParticle.h>
 #include <edm4hep/SimCalorimeterHitCollection.h>
+#include <edm4hep/Vector3f.h>
 
+#include <array>
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
+#include <tuple>
+#include <variant>
 
 enum RETVAL {
   NOK = 0,
@@ -52,6 +59,10 @@ enum RETVAL {
 class LumiCalClustererClass {
 
 public:
+  enum WeightingMethod_t { LogMethod = -1, EnergyMethod = 1 };
+
+  enum Coordinate_t { COTheta, COPhi, COZ, COR, COP, COA };
+
   // Constructor
   LumiCalClustererClass(const Gaudi::Algorithm* alg);
   LumiCalClustererClass(LumiCalClustererClass const& rhs) = delete;
@@ -61,7 +72,7 @@ public:
   ~LumiCalClustererClass() = default;
 
   // initialization routine - Called at the begining of the job.
-  void init(GlobalMethodsClass const& gmc);
+  void init(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars);
 
   /// set the cutOnFiducialVolume flag
   void setCutOnFiducialVolume(bool cutFlag) { m_cutOnFiducialVolume = cutFlag; }
@@ -75,25 +86,67 @@ public:
   MapIntMapIntVDouble m_superClusterIdToCellEngy;
   MapIntMapIntLCCluster m_superClusterIdClusterInfo;
 
-protected:
-  // Processor Parameters
+  // Methods from GlobalMethodsClass
+  void setConstants(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars);
+  WeightingMethod_t getMethod(const std::string& methodName) const;
+  double toGev(const double valNow) const;
+  static void cellIdZPR(const int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
+  static int cellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm);
+  static int cellIdZPR(const int cellId, const Coordinate_t ZPR);
+  static double posWeight(const double cellEngy, const double totEngy, const WeightingMethod_t method,
+                          const double logWeightConstNow);
+  inline double getCalibrationFactor() const { return m_signalToGeV; }
+  std::array<double, 3> rotateToLumiCal(const edm4hep::Vector3f& glob) const;
+  std::tuple<std::optional<edm4hep::MutableCluster>, std::optional<edm4hep::MutableReconstructedParticle>>
+  getLCIOObjects(const LCCluster& thisClusterInfo, const double minClusterEnergy, const bool cutOnFiducialVolume,
+                 const edm4hep::CalorimeterHitCollection& calohits) const;
+
+  // Direct parameter access
+  double m_beamCrossingAngle;
+  double m_zStart;
+  double m_zEnd;
+  double m_rMin;
+  double m_rMax;
+  int m_numCellsR;
+  int m_numCellsPhi;
+  int m_numCellsZ;
+  double m_rCellLength;
+  double m_rCellOffset;
+  double m_phiCellLength;
+  double m_phiCellOffset;
+  double m_zLayerThickness;
+  double m_zLayerPhiOffset;
+  double m_zLayerZOffset;
+  double m_thetaMin;
+  double m_thetaMax;
+  double m_logWeightConstant;
+  double m_moliereRadius;
+  double m_minSeparationDist;
+  double m_elementsPercentInShowerPeakLayer;
+  int m_numOfNearNeighbor;
   int m_clusterMinNumHits;
+  double m_minHitEnergy;
+  double m_minClusterEngyGeV;
+  double m_middleEnergyHitBoundFrac;
+  std::string m_weightingMethod;
+  double m_signalToGeV;
+  double m_betaGamma;
+  double m_gamma;
+
+private:
+  // Processor Parameters
   double m_hitMinEnergy;
 
   // global variables
   int m_numEventsPerTree, m_resetRootTrees;
   size_t m_maxLayerToAnalyse;
-  double m_zFirstLayer, m_zLayerThickness, m_zLayerPhiOffset, m_rMin, m_rMax, m_rCellLength, m_phiCellLength;
-  double m_beamCrossingAngle;
-  double m_elementsPercentInShowerPeakLayer;
+  int m_zFirstLayer;
   double m_logWeightConst;
   int m_nNearNeighbor;
   int m_cellRMax, m_cellPhiMax;
-  double m_middleEnergyHitBoundFrac;
-  GlobalMethodsClass::WeightingMethod_t m_methodCM;
-  double m_moliereRadius;
+  WeightingMethod_t m_methodCM;
   double m_thetaContainmentBounds[2];
-  double m_minSeparationDistance, m_minClusterEngyGeV;
+  double m_minSeparationDistance;
 
   MapIntDouble m_totEngyArm;
   MapIntInt m_numHitsInArm;
@@ -101,11 +154,14 @@ protected:
 
   std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_mydecoder{};
 
-  GlobalMethodsClass m_gmc;
-
   bool m_cutOnFiducialVolume = false;
 
   const Gaudi::Algorithm* m_alg;
+
+  // From GlobalMethodsClass
+  double m_backwardRotationPhi;
+  std::map<int, double> m_armCosAngle{};
+  std::map<int, double> m_armSinAngle{};
 
   std::pair<int, edm4hep::CalorimeterHitCollection> getCalHits(const edm4hep::SimCalorimeterHitCollection& col,
                                                                MapIntMapIntVCalHit& calHits);
@@ -152,23 +208,20 @@ protected:
 
   int getNeighborId(int cellId, const int neighborIndex);
 
-  double posWeight(const CalHit& calHit, const GlobalMethodsClass::WeightingMethod_t method) const;
+  double posWeight(const CalHit& calHit, const WeightingMethod_t method) const;
 
-  double posWeightTrueCluster(const CalHit& calHit, const double cellEngy,
-                              GlobalMethodsClass::WeightingMethod_t method) const;
+  double posWeightTrueCluster(const CalHit& calHit, const double cellEngy, WeightingMethod_t method) const;
 
-  LCCluster calculateEngyPosCM(const VInt& cellIdV, const MapIntCalHit& calHitsCellId,
-                               const GlobalMethodsClass::WeightingMethod_t method);
+  LCCluster calculateEngyPosCM(const VInt& cellIdV, const MapIntCalHit& calHitsCellId, const WeightingMethod_t method);
 
   void calculateEngyPosCM_EngyV(const VInt& cellIdV, const VDouble& cellEngyV, MapIntCalHit const& calHitsCellId,
-                                MapIntLCCluster& clusterCM, int clusterId,
-                                GlobalMethodsClass::WeightingMethod_t method);
+                                MapIntLCCluster& clusterCM, int clusterId, WeightingMethod_t method);
 
   void updateEngyPosCM(const CalHit& calHit, LCCluster& clusterCM);
 
   int checkClusterMergeCM(int clusterId1, int clusterId2, MapIntVInt const& clusterIdToCellId,
                           MapIntCalHit const& calHitsCellId, double distanceAroundCM, double percentOfEngyAroungCM,
-                          GlobalMethodsClass::WeightingMethod_t method);
+                          WeightingMethod_t method);
 
   double getEngyInMoliereFraction(MapIntCalHit const& calHitsCellId, VInt const& clusterIdToCellId,
                                   LCCluster const& clusterCM, double moliereFraction);
@@ -180,6 +233,11 @@ protected:
 
   std::string printClusters(const int armNow, MapIntMapIntLCCluster const& superClusterCM) const;
   std::string printClusters(MapIntLCCluster const& superClusterCM) const;
+
+  // Private methods from GlobalMethodsClass
+  edm4hep::Vector3f rotateToGlobal(const edm4hep::Vector3f& loc) const;
+  void printAllParameters() const;
+  bool setGeometryDD4hep();
 };
 
 #endif // K4RECO_LUMICALCLUSTERER_H

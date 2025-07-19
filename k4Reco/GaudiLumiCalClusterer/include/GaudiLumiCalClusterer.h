@@ -19,7 +19,6 @@
 #ifndef K4RECO_GAUDILUMICALCLUSTERER_H
 #define K4RECO_GAUDILUMICALCLUSTERER_H
 
-#include "GlobalMethodsClass.h"
 #include "LumiCalClusterer.h"
 
 #include <edm4hep/CalorimeterHitCollection.h>
@@ -60,7 +59,6 @@ public:
 
   double m_BeamCrossingAngle;
 
-  GlobalMethodsClass m_gmc;
   mutable LumiCalClustererClass m_lumiCalClusterer;
 
   // void CreateClusters(std::map<int, MapIntPClusterClass>& clusterClassMapP, EVENT::LCEvent* evt);
