@@ -57,8 +57,6 @@ public:
   std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::ClusterCollection, edm4hep::ReconstructedParticleCollection>
   operator()(const edm4hep::SimCalorimeterHitCollection&) const override;
 
-  double m_BeamCrossingAngle;
-
   mutable LumiCalClustererClass m_lumiCalClusterer;
 
   // void CreateClusters(std::map<int, MapIntPClusterClass>& clusterClassMapP, EVENT::LCEvent* evt);
