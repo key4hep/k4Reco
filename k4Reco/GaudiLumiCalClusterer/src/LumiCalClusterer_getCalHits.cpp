@@ -51,7 +51,7 @@ LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& co
 
     const double engyHit = static_cast<double>(calHitIn.getEnergy());
 
-    if (engyHit < m_hitMinEnergy)
+    if (engyHit < m_minHitEnergy)
       continue;
 
     arm = m_mydecoder->get(calHitIn.getCellID(), "barrel"); // from 1 and 2
