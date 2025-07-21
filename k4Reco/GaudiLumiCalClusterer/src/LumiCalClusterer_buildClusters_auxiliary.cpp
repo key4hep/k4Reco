@@ -1439,7 +1439,6 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
 
       totEngyInAllMol += superClusterEngyInMoliere[superClusterId];
       totEngyArmAboveMin += superCluster.getE();
-
     }
 
     superClusterMolRatio = totEngyInAllMol / totEngyArmAboveMin;
