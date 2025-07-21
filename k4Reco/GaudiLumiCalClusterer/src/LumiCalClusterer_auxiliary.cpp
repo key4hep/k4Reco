@@ -90,7 +90,7 @@ double LumiCalClustererClass::posWeight(const CalHit& calHit, const WeightingMet
 //    compute center of mass of each cluster
 //    (3). calculate the map clusterCM from scratch
 //    -------------------------------------------------------------------------- */
-LCCluster LumiCalClustererClass::calculateEngyPosCM(VInt const& cellIdV, MapIntCalHit const& calHitsCellId,
+LCCluster LumiCalClustererClass::calculateEngyPosCM(const VInt& cellIdV, const MapIntCalHit& calHitsCellId,
                                                     WeightingMethod_t method) {
 
   double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);
@@ -133,8 +133,8 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM(VInt const& cellIdV, MapIntC
 //    compute center of mass of each cluster
 //    (3). calculate the map clusterCM from scratch
 //    -------------------------------------------------------------------------- */
-void LumiCalClustererClass::calculateEngyPosCM_EngyV(VInt const& cellIdV, VDouble const& cellEngyV,
-                                                     MapIntCalHit const& calHitsCellId, MapIntLCCluster& clusterCM,
+void LumiCalClustererClass::calculateEngyPosCM_EngyV(const VInt& cellIdV, const VDouble& cellEngyV,
+                                                     const MapIntCalHit& calHitsCellId, MapIntLCCluster& clusterCM,
                                                      int clusterId, WeightingMethod_t method) {
 
   double totEngy(0.0), xHit(0.0), yHit(0.0), zHit(0.0), thetaHit(0.0), weightSum(0.0);

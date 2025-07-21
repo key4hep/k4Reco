@@ -195,20 +195,20 @@ private:
 
   LCCluster calculateEngyPosCM(const VInt& cellIdV, const MapIntCalHit& calHitsCellId, const WeightingMethod_t method);
 
-  void calculateEngyPosCM_EngyV(const VInt& cellIdV, const VDouble& cellEngyV, MapIntCalHit const& calHitsCellId,
+  void calculateEngyPosCM_EngyV(const VInt& cellIdV, const VDouble& cellEngyV, const MapIntCalHit& calHitsCellId,
                                 MapIntLCCluster& clusterCM, int clusterId, WeightingMethod_t method);
 
   void updateEngyPosCM(const CalHit& calHit, LCCluster& clusterCM);
 
-  int checkClusterMergeCM(int clusterId1, int clusterId2, MapIntVInt const& clusterIdToCellId,
-                          MapIntCalHit const& calHitsCellId, double distanceAroundCM, double percentOfEngyAroungCM,
+  int checkClusterMergeCM(int clusterId1, int clusterId2, const MapIntVInt& clusterIdToCellId,
+                          const MapIntCalHit& calHitsCellId, double distanceAroundCM, double percentOfEngyAroungCM,
                           WeightingMethod_t method);
 
-  double getEngyInMoliereFraction(MapIntCalHit const& calHitsCellId, VInt const& clusterIdToCellId,
-                                  LCCluster const& clusterCM, double moliereFraction);
+  double getEngyInMoliereFraction(const MapIntCalHit& calHitsCellId, const VInt& clusterIdToCellId,
+                                  const LCCluster& clusterCM, double moliereFraction);
 
-  double getEngyInMoliereFraction(MapIntCalHit const& calHitsCellId, VInt const& clusterIdToCellId,
-                                  LCCluster const& clusterCM, double moliereFraction, MapIntInt& flag);
+  double getEngyInMoliereFraction(const MapIntCalHit & calHitsCellId, const VInt& clusterIdToCellId,
+                                  const LCCluster& clusterCM, double moliereFraction, MapIntInt& flag);
 
   // void dumpClusters( MapIntLCCluster const& clusterCM );
 
