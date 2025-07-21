@@ -17,25 +17,22 @@
  * limitations under the License.
  */
 
-// Local
 #include "Global.h"
 #include "LCCluster.h"
 #include "LumiCalClusterer.h"
 #include "LumiCalHit.h"
-// Root
+
 #include <TH1.h>
-// stdlib
+
 #include <cmath>
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
-// IWYU pragma: no_include <bits/shared_ptr.h>
-
 void LumiCalClustererClass::energyCorrections(MapIntVInt& superClusterIdToCellId,
                                               MapIntVDouble& superClusterIdToCellEngy, MapIntLCCluster& superClusterCM,
-                                              MapIntCalHit const& calHitsCellIdGlobal) {
+                                              const MapIntCalHit& calHitsCellIdGlobal) {
   std::map<int, std::vector<int>>::iterator superClusterIdToCellIdIterator;
 
   std::vector<int> cellIdV;
