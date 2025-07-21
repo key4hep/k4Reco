@@ -88,7 +88,6 @@ public:
 
   // Methods from GlobalMethodsClass
   void setConstants(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars);
-  WeightingMethod_t getMethod(const std::string& methodName) const;
   double toGev(const double valNow) const;
   static void cellIdZPR(const int cellId, int& cellZ, int& cellPhi, int& cellR, int& arm);
   static int cellIdZPR(const int cellZ, const int cellPhi, const int cellR, const int arm);
@@ -125,7 +124,6 @@ public:
   double m_minHitEnergy{5 * 1e-6};
   double m_minClusterEngyGeV{0.0};
   double m_middleEnergyHitBoundFrac{0.01};
-  std::string m_weightingMethod{"LogMethod"};
   double m_signalToGeV{1.0};
 
 private:
