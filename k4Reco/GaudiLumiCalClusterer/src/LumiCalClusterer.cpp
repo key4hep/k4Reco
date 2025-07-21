@@ -48,10 +48,10 @@
 #include <utility>
 #include <vector>
 
-const int SHIFT_I_32Fcal = 0;   // I = 10 bits  ( ring )
-const int SHIFT_J_32Fcal = 10;  // J = 10 bits  ( sector)
-const int SHIFT_K_32Fcal = 20;  // K = 10 bits  ( layer )
-const int SHIFT_S_32Fcal = 30;  // S =  2 bits  ( side/arm )
+const int SHIFT_I_32Fcal = 0;  // I = 10 bits  ( ring )
+const int SHIFT_J_32Fcal = 10; // J = 10 bits  ( sector)
+const int SHIFT_K_32Fcal = 20; // K = 10 bits  ( layer )
+const int SHIFT_S_32Fcal = 30; // S =  2 bits  ( side/arm )
 
 const unsigned int MASK_I_32Fcal = 0x000003FF; // 10 bits
 const unsigned int MASK_J_32Fcal = 0x000FFC00; // 10 bits
@@ -310,7 +310,7 @@ LumiCalClustererClass::getLCIOObjects(const LCCluster& thisClusterInfo, const do
     return std::make_tuple(std::nullopt, std::nullopt);
 
   if (cutOnFiducialVolume && std::abs(thisClusterInfo.getTheta() - ThetaMid) > ThetaTol) {
-      return std::make_tuple(std::nullopt, std::nullopt);
+    return std::make_tuple(std::nullopt, std::nullopt);
   }
 
   auto cluster = edm4hep::MutableCluster();
@@ -348,7 +348,7 @@ LumiCalClustererClass::getLCIOObjects(const LCCluster& thisClusterInfo, const do
 /* ============================================================================
    main actions in each event:
    ========================================================================= */
-std::pair<RETVAL, edm4hep::CalorimeterHitCollection>
+std::optional<edm4hep::CalorimeterHitCollection>
 LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& col) {
   // increment / initialize global variables
   m_totEngyArm[-1] = m_totEngyArm[1] = 0.;
@@ -365,7 +365,7 @@ LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& 
 
   auto [retval, calohits] = getCalHits(col, calHits);
   if (!retval)
-    return {RETVAL::NOK, std::move(calohits)};
+    return {};
 
   for (const int armNow : {-1, 1}) {
     m_alg->debug() << endmsg << "ARM = " << armNow << " : " << endmsg << endmsg;
@@ -424,5 +424,5 @@ LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& 
     }
   }
 
-  return {RETVAL::OK, std::move(calohits)};
+  return std::move(calohits);
 }
