@@ -111,6 +111,11 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
     }
   }
 
-  return std::make_tuple(std::move(calhits).value_or(edm4hep::CalorimeterHitCollection()), std::move(LCalClusterCol),
-                         std::move(LCalRPCol));
+
+  if (calhits.has_value()) {
+    return std::make_tuple(std::move(calhits.value()), std::move(LCalClusterCol), std::move(LCalRPCol));
+  } else {
+    return std::make_tuple(edm4hep::CalorimeterHitCollection(), edm4hep::ClusterCollection(),
+                           edm4hep::ReconstructedParticleCollection());
+  }
 }
