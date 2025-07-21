@@ -51,7 +51,6 @@
 class LumiCalClustererClass {
 
 public:
-
   using MapIntVInt = std::map<int, std::vector<int>>;
   enum WeightingMethod_t { LogMethod = -1, EnergyMethod = 1 };
 
@@ -178,7 +177,7 @@ private:
                                MapIntInt& cellIdToSuperClusterId, MapIntVInt& superClusterIdToCellId,
                                MapIntLCCluster& superClusterCM, double middleEnergyHitBound, int detectorArm);
 
-  void energyCorrections(MapIntVInt& superClusterIdToCellId, MapIntVDouble& superClusterIdToCellEngy,
+  void energyCorrections(const MapIntVInt& superClusterIdToCellId, MapIntVDouble& superClusterIdToCellEngy,
                          MapIntLCCluster& superClusterCM, const MapIntCalHit& calHitsCellIdGlobal);
 
   void clusterMerger(MapIntVDouble& clusterIdToCellEngy, MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,
@@ -207,7 +206,7 @@ private:
   double getEngyInMoliereFraction(const MapIntCalHit& calHitsCellId, const VInt& clusterIdToCellId,
                                   const LCCluster& clusterCM, double moliereFraction);
 
-  double getEngyInMoliereFraction(const MapIntCalHit & calHitsCellId, const VInt& clusterIdToCellId,
+  double getEngyInMoliereFraction(const MapIntCalHit& calHitsCellId, const VInt& clusterIdToCellId,
                                   const LCCluster& clusterCM, double moliereFraction, MapIntInt& flag);
 
   // void dumpClusters( MapIntLCCluster const& clusterCM );
