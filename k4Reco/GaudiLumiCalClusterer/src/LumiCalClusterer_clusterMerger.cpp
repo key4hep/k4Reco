@@ -169,26 +169,6 @@ void LumiCalClustererClass::clusterMerger(MapIntVDouble& clusterIdToCellEngy, Ma
     idToCellEngy.clear();
   }
 
-  /* --------------------------------------------------------------------------
-     verbosity
-     -------------------------------------------------------------------------- */
-#if _GENERAL_CLUSTERER_DEBUG == 1
-  if (!clusterIdToCellId.empty()) {
-    m_alg->debug() << "Clusters:" << endmsg;
-  } else {
-    m_alg->debug() << "No Clusters on this side" << endmsg;
-  }
-
-  clusterIdToCellIdIterator = clusterIdToCellId.begin();
-  numClusters = clusterIdToCellId.size();
-  for (int clusterNow = 0; clusterNow < numClusters; clusterNow++, clusterIdToCellIdIterator++) {
-    clusterId = (int)(*clusterIdToCellIdIterator).first;
-
-    m_alg->debug() << "Id " << std::setw(4) << clusterId << clusterCM[clusterId] << endmsg;
-  }
-
-#endif
-
   // cleanUp
   allClusterIds.clear();
 }

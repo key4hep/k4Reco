@@ -55,10 +55,6 @@ void LumiCalClustererClass::fiducialVolumeCuts(std::map<int, std::vector<int>>& 
   for (size_t superClusterNow = 0; superClusterNow < clusterIdToErase.size(); superClusterNow++) {
     superClusterId = clusterIdToErase[superClusterNow];
 
-#if _GENERAL_CLUSTERER_DEBUG == 1
-    m_alg->debug() << "\tErase cluster " << superClusterId << endmsg;
-#endif
-
     superClusterIdToCellId.erase(superClusterId);
     superClusterIdToCellEngy.erase(superClusterId);
     superClusterCM.erase(superClusterId);

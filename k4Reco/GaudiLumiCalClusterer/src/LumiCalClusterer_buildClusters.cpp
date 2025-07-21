@@ -75,7 +75,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   /* --------------------------------------------------------------------------
      determine the total energy of the hits in the arm
      -------------------------------------------------------------------------- */
-#if _GENERAL_CLUSTERER_DEBUG == 1 || _CLUSTER_BUILD_DEBUG == 1
+#if _CLUSTER_BUILD_DEBUG == 1
   std::string detectorArmName;
   if (detectorArm > 0)
     detectorArmName = "positive detector arm";

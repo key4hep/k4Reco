@@ -1433,24 +1433,13 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
     totEngyArmAboveMin = 0.;
     totEngyInAllMol = 0.;
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-    cout << endl << coutBlue << "Merged superCluster(s):" << coutDefault << endl;
-#endif
-
-    for (auto& [superClusterId, superCluster] : superClusterCM) {
+    for (const auto& [superClusterId, superCluster] : superClusterCM) {
       superClusterEngyInMoliere[superClusterId] =
           getEngyInMoliereFraction(calHitsCellIdGlobal, superClusterIdToCellId[superClusterId], superCluster, 1.);
 
       totEngyInAllMol += superClusterEngyInMoliere[superClusterId];
       totEngyArmAboveMin += superCluster.getE();
 
-#if _MOL_RAD_CORRECT_DEBUG == 1
-      double engyPercentInMol = superClusterEngyInMoliere[superClusterId] / superCluster.getE();
-      cout << "superCluster " << superClusterId << " \tat (x,y) = (" << superCluster.getX() << " , "
-           << superCluster.getY()
-           << ")   \t engy in m_moliereRadius  \t=   " << superClusterEngyInMoliere[superClusterId]
-           << " \t-> % totEngy = \t " << engyPercentInMol << coutDefault << endl;
-#endif
     }
 
     superClusterMolRatio = totEngyInAllMol / totEngyArmAboveMin;

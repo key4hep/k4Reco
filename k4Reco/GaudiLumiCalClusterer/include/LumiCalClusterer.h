@@ -28,7 +28,6 @@
 #define _GENERAL_CLUSTERER_DEBUG 0
 #define _CLUSTER_BUILD_DEBUG 0
 #define _VIRTUALCLUSTER_BUILD_DEBUG 0
-#define _MOL_RAD_CORRECT_DEBUG 0
 
 #include "Global.h"
 #include "LCCluster.h"
