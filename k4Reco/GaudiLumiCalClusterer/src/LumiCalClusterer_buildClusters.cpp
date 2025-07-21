@@ -122,7 +122,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
     for (std::size_t j = 0; j < numHitsInLayer; j++) {
       int cellIdHit = hitsVec[j]->getCellID0();
       double cellEngy = hitsVec[j]->getEnergy();
-      if (cellEngy >= m_hitMinEnergy) {
+      if (cellEngy >= m_minHitEnergy) {
 #if _CLUSTER_MIDDLE_RANGE_ENGY_HITS == 1
         /* split hits in ShowerPeakLayer into two sets one with hit energy below
          * and the other above middleEnergyHitBound
@@ -147,7 +147,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   /* --------------------------------------------------------------------------
      fill calHitsCellId with the layer tagged cal hits. for showerPeak layers
      separate cal hits with energy above/below the middleEnergyHitBound.
-     in any case only choose hits with energy above the m_hitMinEnergy cut
+     in any case only choose hits with energy above the m_minHitEnergy cut
      -------------------------------------------------------------------------- */
   /*(BP)
   for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt!=calHits.end(); ++calHitsIt) {
@@ -156,7 +156,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       int       cellIdHit = (int)calHitsIt->second[j]->getCellID0();
       double    cellEngy = (double)calHitsIt->second[j]->getEnergy();
       const int layerNow = calHitsIt->first;
-      if(cellEngy < m_hitMinEnergy) continue;
+      if(cellEngy < m_minHitEnergy) continue;
       //(BP) Bug ? No matter what is value of the option: _CLUSTER_MIDDLE_RANGE_ENGY_HITS
         -  calHitsCellId contains all hits
       if(cellEngy > middleEnergyHitBound) calHitsCellId[layerNow][cellIdHit] = calHitsIt->second[j];

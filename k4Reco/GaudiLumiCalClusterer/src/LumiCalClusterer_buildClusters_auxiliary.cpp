@@ -1132,8 +1132,8 @@ int LumiCalClustererClass::engyInMoliereCorrections(MapIntCalHit const& calHitsC
             thisProjection.addHit(thisCalHit);
           }
         }
-        // store all hits above m_hitMinEnergy energy
-        if (cellEngy > m_hitMinEnergy) {
+        // store all hits above m_minHitEnergy energy
+        if (cellEngy > m_minHitEnergy) {
           ProjectionInfo& thisProjection = calHitsProjectionFull[cellIdProjection];
           if (thisProjection.newObject) {
             thisProjection = ProjectionInfo(thisCalHit, cellIdHitZ);

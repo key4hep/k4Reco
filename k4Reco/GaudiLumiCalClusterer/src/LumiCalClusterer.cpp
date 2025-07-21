@@ -75,7 +75,6 @@ void LumiCalClustererClass::init(const std::map<std::string, std::variant<int, f
     throw std::runtime_error("Unknown weighting method: " + std::get<std::string>(_lcalRecoPars.at("WeightingMethod")));
   }
 
-  m_hitMinEnergy = m_minHitEnergy;
   m_nNearNeighbor = m_numOfNearNeighbor;
 
   m_logWeightConst = m_logWeightConstant;
