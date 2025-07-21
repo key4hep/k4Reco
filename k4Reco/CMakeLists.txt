@@ -21,7 +21,6 @@ set(sources
   DDPlanarDigi/components/DDPlanarDigi.cpp
   Overlay/components/OverlayTiming.cpp
   GaudiLumiCalClusterer/components/GaudiLumiCalClusterer.cpp
-  GaudiLumiCalClusterer/src/GlobalMethodsClass.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_getCalHits.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_buildClusters.cpp
