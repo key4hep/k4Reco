@@ -75,8 +75,6 @@ public:
 
   Gaudi::Property<double> m_logWeigthConstant{this, "LogWeigthConstant", 6.,
                                               "Sets minimum for logarithmic energy weights"};
-  Gaudi::Property<double> m_zLayerPhiOffset{
-      this, "ZLayerPhiOffset", 3.75, "Relative offset of LCal z-layers [deg] default is half of the phi sector size"};
   Gaudi::Property<double> m_EnergyCalibConst{
       this, "EnergyCalibConst", 0.0105, "Calibration const E_dep = EnergyCalibConst*E_primary ( default for LCal ILD)"};
   Gaudi::Property<double> m_rMoliere{this, "MoliereRadius", 16.,

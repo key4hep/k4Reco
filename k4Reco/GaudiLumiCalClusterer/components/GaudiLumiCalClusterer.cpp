@@ -55,7 +55,6 @@ StatusCode GaudiLumiCalClusterer::initialize() {
 
   // Set parameters for the LumiCalClusterer
   std::map<std::string, std::variant<int, float, std::string>> parameters;
-  parameters["ZLayerPhiOffset"] = static_cast<float>(m_zLayerPhiOffset);
   parameters["EnergyCalibConst"] = static_cast<float>(m_EnergyCalibConst);
   parameters["LogWeigthConstant"] = static_cast<float>(m_logWeigthConstant);
   parameters["MinHitEnergy"] = static_cast<float>(m_minHitEnergy);

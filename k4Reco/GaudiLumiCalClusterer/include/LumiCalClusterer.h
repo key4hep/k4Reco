@@ -107,7 +107,6 @@ public:
   double m_rCellLength{0.0};
   double m_rCellOffset{0.0};
   double m_phiCellLength{0.0};
-  double m_zLayerPhiOffset{0.0};
   double m_thetaMin{0.0};
   double m_thetaMax{0.0};
   double m_logWeightConstant{0.0};
@@ -122,9 +121,6 @@ private:
   double m_minClusterEngyGeV{0.0};
   double m_middleEnergyHitBoundFrac{0.01};
   double m_signalToGeV{1.0};
-
-  // Processor Parameters
-  double m_hitMinEnergy{5 * 1e-6};
 
   // global variables
   size_t m_maxLayerToAnalyse{0};
