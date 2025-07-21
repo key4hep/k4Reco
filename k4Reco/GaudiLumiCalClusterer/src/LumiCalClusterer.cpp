@@ -48,6 +48,16 @@
 #include <utility>
 #include <vector>
 
+const int SHIFT_I_32Fcal = 0;   // I = 10 bits  ( ring )
+const int SHIFT_J_32Fcal = 10;  // J = 10 bits  ( sector)
+const int SHIFT_K_32Fcal = 20;  // K = 10 bits  ( layer )
+const int SHIFT_S_32Fcal = 30;  // S =  2 bits  ( side/arm )
+
+const unsigned int MASK_I_32Fcal = 0x000003FF; // 10 bits
+const unsigned int MASK_J_32Fcal = 0x000FFC00; // 10 bits
+const unsigned int MASK_K_32Fcal = 0x3FF00000; // 10 bits
+const unsigned int MASK_S_32Fcal = 0xC0000000; // 2 bits
+
 LumiCalClustererClass::LumiCalClustererClass(const Gaudi::Algorithm* alg) : m_alg(alg) {}
 
 void LumiCalClustererClass::createDecoder(const std::string& decoderString) {
@@ -67,7 +77,6 @@ void LumiCalClustererClass::init(const std::map<std::string, std::variant<int, f
 
   m_hitMinEnergy = m_minHitEnergy;
   m_nNearNeighbor = m_numOfNearNeighbor;
-  // m_beamCrossingAngle_cached = m_beamCrossingAngle / 2.;
 
   m_logWeightConst = m_logWeightConstant;
 
@@ -82,16 +91,6 @@ void LumiCalClustererClass::init(const std::map<std::string, std::variant<int, f
    (1):	return a cellId for a given Z (layer), R (cylinder) and Phi (sector)
    (2):	return Z (layer), R (cylinder) and Phi (sector) for a given cellId
    -------------------------------------------------------------------------- */
-
-#define SHIFT_I_32Fcal 0  // I = 10 bits  ( ring )
-#define SHIFT_J_32Fcal 10 // J = 10 bits  ( sector)
-#define SHIFT_K_32Fcal 20 // K = 10 bits  ( layer )
-#define SHIFT_S_32Fcal 30 // S =  2 bits  ( side/arm )
-
-#define MASK_I_32Fcal (unsigned int)0x000003FF
-#define MASK_J_32Fcal (unsigned int)0x000FFC00
-#define MASK_K_32Fcal (unsigned int)0x3FF00000
-#define MASK_S_32Fcal (unsigned int)0xC0000000
 
 std::array<double, 3> LumiCalClustererClass::rotateToLumiCal(const edm4hep::Vector3f& glob) const {
   const int armNow = (glob[2] < 0) ? -1 : 1;

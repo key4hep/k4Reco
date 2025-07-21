@@ -69,8 +69,6 @@ StatusCode GaudiLumiCalClusterer::initialize() {
 
   m_lumiCalClusterer.init(parameters);
 
-  m_BeamCrossingAngle = m_lumiCalClusterer.m_beamCrossingAngle / 2.;
-
   // printParameters();
   // m_lumiCalClusterer.printAllParameters();
 

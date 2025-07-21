@@ -116,6 +116,7 @@ public:
   double m_thetaMin{0.0};
   double m_thetaMax{0.0};
   double m_logWeightConstant{0.0};
+private:
   double m_moliereRadius{0.0};
   double m_minSeparationDist{0.0};
   double m_elementsPercentInShowerPeakLayer{0.03};
@@ -126,7 +127,6 @@ public:
   double m_middleEnergyHitBoundFrac{0.01};
   double m_signalToGeV{1.0};
 
-private:
   // Processor Parameters
   double m_hitMinEnergy{5 * 1e-6};
 
