@@ -388,7 +388,8 @@ LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& 
     /* --------------------------------------------------------------------------
        Perform energy correction for inter-mixed superClusters
        -------------------------------------------------------------------------- */
-#if _CLUSTER_MIXING_ENERGY_CORRECTIONS == 1
+    // The next if used to be controlled by the preprocessor variable
+    // _CLUSTER_MIXING_ENERGY_CORRECTIONS
     if (superClusterCM[armNow].size() == 2) {
       m_alg->debug() << "Run LumiCalClustererClass::energyCorrections()" << endmsg;
       m_alg->debug() << printClusters(armNow, superClusterCM);
@@ -398,7 +399,6 @@ LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& 
       m_alg->debug() << "After LumiCalClustererClass::energyCorrections()" << endmsg;
       m_alg->debug() << printClusters(armNow, superClusterCM);
     }
-#endif
   }
 
   /* --------------------------------------------------------------------------

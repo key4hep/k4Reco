@@ -586,7 +586,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   // cleanUp
   virtualClusterCM.clear();
 
-#if _MOLIERE_RADIUS_CORRECTIONS == 1
+  // The following part used to be controlled by the _MOLIERE_RADIUS_CORRECTIONS preprocessor option
 
   m_alg->debug() << endmsg << "RUN engyInMoliereCorrections() ..." << endmsg;
   m_alg->debug() << printClusters(superClusterCM);
@@ -603,8 +603,6 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   }
   m_alg->debug() << "Ran engyInMoliereCorrections ... successful " << endmsg;
   m_alg->debug() << printClusters(superClusterCM);
-
-#endif // #if _MOLIERE_RADIUS_CORRECTIONS == 1
 
   /* --------------------------------------------------------------------------
      --------------------------------------------------------------------------
