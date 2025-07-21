@@ -38,7 +38,7 @@ set_test_env("run_ddsim")
 # If this is modified, make sure that this simulations produces clusters and reconstructed particles in the LumiCal
 # as this doesn't always happen with the current setting (but does for the current seed)
 add_test(NAME "run_ddsim_LumiCal"
-  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim_lumical.edm4hep.root --gun.energy '50*GeV' --gun.particle 'gamma' --gun.distribution uniform --gun.multiplicity 10 --gun.thetaMin='50*mrad' --gun.thetaMax='100*mrad'
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim_lumical.edm4hep.root --gun.energy '50*GeV' --gun.particle 'gamma' --gun.distribution uniform --gun.multiplicity 10 --gun.thetaMin='50*mrad' --gun.thetaMax='100*mrad'"
   )
 set_test_env("run_ddsim_LumiCal")
 
