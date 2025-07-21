@@ -267,10 +267,6 @@ bool LumiCalClustererClass::setGeometryDD4hep() {
 
       tempMat->LocalToMaster(local, global);
 
-      m_backwardRotationPhi = atan2(local[1], local[0]) - atan2(global[1], global[0]);
-      if (m_backwardRotationPhi < M_PI)
-        m_backwardRotationPhi += 2 * M_PI;
-
       delete tempMat;
     }
   }

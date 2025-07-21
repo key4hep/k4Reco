@@ -21,7 +21,6 @@
 
 // clustering options
 #define _CLUSTER_MIDDLE_RANGE_ENGY_HITS 1
-#define _MOLIERE_RADIUS_CORRECTIONS 1
 
 // verbosity
 #define _GENERAL_CLUSTERER_DEBUG 0
@@ -140,7 +139,6 @@ private:
   const Gaudi::Algorithm* m_alg;
 
   // From GlobalMethodsClass
-  double m_backwardRotationPhi{0.0};
   std::map<int, double> m_armCosAngle{};
   std::map<int, double> m_armSinAngle{};
 
