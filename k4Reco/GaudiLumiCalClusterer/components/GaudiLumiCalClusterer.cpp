@@ -83,13 +83,13 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
      create clusters using: LumiCalClustererClass
      -------------------------------------------------------------------------- */
   // TODO: Remove const_cast
-  auto [status, calhits] = m_lumiCalClusterer.processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
+  auto calhits = m_lumiCalClusterer.processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
 
   auto LCalClusterCol = edm4hep::ClusterCollection();
 
   auto LCalRPCol = edm4hep::ReconstructedParticleCollection();
 
-  if (status == RETVAL::OK) {
+  if (calhits.has_value()) {
     debug() << " Transfering reco results to LCalClusterCollection....." << endmsg;
 
     for (const int armNow : {-1, 1}) {
@@ -101,8 +101,8 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
         LCCluster& thisClusterInfo =
             const_cast<LCCluster&>(m_lumiCalClusterer.m_superClusterIdClusterInfo.at(armNow).at(clusterId));
         thisClusterInfo.recalculatePositionFromHits(m_lumiCalClusterer);
-        const auto& objectTuple =
-            m_lumiCalClusterer.getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
+        const auto& objectTuple = m_lumiCalClusterer.getLCIOObjects(thisClusterInfo, m_minClusterEngy,
+                                                                    m_cutOnFiducialVolume, calhits.value());
         if (!std::get<0>(objectTuple).has_value())
           continue;
 
@@ -112,5 +112,5 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
     }
   }
 
-  return std::make_tuple(std::move(calhits), std::move(LCalClusterCol), std::move(LCalRPCol));
+  return std::make_tuple(std::move(calhits).value_or({}), std::move(LCalClusterCol), std::move(LCalRPCol));
 }

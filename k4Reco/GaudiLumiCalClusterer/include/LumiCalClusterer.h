@@ -51,11 +51,6 @@
 #include <tuple>
 #include <variant>
 
-enum RETVAL {
-  NOK = 0,
-  OK = 1,
-};
-
 class LumiCalClustererClass {
 
 public:
@@ -80,7 +75,7 @@ public:
   void createDecoder(const std::string& decoderString);
 
   // main actions in each event -Called for every event - the working horse.
-  std::pair<RETVAL, edm4hep::CalorimeterHitCollection> processEvent(const edm4hep::SimCalorimeterHitCollection& col);
+  std::optional<edm4hep::CalorimeterHitCollection> processEvent(const edm4hep::SimCalorimeterHitCollection& col);
 
   MapIntMapIntVInt m_superClusterIdToCellId;
   MapIntMapIntVDouble m_superClusterIdToCellEngy;
@@ -116,6 +111,7 @@ public:
   double m_thetaMin{0.0};
   double m_thetaMax{0.0};
   double m_logWeightConstant{0.0};
+
 private:
   double m_moliereRadius{0.0};
   double m_minSeparationDist{0.0};
