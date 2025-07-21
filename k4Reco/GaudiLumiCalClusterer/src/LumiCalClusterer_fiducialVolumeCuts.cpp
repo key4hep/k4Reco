@@ -52,10 +52,10 @@ void LumiCalClustererClass::fiducialVolumeCuts(std::map<int, std::vector<int>>& 
       clusterIdToErase.push_back(superClusterId);
   }
 
-  for (const auto superClusterId : clusterIdToErase) {
-    superClusterIdToCellId.erase(superClusterId);
-    superClusterIdToCellEngy.erase(superClusterId);
-    superClusterCM.erase(superClusterId);
+  for (const auto id : clusterIdToErase) {
+    superClusterIdToCellId.erase(id);
+    superClusterIdToCellEngy.erase(id);
+    superClusterCM.erase(id);
   }
   clusterIdToErase.clear();
 }
