@@ -39,8 +39,6 @@
 class LCCluster;
 class ClusterClass;
 
-typedef std::map<int, std::vector<int>> MapIntVInt;
-
 struct GaudiLumiCalClusterer
     : k4FWCore::MultiTransformer<std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::ClusterCollection,
                                             edm4hep::ReconstructedParticleCollection>(

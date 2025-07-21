@@ -51,6 +51,8 @@
 class LumiCalClustererClass {
 
 public:
+
+  using MapIntVInt = std::map<int, std::vector<int>>;
   enum WeightingMethod_t { LogMethod = -1, EnergyMethod = 1 };
 
   enum Coordinate_t { COTheta, COPhi, COZ, COR, COP, COA };
