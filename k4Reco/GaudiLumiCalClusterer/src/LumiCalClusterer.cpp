@@ -57,7 +57,14 @@ void LumiCalClustererClass::createDecoder(const std::string& decoderString) {
 void LumiCalClustererClass::init(const std::map<std::string, std::variant<int, float, std::string>>& _lcalRecoPars) {
   setConstants(_lcalRecoPars);
 
-  m_methodCM = getMethod(m_weightingMethod);
+  if (std::get<std::string>(_lcalRecoPars.at("WeightingMethod")) == "LogMethod") {
+    m_methodCM = LogMethod;
+  } else if (std::get<std::string>(_lcalRecoPars.at("WeightingMethod")) == "EnergyMethod") {
+    m_methodCM = EnergyMethod;
+  } else {
+    throw std::runtime_error("Unknown weighting method: " + std::get<std::string>(_lcalRecoPars.at("WeightingMethod")));
+  }
+
   m_hitMinEnergy = m_minHitEnergy;
   m_nNearNeighbor = m_numOfNearNeighbor;
   // m_beamCrossingAngle_cached = m_beamCrossingAngle / 2.;
@@ -182,11 +189,8 @@ void LumiCalClustererClass::setConstants(
   m_minClusterEngyGeV = std::get<float>(_lcalRecoPars.at("MinClusterEngy"));
 
   // hits positions weighting method
-  m_weightingMethod = std::get<std::string>(_lcalRecoPars.at("WeightingMethod"));
   m_elementsPercentInShowerPeakLayer = std::get<float>(_lcalRecoPars.at("ElementsPercentInShowerPeakLayer"));
   m_numOfNearNeighbor = std::get<int>(_lcalRecoPars.at("NumOfNearNeighbor"));
-
-  const double beta = tan(m_beamCrossingAngle / 2.0);
 
   m_armCosAngle[-1] = cos(-m_beamCrossingAngle / 2.);
   m_armCosAngle[1] = cos(m_beamCrossingAngle / 2.);
@@ -230,7 +234,7 @@ bool LumiCalClustererClass::setGeometryDD4hep() {
   const ParDou* rPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_r"));
   const ParDou* rOff = dynamic_cast<ParDou*>(readout.segmentation()->parameter("offset_r"));
   const ParDou* pPar = dynamic_cast<ParDou*>(readout.segmentation()->parameter("grid_size_phi"));
-  const ParDou* pOff = dynamic_cast<ParDou*>(readout.segmentation()->parameter("offset_phi"));
+  // const ParDou* pOff = dynamic_cast<ParDou*>(readout.segmentation()->parameter("offset_phi"));
 
   if (!rPar || !pPar) {
     throw std::runtime_error("Could not obtain parameters from segmentation");
@@ -284,16 +288,6 @@ bool LumiCalClustererClass::setGeometryDD4hep() {
   return true;
 }
 
-LumiCalClustererClass::WeightingMethod_t LumiCalClustererClass::getMethod(const std::string& methodName) const {
-  if (methodName == "LogMethod") {
-    return LogMethod;
-  }
-  if (methodName == "EnergyMethod") {
-    return EnergyMethod;
-  }
-  throw std::runtime_error("Unkown weighting method");
-}
-
 double LumiCalClustererClass::posWeight(const double cellEngy, const double totEngy, const WeightingMethod_t method,
                                         const double logWeightConstNow) {
   if (method == EnergyMethod)
@@ -316,9 +310,7 @@ LumiCalClustererClass::getLCIOObjects(const LCCluster& thisClusterInfo, const do
   if (clusterEnergy < minClusterEnergy)
     return std::make_tuple(std::nullopt, std::nullopt);
 
-  if (cutOnFiducialVolume) {
-    const double clusterTheta = thisClusterInfo.getTheta();
-    if (fabs(clusterTheta - ThetaMid) > ThetaTol)
+  if (cutOnFiducialVolume && std::abs(thisClusterInfo.getTheta() - ThetaMid) > ThetaTol) {
       return std::make_tuple(std::nullopt, std::nullopt);
   }
 
