@@ -153,13 +153,6 @@ void LumiCalClustererClass::setConstants(
   //------------------------------------------------------------------------
   // Processor Parameters
   // Clustering/Reco parameters
-  //(BP) layer relative phi offset - must go sometimes to GEAR params
-  const std::string parname = "ZLayerPhiOffset";
-  double val = std::get<float>(_lcalRecoPars.at(parname));
-
-  // check units just in case ( convert to rad as needed )
-  val = (val <= m_phiCellLength) ? val : val * M_PI / 180.;
-  m_zLayerPhiOffset = val;
 
   m_signalToGeV = 1. / std::get<float>(_lcalRecoPars.at("EnergyCalibConst"));
 

@@ -67,7 +67,6 @@ clustering.NumOfNearNeighbor = 6
 clustering.OutDirName = "rootOut"
 clustering.OutRootFileName = ""
 clustering.WeightingMethod = "LogMethod"
-clustering.ZLayerPhiOffset = 0.0
 
 
 ApplicationMgr(
