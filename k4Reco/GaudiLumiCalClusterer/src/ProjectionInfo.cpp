@@ -30,12 +30,6 @@ ProjectionInfo::ProjectionInfo(CalHit const& calHit, int cellIdZ)
   m_position[0] = calHit->getPosition()[0];
   m_position[1] = calHit->getPosition()[1];
   m_position[2] = calHit->getPosition()[2];
-  // TODO: Actually insert
-  // hits.insert(calHit->beginHits(), calHit->endHits());
 }
 
-void ProjectionInfo::addHit(CalHit const& calHit) {
-  // TODO: Actually insert
-  // hits.insert(calHit->beginHits(), calHit->endHits());
-  m_energy += calHit->getEnergy();
-}
+void ProjectionInfo::addHit(CalHit const& calHit) { m_energy += calHit->getEnergy(); }

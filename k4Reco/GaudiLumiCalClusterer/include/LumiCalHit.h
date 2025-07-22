@@ -23,6 +23,8 @@
 
 #include <edm4hep/CalorimeterHit.h>
 
+#include <set>
+
 /** Class to hold position and energy information of CalorimeterHits in the LumiCal
 
  * To use of projected hits, which derive from multiple CalorimeterHits this
@@ -35,11 +37,7 @@ public:
   LumiCalHit() {}
   LumiCalHit(int cellIDProjection, ProjectionInfo const& projection)
       : m_cellID0(cellIDProjection), m_cellID1(projection.getCellIdHitZ()), m_energy(projection.getEnergy()),
-        m_position{projection.getPosition()[0], projection.getPosition()[1], projection.getPosition()[2]} {
-    for (size_t i = 0; i < projection.getCaloHits().size(); ++i) {
-      m_caloHits.insert(i);
-    }
-  }
+        m_position{projection.getPosition()[0], projection.getPosition()[1], projection.getPosition()[2]} {}
 
   LumiCalHit(const LumiCalHit& other) = delete;
   LumiCalHit& operator=(const LumiCalHit& other) = delete;
