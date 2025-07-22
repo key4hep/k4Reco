@@ -123,23 +123,23 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       int cellIdHit = hitsVec[j]->getCellID0();
       double cellEngy = hitsVec[j]->getEnergy();
       if (cellEngy >= m_minHitEnergy) {
-#if _CLUSTER_MIDDLE_RANGE_ENGY_HITS == 1
-        /* split hits in ShowerPeakLayer into two sets one with hit energy below
-         * and the other above middleEnergyHitBound
-         */
-        if (isShowerPeakLayer[layerNow]) {
-          if (cellEngy <= middleEnergyHitBound) {
-            calHitsSmallEngyCellId[layerNow][cellIdHit] = hitsVec[j];
+        if (_CLUSTER_MIDDLE_RANGE_ENGY_HITS) {
+          /* split hits in ShowerPeakLayer into two sets one with hit energy below
+           * and the other above middleEnergyHitBound
+           */
+          if (isShowerPeakLayer[layerNow]) {
+            if (cellEngy <= middleEnergyHitBound) {
+              calHitsSmallEngyCellId[layerNow][cellIdHit] = hitsVec[j];
+            } else {
+              calHitsCellId[layerNow][cellIdHit] = hitsVec[j];
+            }
           } else {
             calHitsCellId[layerNow][cellIdHit] = hitsVec[j];
           }
         } else {
+          // all hits assigned to one set
           calHitsCellId[layerNow][cellIdHit] = hitsVec[j];
         }
-#else
-        // all hits assigned to one set
-        calHitsCellId[layerNow][cellIdHit] = hitsVec[j];
-#endif
       }
     }
   }
@@ -203,11 +203,11 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
                           clusterCM[layerNow],         // -->
                           initialClusterControlVar);   // <--
 
-#if _CLUSTER_MIDDLE_RANGE_ENGY_HITS == 1
-      // cluster the low energy hits
-      initialLowEngyClusterBuild(calHitsSmallEngyCellId[layerNow], calHitsCellId[layerNow], cellIdToClusterId[layerNow],
-                                 clusterIdToCellId[layerNow], clusterCM[layerNow]);
-#endif
+      if (_CLUSTER_MIDDLE_RANGE_ENGY_HITS) {
+        // cluster the low energy hits
+        initialLowEngyClusterBuild(calHitsSmallEngyCellId[layerNow], calHitsCellId[layerNow],
+                                   cellIdToClusterId[layerNow], clusterIdToCellId[layerNow], clusterCM[layerNow]);
+      }
       // store max number of hits in ShowerPeakLayer
 
 #if _CLUSTER_BUILD_DEBUG == 1
