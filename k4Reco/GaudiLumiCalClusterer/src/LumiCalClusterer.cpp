@@ -2,7 +2,7 @@
  * Copyright (c) 2020-2024 Key4hep-Project.
  *
  * This file is part of Key4hep.
- * See https://key4hep-doc/ for further info.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
