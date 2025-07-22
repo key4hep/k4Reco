@@ -42,8 +42,8 @@
 
 // These flags were preprocessor options in the original processor
 const bool CLUSTER_MIDDLE_RANGE_ENGY_HITS = true; // if true, the middle energy hits are clustered separately
-const bool CLUSTER_BUILD_DEBUG = false; // if true, the cluster building is debugged
-const bool VIRTUALCLUSTER_BUILD_DEBUG = false; // if true, the virtual cluster building is debugged
+const bool CLUSTER_BUILD_DEBUG = false;           // if true, the cluster building is debugged
+const bool VIRTUALCLUSTER_BUILD_DEBUG = false;    // if true, the virtual cluster building is debugged
 
 class LumiCalClustererClass {
 
