@@ -22,7 +22,6 @@
 #include <edm4hep/CalorimeterHit.h>
 
 #include <memory>
-#include <set>
 
 class LumiCalHit;
 
@@ -44,13 +43,11 @@ public:
   const std::array<double, 3> getPosition() const { return m_position; }
   double getEnergy() const { return m_energy; }
   int getCellIdHitZ() const { return m_cellIdHitZ; }
-  std::set<const edm4hep::CalorimeterHit*> const& getCaloHits() const { return m_hits; }
 
 private:
   double m_energy;
   std::array<double, 3> m_position;
   int m_cellIdHitZ;
-  std::set<const edm4hep::CalorimeterHit*> m_hits{};
 
 public:
   bool newObject;
