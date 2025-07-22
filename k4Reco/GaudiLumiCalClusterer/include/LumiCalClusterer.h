@@ -19,11 +19,7 @@
 #ifndef K4RECO_LUMICALCLUSTERER_H
 #define K4RECO_LUMICALCLUSTERER_H 1
 
-// clustering options
-#define _CLUSTER_MIDDLE_RANGE_ENGY_HITS 1
-
 // verbosity
-#define _GENERAL_CLUSTERER_DEBUG 0
 #define _CLUSTER_BUILD_DEBUG 0
 #define _VIRTUALCLUSTER_BUILD_DEBUG 0
 
@@ -47,6 +43,11 @@
 #include <string>
 #include <tuple>
 #include <variant>
+
+// These flags were preprocessor options in the original processor
+const bool _CLUSTER_MIDDLE_RANGE_ENGY_HITS = true; // if true, the middle energy hits are clustered separately
+// const bool _CLUSTER_BUILD_DEBUG = false; // if true, the cluster building is debugged
+// const bool _VIRTUALCLUSTER_BUILD_DEBUG = false; // if true, the virtual cluster building is debugged
 
 class LumiCalClustererClass {
 
