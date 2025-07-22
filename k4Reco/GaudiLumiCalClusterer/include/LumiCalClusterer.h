@@ -177,7 +177,7 @@ private:
                                MapIntInt& cellIdToSuperClusterId, MapIntVInt& superClusterIdToCellId,
                                MapIntLCCluster& superClusterCM, double middleEnergyHitBound, int detectorArm);
 
-  void energyCorrections(const MapIntVInt& superClusterIdToCellId, MapIntVDouble& superClusterIdToCellEngy,
+  void energyCorrections(MapIntVInt& superClusterIdToCellId, MapIntVDouble& superClusterIdToCellEngy,
                          MapIntLCCluster& superClusterCM, const MapIntCalHit& calHitsCellIdGlobal);
 
   void clusterMerger(MapIntVDouble& clusterIdToCellEngy, MapIntVInt& clusterIdToCellId, MapIntLCCluster& clusterCM,

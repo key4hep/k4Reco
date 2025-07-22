@@ -32,7 +32,7 @@
 
 void LumiCalClustererClass::energyCorrections(MapIntVInt& superClusterIdToCellId,
                                               MapIntVDouble& superClusterIdToCellEngy, MapIntLCCluster& superClusterCM,
-                                              const MapIntCalHit& calHitsCellIdGlobal) {
+                                              MapIntCalHit const& calHitsCellIdGlobal) {
   std::map<int, std::vector<int>>::iterator superClusterIdToCellIdIterator;
 
   std::vector<int> cellIdV;
