@@ -1003,20 +1003,20 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
     superClusterCM[superClusterId] = calculateEngyPosCM(cellIdV, calHitsCellIdGlobal, m_methodCM);
   }
 
-#if _CLUSTER_BUILD_DEBUG == 1
-  m_alg->debug() << " - superClusters:" << endmsg;
+  if (_CLUSTER_BUILD_DEBUG) {
+    m_alg->debug() << " - superClusters:" << endmsg;
 
-  for (MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
-       superClusterIdToCellIdIterator != superClusterIdToCellId.end(); ++superClusterIdToCellIdIterator) {
-    const int superClusterId = (int)(*superClusterIdToCellIdIterator).first; // Id of cluster
+    for (MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId.begin();
+         superClusterIdToCellIdIterator != superClusterIdToCellId.end(); ++superClusterIdToCellIdIterator) {
+      const int superClusterId = (int)(*superClusterIdToCellIdIterator).first; // Id of cluster
 
-    m_alg->debug() << "\t Id " << superClusterId << "  \t  energy " << superClusterCM[superClusterId].getE()
-                   << "     \t pos(x,y) =  ( " << superClusterCM[superClusterId].getX() << " , "
-                   << superClusterCM[superClusterId].getY() << " )"
-                   << "     \t pos(theta,phi) =  ( " << superClusterCM[superClusterId].getTheta() << " , "
-                   << superClusterCM[superClusterId].getPhi() << " )" << endmsg;
+      m_alg->debug() << "\t Id " << superClusterId << "  \t  energy " << superClusterCM[superClusterId].getE()
+                     << "     \t pos(x,y) =  ( " << superClusterCM[superClusterId].getX() << " , "
+                     << superClusterCM[superClusterId].getY() << " )"
+                     << "     \t pos(theta,phi) =  ( " << superClusterCM[superClusterId].getTheta() << " , "
+                     << superClusterCM[superClusterId].getPhi() << " )" << endmsg;
+    }
   }
-#endif
 
   return 1;
 }
