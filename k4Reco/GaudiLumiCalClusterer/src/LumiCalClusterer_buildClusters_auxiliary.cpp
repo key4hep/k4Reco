@@ -603,7 +603,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
                                                  MapIntVector3d const& virtualClusterCM) {
   std::vector<int> unClusteredCellId;
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
   cout << endl << coutBlue << "Hits inside virtualRadius of virtualClusters" << coutDefault << endl << endl;
 #endif
 
@@ -625,7 +625,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
         weightedDistanceV[virtualClusterId] = (distanceCM > 0) ? 1. / distanceCM : 1e10;
       }
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
       cout << "\tclusterId: " << virtualClusterId << " \t hit(x,y): " << CM1[0] << " \t " << CM1[1]
            << " \t virtualCM(x,y):" << CM2[0] << " \t " << CM2[1] << endl
            << "\t\tvirtualRadius: " << virtualClusterCM[virtualClusterId][0] << " \t distance: " << distanceCM << endl
@@ -642,7 +642,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
       clusterIdToCellId[closestCluster->first].push_back(cellIdHit);
       cellIdToClusterId[cellIdHit] = closestCluster->first;
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
       std::cout << "\tnum possible -  " << weightedDistanceV.size() << " \t chosen - " << closestCluster->first
                 << coutDefault << endl
                 << endl;
@@ -651,7 +651,7 @@ int LumiCalClustererClass::virtualCMClusterBuild(MapIntCalHit const& calHitsCell
     } else {
       unClusteredCellId.push_back(cellIdHit);
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
       cout << "\tno cluster is within range ..." << coutDefault << endl << endl;
 #endif
     }
@@ -780,7 +780,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
     // decide which virtualCluster to associate with the real cluster
     auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
     cout << "cluster " << clusterId << " is associated with virtualCluster " << closestCluster->first << endl;
 #endif
 
@@ -812,7 +812,7 @@ int LumiCalClustererClass::virtualCMPeakLayersFix(MapIntCalHit const& calHitsCel
     // decide to which virtualCluster to merge the hit according to a proper weight
     auto closestCluster = std::ranges::max_element(weightedDistanceV, {}, &std::pair<const int, double>::second);
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
     cout << " - num possible -  " << weightedDistanceV.size() << " \t id of chosen - (" << closestCluster->first
          << ") \t virtualClusterId/hit(x,y): "
          << " \t " << virtualClusterCM[closestCluster->first][1] << " \t " << virtualClusterCM[closestCluster->first][2]
@@ -860,7 +860,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
      merge all layer-clusters into global superClusters according to distance
      from the virtual clusters' CM
      -------------------------------------------------------------------------- */
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
   cout << coutBlue << "Assign each cluster to a virtual cluster:" << coutDefault << endl;
 #endif
 
@@ -875,7 +875,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
       std::map<int, double> weightedDistanceV;
       double CM1[2] = {thisCluster.getX(), thisCluster.getY()};
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
       const int clusterId = (int)(clIter->first);
       cout << " - layer " << layerNow << " \t real cluster id,x,y,engy : " << clusterId << " \t " << CM1[0] << " \t "
            << CM1[1] << " \t " << clusterCM[layerNow][clusterId][0] << endl;
@@ -887,7 +887,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
         const double CM2[2] = {virtualClusterCMIterator->second.x, virtualClusterCMIterator->second.y};
         const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
         cout << "\t\t virtual cluster id,x,y : " << virtualClusterCMIterator->first << " \t " << CM2[0] << " \t "
              << CM2[1] << " \t distanceCM : " << distanceCM << endl;
 #endif
@@ -911,14 +911,14 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
       if (distanceCM > m_moliereRadius && virtualClusterCM[layerNow].size() > 1) {
         reClusterHits.push_back(clIter->first); // ID of the Cluster
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
         cout << "\t\t no virtual cluster is chosen... " << coutDefault << endl << endl;
         ;
 #endif
         continue;
       }
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
       cout << "\t\t chosen virtual cluster " << closestCluster->first << coutDefault << endl << endl;
       ;
 #endif
@@ -939,7 +939,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
        -------------------------------------------------------------------------- */
     for (const auto& clusterId : reClusterHits) {
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
       cout << coutBlue << "\t - dismantel cluster " << clusterId << " and assign each hit to a virtualCluster "
            << coutDefault << endl;
 #endif
@@ -954,7 +954,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
         const auto& thisHit = calHitsCellIdLayer.at(layerNow).at(cellIdHit);
         double CM1[2] = {thisHit->getPosition()[0], thisHit->getPosition()[1]};
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
         cout << "\t cellId " << cellIdHit << " \t x,y : " << CM1[0] << " \t " << CM1[1] << endl;
 #endif
 
@@ -962,7 +962,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
           const double CM2[2] = {virtualCluster.x, virtualCluster.y};
           const double distanceCM = std::hypot(CM1[0] - CM2[0], CM1[1] - CM2[1]);
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
           cout << "\t\t virtual cluster id,x,y : " << virtualClusterId << virtualCluster
                << " \t distanceCM : " << distanceCM << endl;
 #endif
@@ -976,7 +976,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
         // make sure that all clusters have been added to superclusters
         assert(closestCluster != weightedDistanceV.end());
 
-#if _VIRTUALCLUSTER_BUILD_DEBUG == 1
+#if VIRTUALCLUSTER_BUILD_DEBUG == 1
         cout << "\t\t chosen virtual cluster " << closestCluster->first << coutDefault << endl << endl;
         ;
 #endif
@@ -1003,7 +1003,7 @@ int LumiCalClustererClass::buildSuperClusters(MapIntCalHit& calHitsCellIdGlobal,
     superClusterCM[superClusterId] = calculateEngyPosCM(cellIdV, calHitsCellIdGlobal, m_methodCM);
   }
 
-  if (_CLUSTER_BUILD_DEBUG) {
+  if (CLUSTER_BUILD_DEBUG) {
     m_alg->debug() << " - superClusters:" << endmsg;
 
     for (MapIntVInt::const_iterator superClusterIdToCellIdIterator = superClusterIdToCellId.begin();

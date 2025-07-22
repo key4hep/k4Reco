@@ -75,7 +75,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   /* --------------------------------------------------------------------------
      determine the total energy of the hits in the arm
      -------------------------------------------------------------------------- */
-  if (_CLUSTER_BUILD_DEBUG) {
+  if (CLUSTER_BUILD_DEBUG) {
     std::string detectorArmName;
     if (detectorArm > 0)
       detectorArmName = "positive detector arm";
@@ -96,7 +96,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       exp(-1 * m_logWeightConst) * m_totEngyArm[detectorArm] * m_middleEnergyHitBoundFrac;
   const int minNumElementsInShowerPeakLayer = int(m_numHitsInArm[detectorArm] * m_elementsPercentInShowerPeakLayer);
 
-  if (_CLUSTER_BUILD_DEBUG) {
+  if (CLUSTER_BUILD_DEBUG) {
     for (MapIntVCalHit::const_iterator calHitsIt = calHits.begin(); calHitsIt != calHits.end(); ++calHitsIt) {
       m_alg->debug() << "Hits in layer " << std::setw(3) << calHitsIt->first << std::setw(6) << calHitsIt->second.size()
                      << endmsg;
@@ -115,7 +115,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   for (const auto& [layerNow, hitsVec] : calHits) {
     std::size_t numHitsInLayer = hitsVec.size();
     isShowerPeakLayer[layerNow] = ((int)numHitsInLayer > minNumElementsInShowerPeakLayer) ? 1 : 0;
-    if (_CLUSTER_BUILD_DEBUG) {
+    if (CLUSTER_BUILD_DEBUG) {
       if (isShowerPeakLayer[layerNow] == 1)
         m_alg->debug() << "\t" << layerNow << "\t nhits(" << numHitsInLayer << ")\n";
     }
@@ -123,7 +123,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       int cellIdHit = hitsVec[j]->getCellID0();
       double cellEngy = hitsVec[j]->getEnergy();
       if (cellEngy >= m_minHitEnergy) {
-        if (_CLUSTER_MIDDLE_RANGE_ENGY_HITS) {
+        if (CLUSTER_MIDDLE_RANGE_ENGY_HITS) {
           /* split hits in ShowerPeakLayer into two sets one with hit energy below
            * and the other above middleEnergyHitBound
            */
@@ -157,11 +157,11 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       double    cellEngy = (double)calHitsIt->second[j]->getEnergy();
       const int layerNow = calHitsIt->first;
       if(cellEngy < m_minHitEnergy) continue;
-      //(BP) Bug ? No matter what is value of the option: _CLUSTER_MIDDLE_RANGE_ENGY_HITS
+      //(BP) Bug ? No matter what is value of the option: CLUSTER_MIDDLE_RANGE_ENGY_HITS
         -  calHitsCellId contains all hits
       if(cellEngy > middleEnergyHitBound) calHitsCellId[layerNow][cellIdHit] = calHitsIt->second[j];
 
-#if _CLUSTER_MIDDLE_RANGE_ENGY_HITS == 1
+#if CLUSTER_MIDDLE_RANGE_ENGY_HITS == 1
       if(isShowerPeakLayer[layerNow] == 1) {
         if(cellEngy <= middleEnergyHitBound) calHitsSmallEngyCellId[layerNow][cellIdHit] = calHitsIt->second[j];
       } else {
@@ -203,14 +203,14 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
                           clusterCM[layerNow],         // -->
                           initialClusterControlVar);   // <--
 
-      if (_CLUSTER_MIDDLE_RANGE_ENGY_HITS) {
+      if (CLUSTER_MIDDLE_RANGE_ENGY_HITS) {
         // cluster the low energy hits
         initialLowEngyClusterBuild(calHitsSmallEngyCellId[layerNow], calHitsCellId[layerNow],
                                    cellIdToClusterId[layerNow], clusterIdToCellId[layerNow], clusterCM[layerNow]);
       }
       // store max number of hits in ShowerPeakLayer
 
-      // if (_CLUSTER_BUILD_DEBUG) {
+      // if (CLUSTER_BUILD_DEBUG) {
       //   dumpClusters(clusterCM[layerNow]);
       // }
     }
@@ -222,7 +222,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
      -------------------------------------------------------------------------- */
   MapIntInt numClustersCounter;
   // find the number of clusters in the majority of layers
-  if (_CLUSTER_BUILD_DEBUG) {
+  if (CLUSTER_BUILD_DEBUG) {
     m_alg->debug() << "Searching number of clusters in the majority of layers..." << endmsg;
   }
   for (size_t layerNow = 0; layerNow < m_maxLayerToAnalyse; layerNow++) {
@@ -236,7 +236,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
   auto maxCluster = std::ranges::max_element(numClustersCounter, {}, &std::pair<const int, int>::second);
   int numClustersMajority = maxCluster->first;
 
-  if (_CLUSTER_BUILD_DEBUG) {
+  if (CLUSTER_BUILD_DEBUG) {
     m_alg->debug() << "\t -> Found that there are " << maxCluster->second << " ShowerPeakLayers \n"
                    << "\t with " << numClustersMajority << " global clusters" << endmsg << endmsg;
   }
@@ -367,7 +367,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
      (line parametrizations) are stored in fitParamX(Y)
      engyPosCMLayer contains now info for ShowerPeakLayer only (?!)
      -------------------------------------------------------------------------- */
-  if (_CLUSTER_BUILD_DEBUG) {
+  if (CLUSTER_BUILD_DEBUG) {
     m_alg->debug() << "Fit lines through the averaged CM" << endmsg << endmsg;
     m_alg->debug() << "Fit Param should be this size: " << engyPosCMLayer.size() << endmsg;
   }
@@ -381,7 +381,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
     int clusterNow = engyPosCMLayerIterator->first;
 
     if (engyPosCMLayer[clusterId].size() < 3) {
-      if (_CLUSTER_BUILD_DEBUG) {
+      if (CLUSTER_BUILD_DEBUG) {
         m_alg->debug() << "\t decrease the global cluster number by 1" << endmsg << endmsg;
       }
       numClustersMajority--;
@@ -389,7 +389,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       continue;
     }
 
-    if (_CLUSTER_BUILD_DEBUG) {
+    if (CLUSTER_BUILD_DEBUG) {
       m_alg->debug() << "clusterId " << clusterId << endmsg;
     }
 
@@ -444,7 +444,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       xLineFitCM[clusterNow].Fill(layerNow, layerToPosX[layerNow]);
       yLineFitCM[clusterNow].Fill(layerNow, layerToPosY[layerNow]);
 
-      if (_CLUSTER_BUILD_DEBUG) {
+      if (CLUSTER_BUILD_DEBUG) {
         m_alg->debug() << "\tlayer , avPos(x,y) : " << std::setw(3) << layerNow << " (" << std::setw(6)
                        << layerToPosX[layerNow] << " , " << std::setw(6) << layerToPosY[layerNow] << ")" << endmsg;
       }
@@ -456,7 +456,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
     fitParamX.back()[0] = fitFunc.GetParameter(0);
     fitParamX.back()[1] = fitFunc.GetParameter(1);
 
-    if (_CLUSTER_BUILD_DEBUG) {
+    if (CLUSTER_BUILD_DEBUG) {
       m_alg->debug() << "\t -> xFitPar 0,1:  " << fitFunc.GetParameter(0) << " (+-) " << fitFunc.GetParError(0)
                      << " \t,\t " << fitFunc.GetParameter(1) << " (+-) " << fitFunc.GetParError(1) << endmsg;
     }
@@ -466,7 +466,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
     fitParamY.back()[0] = fitFunc.GetParameter(0);
     fitParamY.back()[1] = fitFunc.GetParameter(1);
 
-    if (_CLUSTER_BUILD_DEBUG) {
+    if (CLUSTER_BUILD_DEBUG) {
       m_alg->debug() << "\t -> yFitPar 0,1:  " << fitFunc.GetParameter(0) << " (+-) " << fitFunc.GetParError(0)
                      << " \t,\t " << fitFunc.GetParameter(1) << " (+-) " << fitFunc.GetParError(1) << endmsg << endmsg;
     }
@@ -484,7 +484,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
      extrapolate the CM positions in all layers (and form clusters in the
      non shower-peak layers)
      -------------------------------------------------------------------------- */
-  if (_CLUSTER_BUILD_DEBUG) {
+  if (CLUSTER_BUILD_DEBUG) {
     m_alg->debug() << "Extrapolate virtual cluster CMs" << endmsg << endmsg;
   }
 
@@ -541,7 +541,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
         m_alg->debug() << e.what() << endmsg;
         throw;
       }
-      if (_CLUSTER_BUILD_DEBUG) {
+      if (CLUSTER_BUILD_DEBUG) {
         m_alg->debug() << "\tbuild cluster around a virtual CM in layer " << layerNow << endmsg;
       }
     }
@@ -551,7 +551,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       int numRealClusters = clusterIdToCellId[layerNow].size();
       int numVirtualClusters = virtualClusterCM[layerNow].size();
       if (numRealClusters < numVirtualClusters) {
-        if (_VIRTUALCLUSTER_BUILD_DEBUG) {
+        if (VIRTUALCLUSTER_BUILD_DEBUG) {
           m_alg->debug() << "\tin layer " << layerNow << " there are real/virtual clusters: " << numRealClusters
                          << "  ,  " << numVirtualClusters << endmsg;
         }
@@ -559,7 +559,7 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
         virtualCMPeakLayersFix(calHitsCellId[layerNow], cellIdToClusterId[layerNow], clusterIdToCellId[layerNow],
                                clusterCM[layerNow], virtualClusterCM[layerNow]);
 
-        if (_CLUSTER_BUILD_DEBUG) {
+        if (CLUSTER_BUILD_DEBUG) {
           m_alg->debug() << "\tre-cluster in layer " << layerNow << endmsg;
         }
       }
