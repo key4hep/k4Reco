@@ -82,13 +82,13 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
      create clusters using: LumiCalClustererClass
      -------------------------------------------------------------------------- */
   // TODO: Remove const_cast
-  auto calhits = m_lumiCalClusterer.processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
+  auto [isok, calhits] = m_lumiCalClusterer.processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
 
   auto LCalClusterCol = edm4hep::ClusterCollection();
 
   auto LCalRPCol = edm4hep::ReconstructedParticleCollection();
 
-  if (calhits.has_value()) {
+  if (isok) {
     debug() << " Transfering reco results to LCalClusterCollection....." << endmsg;
 
     for (const int armNow : {-1, 1}) {
@@ -100,8 +100,8 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
         LCCluster& thisClusterInfo =
             const_cast<LCCluster&>(m_lumiCalClusterer.m_superClusterIdClusterInfo.at(armNow).at(clusterId));
         thisClusterInfo.recalculatePositionFromHits(m_lumiCalClusterer);
-        const auto& objectTuple = m_lumiCalClusterer.getLCIOObjects(thisClusterInfo, m_minClusterEngy,
-                                                                    m_cutOnFiducialVolume, calhits.value());
+        const auto& objectTuple =
+            m_lumiCalClusterer.getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
         if (!std::get<0>(objectTuple).has_value())
           continue;
 
@@ -111,10 +111,5 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
     }
   }
 
-  if (calhits.has_value()) {
-    return std::make_tuple(std::move(calhits.value()), std::move(LCalClusterCol), std::move(LCalRPCol));
-  } else {
-    return std::make_tuple(edm4hep::CalorimeterHitCollection(), edm4hep::ClusterCollection(),
-                           edm4hep::ReconstructedParticleCollection());
-  }
+  return std::make_tuple(std::move(calhits), std::move(LCalClusterCol), std::move(LCalRPCol));
 }

@@ -336,7 +336,7 @@ LumiCalClustererClass::getLCIOObjects(const LCCluster& thisClusterInfo, const do
 /* ============================================================================
    main actions in each event:
    ========================================================================= */
-std::optional<edm4hep::CalorimeterHitCollection>
+std::pair<bool, edm4hep::CalorimeterHitCollection>
 LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& col) {
   // increment / initialize global variables
   m_totEngyArm[-1] = m_totEngyArm[1] = 0.;
@@ -353,7 +353,7 @@ LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& 
 
   auto [retval, calohits] = getCalHits(col, calHits);
   if (!retval)
-    return {};
+    return {false, std::move(calohits)};
 
   for (const int armNow : {-1, 1}) {
     m_alg->debug() << endmsg << "ARM = " << armNow << " : " << endmsg << endmsg;
@@ -412,5 +412,5 @@ LumiCalClustererClass::processEvent(const edm4hep::SimCalorimeterHitCollection& 
     }
   }
 
-  return std::move(calohits);
+  return {true, std::move(calohits)};
 }
