@@ -70,7 +70,7 @@ public:
   void createDecoder(const std::string& decoderString);
 
   // main actions in each event -Called for every event - the working horse.
-  std::optional<edm4hep::CalorimeterHitCollection> processEvent(const edm4hep::SimCalorimeterHitCollection& col);
+  std::pair<bool, edm4hep::CalorimeterHitCollection> processEvent(const edm4hep::SimCalorimeterHitCollection& col);
 
   MapIntMapIntVInt m_superClusterIdToCellId;
   MapIntMapIntVDouble m_superClusterIdToCellEngy;

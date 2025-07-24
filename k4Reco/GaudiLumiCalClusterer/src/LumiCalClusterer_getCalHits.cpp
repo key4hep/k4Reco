@@ -38,10 +38,10 @@
 std::pair<int, edm4hep::CalorimeterHitCollection>
 LumiCalClustererClass::getCalHits(const edm4hep::SimCalorimeterHitCollection& col, MapIntMapIntVCalHit& calHits) {
 
-  if (col.size() < static_cast<size_t>(m_clusterMinNumHits))
-    return {0, edm4hep::CalorimeterHitCollection()};
-
   auto calohits = createCaloHitCollection(col);
+
+  if (col.size() < static_cast<size_t>(m_clusterMinNumHits))
+    return {0, std::move(calohits)};
 
   for (size_t i = 0; i < calohits.size(); ++i) {
     const auto& calHitIn = calohits[i];

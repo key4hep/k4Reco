@@ -42,7 +42,7 @@ iosvc = IOSvc()
 iosvc.Input = "output_REC.edm4hep.root"
 iosvc.Output = "output_gaudi_lumical_clustering.root"
 
-clustering = GaudiLumiCalClusterer()
+clustering = GaudiLumiCalClusterer("GaudiLumiCalClusterer")
 
 # Input collections
 clustering.LumiCal_Collection = ["LumiCalCollection"]
