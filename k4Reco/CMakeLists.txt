@@ -102,6 +102,7 @@ if(BUILD_TRACKING)
        Tracking/src/ClonesAndSplitTracksFinder.cpp
        Tracking/src/RefitFinal.cpp
        Tracking/src/TruthTrackFinder.cpp
+       Tracking/src/FilterDoubleLayerHits.cc
   )
 
   list(APPEND libs
