@@ -73,7 +73,7 @@ public:
   double getEnergy() const { return m_energy; }
   int getCellID0() const { return m_cellID0; }
   int getCellID1() const { return m_cellID1; }
-  const std::array<double, 3> getPosition() const { return m_position; }
+  const std::array<double, 3>& getPosition() const { return m_position; }
 };
 
 #endif // K4RECO_LUMICALHIT_H

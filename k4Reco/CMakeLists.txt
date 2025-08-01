@@ -28,7 +28,6 @@ set(sources
   GaudiLumiCalClusterer/src/LumiCalClusterer_auxiliary.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_clusterMerger.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_fiducialVolumeCuts.cpp
-  GaudiLumiCalClusterer/src/LumiCalClusterer_fiducialVolumeCuts.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_energyCorrections.cpp
   GaudiLumiCalClusterer/src/LCCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp

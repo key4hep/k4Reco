@@ -40,7 +40,7 @@ public:
 
   void addHit(const CalHit& calHit);
 
-  const std::array<double, 3> getPosition() const { return m_position; }
+  const std::array<double, 3>& getPosition() const { return m_position; }
   double getEnergy() const { return m_energy; }
   int getCellIdHitZ() const { return m_cellIdHitZ; }
 

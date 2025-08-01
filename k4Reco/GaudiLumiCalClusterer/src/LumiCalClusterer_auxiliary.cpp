@@ -105,7 +105,7 @@ LCCluster LumiCalClustererClass::calculateEngyPosCM(const VInt& cellIdV, const M
       const double weightHit = posWeight(calHit, method);
       weightSum += weightHit;
 
-      const auto position = calHit->getPosition();
+      const auto& position = calHit->getPosition();
 
       xHit += position[0] * weightHit;
       yHit += position[1] * weightHit;
@@ -148,7 +148,7 @@ void LumiCalClustererClass::calculateEngyPosCM_EngyV(const VInt& cellIdV, const 
       caloHits.push_back(calHit);
       const double weightHit = posWeightTrueCluster(calHit, cellEngyV[k], method);
       weightSum += weightHit;
-      const auto position = calHit->getPosition();
+      const auto& position = calHit->getPosition();
 
       xHit += position[0] * weightHit;
       yHit += position[1] * weightHit;
