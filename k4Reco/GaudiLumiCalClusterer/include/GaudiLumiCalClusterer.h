@@ -31,10 +31,8 @@
 #include <k4FWCore/Transformer.h>
 #include <k4Interface/IGeoSvc.h>
 
-#include <map>
 #include <string>
 #include <tuple>
-#include <vector>
 
 class LCCluster;
 class ClusterClass;
@@ -55,7 +53,7 @@ public:
   std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::ClusterCollection, edm4hep::ReconstructedParticleCollection>
   operator()(const edm4hep::SimCalorimeterHitCollection&) const override;
 
-  mutable LumiCalClustererClass m_lumiCalClusterer;
+  mutable std::unique_ptr<LumiCalClustererClass> m_lumiCalClusterer;
 
   // void CreateClusters(std::map<int, MapIntPClusterClass>& clusterClassMapP, EVENT::LCEvent* evt);
   // std::tuple<ClusterImpl*, ReconstructedParticleImpl*> getLCIOObjects(LCCluster const& clusterInfo) const;

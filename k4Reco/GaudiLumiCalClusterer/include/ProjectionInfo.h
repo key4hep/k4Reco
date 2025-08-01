@@ -21,6 +21,7 @@
 
 #include <edm4hep/CalorimeterHit.h>
 
+#include <array>
 #include <memory>
 
 class LumiCalHit;

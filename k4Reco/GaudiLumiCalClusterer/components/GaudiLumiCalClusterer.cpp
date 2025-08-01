@@ -22,6 +22,8 @@
 #include <DD4hep/Readout.h>
 #include <DD4hep/detail/ObjectsInterna.h>
 
+#include <k4FWCore/MetadataUtils.h>
+
 #include <edm4hep/CalorimeterHitCollection.h>
 #include <edm4hep/ClusterCollection.h>
 #include <edm4hep/ReconstructedParticleCollection.h>
@@ -38,8 +40,7 @@ GaudiLumiCalClusterer::GaudiLumiCalClusterer(const std::string& name, ISvcLocato
                            KeyValues("LumiCal_Hits", {"LumiCalHits"}),
                            KeyValues("LumiCal_Clusters", {"LumiCalClusters"}),
                            KeyValues("LumiCal_RecoParticles", {"LumiCalRecoParticles"}),
-                       }),
-      m_lumiCalClusterer(this) {}
+                       }) {}
 
 StatusCode GaudiLumiCalClusterer::initialize() {
 
@@ -48,10 +49,13 @@ StatusCode GaudiLumiCalClusterer::initialize() {
     error() << "Unable to retrieve GeoSvc" << endmsg;
     return StatusCode::FAILURE;
   }
-  const auto readout = m_geoSvc->getDetector()->readout("LumiCalCollection");
-  const auto fieldDescription = readout->id.fieldDescription();
 
-  m_lumiCalClusterer.createDecoder(fieldDescription);
+  m_lumiCalClusterer = std::make_unique<LumiCalClustererClass>(this, m_geoSvc);
+
+  const auto maybeParam = k4FWCore::getParameter<std::string>(inputLocations(0)[0] + "__CellIDEncoding");
+  const auto initString = maybeParam.value();
+
+  m_lumiCalClusterer->createDecoder(initString);
 
   // Set parameters for the LumiCalClusterer
   std::map<std::string, std::variant<int, float, std::string>> parameters;
@@ -66,12 +70,12 @@ StatusCode GaudiLumiCalClusterer::initialize() {
   parameters["WeightingMethod"] = m_WeightingMethod;
   parameters["NumOfNearNeighbor"] = static_cast<int>(m_NumOfNearNeighbor);
 
-  m_lumiCalClusterer.init(parameters);
+  m_lumiCalClusterer->init(parameters);
 
   // printParameters();
-  // m_lumiCalClusterer.printAllParameters();
+  // m_lumiCalClusterer->printAllParameters();
 
-  m_lumiCalClusterer.setCutOnFiducialVolume(m_cutOnFiducialVolume);
+  m_lumiCalClusterer->setCutOnFiducialVolume(m_cutOnFiducialVolume);
 
   return StatusCode::SUCCESS;
 }
@@ -82,7 +86,7 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
      create clusters using: LumiCalClustererClass
      -------------------------------------------------------------------------- */
   // TODO: Remove const_cast
-  auto [isok, calhits] = m_lumiCalClusterer.processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
+  auto [isok, calhits] = m_lumiCalClusterer->processEvent(const_cast<edm4hep::SimCalorimeterHitCollection&>(input));
 
   auto LCalClusterCol = edm4hep::ClusterCollection();
 
@@ -92,16 +96,16 @@ GaudiLumiCalClusterer::operator()(const edm4hep::SimCalorimeterHitCollection& in
     debug() << " Transfering reco results to LCalClusterCollection....." << endmsg;
 
     for (const int armNow : {-1, 1}) {
-      const auto& pairIDCellsVector = m_lumiCalClusterer.m_superClusterIdToCellId.at(armNow);
+      const auto& pairIDCellsVector = m_lumiCalClusterer->m_superClusterIdToCellId.at(armNow);
       debug() << " Arm  " << std::setw(4) << armNow << "\t Number of clusters: " << pairIDCellsVector.size() << endmsg;
 
       for (const auto& pairIDCells : pairIDCellsVector) {
         const int clusterId = pairIDCells.first;
         LCCluster& thisClusterInfo =
-            const_cast<LCCluster&>(m_lumiCalClusterer.m_superClusterIdClusterInfo.at(armNow).at(clusterId));
-        thisClusterInfo.recalculatePositionFromHits(m_lumiCalClusterer);
+            const_cast<LCCluster&>(m_lumiCalClusterer->m_superClusterIdClusterInfo.at(armNow).at(clusterId));
+        thisClusterInfo.recalculatePositionFromHits(m_lumiCalClusterer.get());
         const auto& objectTuple =
-            m_lumiCalClusterer.getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
+            m_lumiCalClusterer->getLCIOObjects(thisClusterInfo, m_minClusterEngy, m_cutOnFiducialVolume, calhits);
         if (!std::get<0>(objectTuple).has_value())
           continue;
 

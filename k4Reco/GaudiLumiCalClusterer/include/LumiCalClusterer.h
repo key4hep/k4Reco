@@ -32,6 +32,8 @@
 #include <edm4hep/SimCalorimeterHitCollection.h>
 #include <edm4hep/Vector3f.h>
 
+#include <k4Interface/IGeoSvc.h>
+
 #include <array>
 #include <map>
 #include <memory>
@@ -54,7 +56,7 @@ public:
   enum Coordinate_t { COTheta, COPhi, COZ, COR, COP, COA };
 
   // Constructor
-  LumiCalClustererClass(const Gaudi::Algorithm* alg);
+  LumiCalClustererClass(const Gaudi::Algorithm* alg, const SmartIF<IGeoSvc>& geoSvc);
   LumiCalClustererClass(LumiCalClustererClass const& rhs) = delete;
   LumiCalClustererClass& operator=(LumiCalClustererClass const& rhs) = delete;
   LumiCalClustererClass(LumiCalClustererClass&& rhs) = delete;
@@ -135,6 +137,7 @@ private:
   bool m_cutOnFiducialVolume{false};
 
   const Gaudi::Algorithm* m_alg;
+  SmartIF<IGeoSvc> m_geoSvc;
 
   // From GlobalMethodsClass
   std::map<int, double> m_armCosAngle{};

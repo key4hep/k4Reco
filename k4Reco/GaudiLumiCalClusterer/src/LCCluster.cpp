@@ -56,8 +56,8 @@ std::ostream& operator<<(std::ostream& o, const LCCluster& rhs) {
  *
  * Resolution in Theta (R) is better than in RPhi so averaging theta gives better results
  */
-void LCCluster::recalculatePositionFromHits(const LumiCalClustererClass& clusterer) {
-  const double logConstant(clusterer.m_logWeightConstant);
+void LCCluster::recalculatePositionFromHits(const LumiCalClustererClass* clusterer) {
+  const double logConstant(clusterer->m_logWeightConstant);
 
   // re-set new cluster energy
   m_energy = 0.0;
@@ -65,7 +65,7 @@ void LCCluster::recalculatePositionFromHits(const LumiCalClustererClass& cluster
     m_energy += calHit->getEnergy();
   }
 
-  const double rMin = clusterer.m_rMin;
+  const double rMin = clusterer->m_rMin;
 
   double thetaTemp(0.0), weightsTemp(0.0), xTemp(0.0), yTemp(0.0), zTemp(0.0);
   for (auto const& calHit : m_caloHits) {
@@ -110,7 +110,7 @@ void LCCluster::recalculatePositionFromHits(const LumiCalClustererClass& cluster
   const double sign = zTemp < 0 ? -1.0 : 1.0;
 
   const double r = sqrt(xTemp * xTemp + yTemp * yTemp + zTemp * zTemp);
-  const double zStart = sign * clusterer.m_zStart;
+  const double zStart = sign * clusterer->m_zStart;
 
   m_position[0] = r * sin(m_theta) * cos(m_phi);
   m_position[1] = r * sin(m_theta) * sin(m_phi);

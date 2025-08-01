@@ -88,7 +88,7 @@ public:
   inline VecCalHit const& getCaloHits() const { return m_caloHits; }
 
   /// calculate the cluster position based on the caloHits associated to the cluster
-  void recalculatePositionFromHits(const LumiCalClustererClass& clusterer);
+  void recalculatePositionFromHits(const LumiCalClustererClass* clusterer);
 
 private:
   void CalculatePhi();

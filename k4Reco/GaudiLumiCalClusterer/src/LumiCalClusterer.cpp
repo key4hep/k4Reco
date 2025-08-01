@@ -58,7 +58,8 @@ const unsigned int MASK_J_32Fcal = 0x000FFC00; // 10 bits
 const unsigned int MASK_K_32Fcal = 0x3FF00000; // 10 bits
 const unsigned int MASK_S_32Fcal = 0xC0000000; // 2 bits
 
-LumiCalClustererClass::LumiCalClustererClass(const Gaudi::Algorithm* alg) : m_alg(alg) {}
+LumiCalClustererClass::LumiCalClustererClass(const Gaudi::Algorithm* alg, const SmartIF<IGeoSvc>& geosvc)
+    : m_alg(alg), m_geoSvc(geosvc) {}
 
 void LumiCalClustererClass::createDecoder(const std::string& decoderString) {
   m_mydecoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(decoderString);
@@ -199,13 +200,13 @@ void LumiCalClustererClass::printAllParameters() const {
 
 bool LumiCalClustererClass::setGeometryDD4hep() {
 
-  const dd4hep::Detector& theDetector = dd4hep::Detector::getInstance();
+  const auto* theDetector = m_geoSvc->getDetector();
 
-  if (theDetector.detectors().count("LumiCal") == 0)
+  if (theDetector->detectors().count("LumiCal") == 0)
     return false;
 
-  const dd4hep::DetElement lumical(theDetector.detector("LumiCal"));
-  const dd4hep::Segmentation readout(theDetector.readout("LumiCalCollection").segmentation());
+  const dd4hep::DetElement lumical(theDetector->detector("LumiCal"));
+  const dd4hep::Segmentation readout(theDetector->readout("LumiCalCollection").segmentation());
 
   // info() << "Segmentation Type" << readout.type() << std::endl;
   // info() << "FieldDef: " << readout.segmentation()->fieldDescription() << std::endl;
