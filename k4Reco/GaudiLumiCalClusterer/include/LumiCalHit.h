@@ -35,8 +35,8 @@
 class LumiCalHit {
 public:
   LumiCalHit() {}
-  LumiCalHit(int cellIDProjection, ProjectionInfo const& projection)
-      : m_cellID0(cellIDProjection), m_cellID1(projection.getCellIdHitZ()), m_energy(projection.getEnergy()),
+  LumiCalHit(std::uint64_t cellIDProjection, ProjectionInfo const& projection)
+      : m_cellID0(cellIDProjection), m_energy(projection.getEnergy()),
         m_position{projection.getPosition()[0], projection.getPosition()[1], projection.getPosition()[2]} {}
 
   LumiCalHit(const LumiCalHit& other) = delete;
@@ -46,8 +46,7 @@ public:
   ~LumiCalHit() = default;
 
 private:
-  int m_cellID0 = 0;
-  int m_cellID1 = 0;
+  std::uint64_t m_cellID0 = 0;
   double m_energy = 0.0;
   std::array<double, 3> m_position = {0.0, 0.0, 0.0};
   /// original CalorimeterHits indexes (in the global coordinate system)
@@ -61,8 +60,7 @@ public:
   auto endHits() const { return m_caloHits.end(); }
 
   void setEnergy(double e) { m_energy = e; }
-  void setCellID0(int i) { m_cellID0 = i; }
-  void setCellID1(int i) { m_cellID1 = i; }
+  void setCellID0(std::uint64_t i) { m_cellID0 = i; }
   void setPosition(const std::array<double, 3>& pos) {
     m_position[0] = pos[0];
     m_position[1] = pos[1];
@@ -71,8 +69,7 @@ public:
   } // fixme memcopy??
 
   double getEnergy() const { return m_energy; }
-  int getCellID0() const { return m_cellID0; }
-  int getCellID1() const { return m_cellID1; }
+  std::uint64_t getCellID0() const { return m_cellID0; }
   const std::array<double, 3>& getPosition() const { return m_position; }
 };
 
