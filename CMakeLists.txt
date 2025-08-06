@@ -29,7 +29,7 @@ set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_
 
 option(BUILD_TRACKING "Build conformal tracking" ON)
 
-find_package(podio 1.2.99 REQUIRED)
+find_package(podio 1.3 REQUIRED)
 find_package(EDM4HEP REQUIRED)
 find_package(DD4hep REQUIRED)
 find_package(Gaudi REQUIRED)
