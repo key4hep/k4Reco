@@ -37,6 +37,8 @@ set(sources
   GaudiLumiCalClusterer/src/LCCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
+  CaloDigi/src/RealisticCaloDigi.cc
+  CaloDigi/src/RealisticCaloReco.cc
 )
 
 set(libs
@@ -50,6 +52,7 @@ set(libs
         ROOT::Core
         ROOT::MathCore
         ROOT::Tree
+        CLHEP::Random
 )
 
 if(BUILD_TRACKING)
@@ -128,6 +131,7 @@ target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/CaloDigi/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if(BUILD_TRACKING)
