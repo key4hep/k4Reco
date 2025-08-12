@@ -2,7 +2,7 @@
 #include "RealisticCaloDigi.h"
 
 #include <edm4hep/MutableCalorimeterHit.h>
-#include <edm4hep/MutableCaloHitSimCaloHitLink.h>
+#include <edm4hep/CaloHitSimCaloHitLinkCollection.h>
 #include <edm4hep/CaloHitContribution.h>
 #include <CalorimeterHitType.h>
 

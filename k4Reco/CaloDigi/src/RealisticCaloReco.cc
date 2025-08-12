@@ -4,7 +4,7 @@
 
 #include <edm4hep/SimCalorimeterHit.h>
 #include <edm4hep/MutableCalorimeterHit.h>
-#include <edm4hep/MutableCaloHitSimCaloHitLink.h>
+#include <edm4hep/CaloHitSimCaloHitLinkCollection.h>
 
 #include <iostream>
 #include <string>
