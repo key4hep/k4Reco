@@ -60,7 +60,7 @@ struct RealisticCaloReco : k4FWCore::MultiTransformer<std::tuple<
   // Calibration coefficients for layers groups
   Gaudi::Property<std::vector<float>> m_calibrCoeff{this, "calibration_factorsMipGev", {}, "Calibration coefficients (MIP->shower GeV) of layers groups"};
   // Cell ID layer string
-  Gaudi::Property<std::string> m_encodingStringVariable{this, "EncodingStringParameterName", "GlobalTrackerReadoutID", "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
+  Gaudi::Property<std::string> m_encodingStringVariable{this, "EncodingStringParameterName", "GlobalCalorimeterReadoutID", "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
 
   SmartIF<IGeoSvc> m_geoSvc;
 
