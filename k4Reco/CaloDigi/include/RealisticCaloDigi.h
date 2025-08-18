@@ -92,7 +92,7 @@ struct RealisticCaloDigi : k4FWCore::MultiTransformer<
    Gaudi::Property<float> m_elec_noiseMip{this, "elec_noise_mip", 0.0f, "Typical electronics noise (in MIP units)"};
    Gaudi::Property<float> m_elec_rangeMip{this, "elec_range_mip", 2500.0f, "Maximum of dynamic range of electronics (in MIPs)"};
    // code for layer info for cellID decoder
-   Gaudi::Property<std::string> m_encodingStringVariable{this, "EncodingStringParameterName", "GlobalTrackerReadoutID", "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
+   Gaudi::Property<std::string> m_encodingStringVariable{this, "EncodingStringParameterName", "GlobalCalorimeterReadoutID", "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
    // energy threshold
    Gaudi::Property<float> m_threshold_value{this, "threshold", 0.5f, "Threshold for Hit"};
    Gaudi::Property<std::string> m_threshold_unit{this, "thresholdUnit", std::string("MIP"), "Unit for threshold. Can be \"GeV\", \"MIP\" or \"px\". MIP and px need properly set calibration constants"};
