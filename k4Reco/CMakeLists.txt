@@ -18,6 +18,7 @@ limitations under the License.
 ]]
 
 set(sources
+  FastJet/src/FastJetAlg.cpp
   DDPlanarDigi/components/DDPlanarDigi.cpp
   GaudiLumiCalClusterer/components/GaudiLumiCalClusterer.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer.cpp
@@ -44,7 +45,11 @@ set(libs
         ROOT::Core
         ROOT::MathCore
         ROOT::Tree
-)
+
+        CLHEP::Random
+        ${FASTJET_LIBRARIES}
+
+      )
 
 if(BUILD_TRACKING)
 
@@ -114,6 +119,9 @@ gaudi_add_module(k4RecoPlugins
 # Common include directories
 set(k4RecoPlugins_public_includes
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/CaloDigi/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/FastJet/include>
+  ${FASTJET_INCLUDE_DIRS}
 )
 
 target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
