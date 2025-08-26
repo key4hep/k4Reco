@@ -27,7 +27,7 @@
 #include <fastjet/CDFMidPointPlugin.hh>
 #include <fastjet/EECambridgePlugin.hh>
 #include <fastjet/SISConeSphericalPlugin.hh>
-#include <fastjet/contrib/ValenciaPlugin.hh>
+// #include <fastjet/contrib/ValenciaPlugin.hh>
 
 #include <vector>
 #include <string>

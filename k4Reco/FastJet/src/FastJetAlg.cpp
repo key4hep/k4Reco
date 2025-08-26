@@ -175,16 +175,17 @@ StatusCode FastJetAlg::initialize() {
         m_jetAlgo = new fastjet::JetDefinition(pl);
         m_jetAlgo->delete_plugin_when_unused();
     }
-    if (isJetAlgo("ValenciaPlugin", 3, FJ_exclusive_nJets | FJ_exclusive_yCut)) {
-        fastjet::contrib::ValenciaPlugin* pl;
-        pl = new fastjet::contrib::ValenciaPlugin(
-            atof(m_jetAlgoNameAndParams[1].c_str()),  // R value
-            atof(m_jetAlgoNameAndParams[2].c_str()),  // beta value
-            atof(m_jetAlgoNameAndParams[3].c_str())   // gamma value
-        );
-        m_jetAlgo = new fastjet::JetDefinition(pl);
-        m_jetAlgo->delete_plugin_when_unused();
-    }
+    // *********** VALENCIA WAS NOT IN THE FASTJET INSTALLATION SO IT IS NOT ACTIVE FOR NOW ***********
+    // if (isJetAlgo("ValenciaPlugin", 3, FJ_exclusive_nJets | FJ_exclusive_yCut)) {
+    //     fastjet::contrib::ValenciaPlugin* pl;
+    //     pl = new fastjet::contrib::ValenciaPlugin(
+    //         atof(m_jetAlgoNameAndParams[1].c_str()),  // R value
+    //         atof(m_jetAlgoNameAndParams[2].c_str()),  // beta value
+    //         atof(m_jetAlgoNameAndParams[3].c_str())   // gamma value
+    //     );
+    //     m_jetAlgo = new fastjet::JetDefinition(pl);
+    //     m_jetAlgo->delete_plugin_when_unused();
+    // }
     info() << endmsg; // end of list of available algorithms
     //ee_genkt_algorithm
     if (commentOnAlgo) {info() << "When only 1 parameter is provided for ee_genkt_algorithm it is assumed to be R, and the exponent p is assumed to be equal to 1" << endmsg;}
