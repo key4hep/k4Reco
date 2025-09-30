@@ -143,6 +143,9 @@ public:
   int propagate(const edm4hep::Vector3d& point, const TKalTrackSite& site, edm4hep::TrackState& ts, double& chi2,
                 int& ndf, const DDVMeasLayer* ml = nullptr);
 
+  // Used by Pandora to propagate the refitted tracks
+  int propagateToLayer(int layerID, edm4hep::TrackState& ts, double& chi2, int& ndf, int& detElementID, int mode);
+
   /** propagate the fit at the measurement site associated with the given hit, to numbered sensitive layer,
    *  returning TrackState, chi2, ndf and integer ID of sensitive detector element via reference
    */
