@@ -730,7 +730,7 @@ int GaudiDDKalTestTrack::propagate(const edm4hep::Vector3d& point, const TKalTra
 
 int GaudiDDKalTestTrack::propagateToLayer(int layerID, edm4hep::TrackState& ts, double& chi2, int& ndf,
                                           int& detElementID, int mode) {
-  const TKalTrackSite& site = *(dynamic_cast<const TKalTrackSite*>(m_kaltrack->Last()));
+  const TKalTrackSite& site = *static_cast<const TKalTrackSite*>(m_kaltrack->Last());
 
   return this->propagateToLayer(layerID, site, ts, chi2, ndf, detElementID, mode);
 }
