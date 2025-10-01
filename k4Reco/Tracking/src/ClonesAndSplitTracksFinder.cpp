@@ -36,10 +36,10 @@
 ClonesAndSplitTracksFinder::ClonesAndSplitTracksFinder(const std::string& name, ISvcLocator* svcLoc)
     : Transformer(name, svcLoc,
                   {
-                      KeyValues("InputTrackCollectionName", {"SiTracks"}),
+                      KeyValue("InputTrackCollectionName", "SiTracks"),
                   },
                   {
-                      KeyValues("OutputTrackCollectionName", {"SiTracksMerged"}),
+                      KeyValue("OutputTrackCollectionName", "SiTracksMerged"),
                   }) {}
 
 StatusCode ClonesAndSplitTracksFinder::initialize() {
