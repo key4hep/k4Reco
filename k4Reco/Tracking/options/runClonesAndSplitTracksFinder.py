@@ -47,8 +47,8 @@ iosvc.Output = "output_clones_and_split_tracks_finder.root"
 
 ClonesAndSplitTracksFinder = ClonesAndSplitTracksFinder(
     "ClonesAndSplitTracksFinder",
-    InputTrackCollectionName=["SiTracksCT"],
-    OutputTrackCollectionName=["GaudiSiTracks"],
+    InputTrackCollectionName="SiTracksCT",
+    OutputTrackCollectionName="GaudiSiTracks",
     EnergyLossOn=True,
     MultipleScatteringOn=True,
     SmoothOn=False,
