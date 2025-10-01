@@ -68,7 +68,7 @@ tracking.RelationsNames = [
     "OuterTrackerEndcapHitsRelations",
 ]
 tracking.MCParticleCollectionName = ["MCParticles"]
-tracking.SiTrackCollectionName = ["NewSiTracks"]
+tracking.SiTrackCollectionName = "NewSiTracks"
 
 tracking.MainTrackerHitCollectionNames = [
     "ITrackerHits",

@@ -45,12 +45,12 @@ iosvc.Output = "output_gaudi_lumical_clustering.root"
 clustering = GaudiLumiCalClusterer("GaudiLumiCalClusterer")
 
 # Input collections
-clustering.LumiCal_Collection = ["LumiCalCollection"]
+clustering.LumiCal_Collection = "LumiCalCollection"
 
 # Output collections
-clustering.LumiCal_Hits = ["GaudiLumiCalHits"]
-clustering.LumiCal_Clusters = ["GaudiLumiCalClusters"]
-clustering.LumiCal_RecoParticles = ["GaudiLumiCalRecoParticles"]
+clustering.LumiCal_Hits = "GaudiLumiCalHits"
+clustering.LumiCal_Clusters = "GaudiLumiCalClusters"
+clustering.LumiCal_RecoParticles = "GaudiLumiCalRecoParticles"
 
 clustering.ClusterMinNumHits = 15
 clustering.ElementsPercentInShowerPeakLayer = 0.03

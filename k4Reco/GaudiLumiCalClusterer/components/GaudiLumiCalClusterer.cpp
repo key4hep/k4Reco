@@ -34,12 +34,12 @@
 GaudiLumiCalClusterer::GaudiLumiCalClusterer(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {
-                           KeyValues("LumiCal_Collection", {"LumiCalCollection"}),
+                           KeyValue("LumiCal_Collection", "LumiCalCollection"),
                        },
                        {
-                           KeyValues("LumiCal_Hits", {"LumiCalHits"}),
-                           KeyValues("LumiCal_Clusters", {"LumiCalClusters"}),
-                           KeyValues("LumiCal_RecoParticles", {"LumiCalRecoParticles"}),
+                           KeyValue("LumiCal_Hits", "LumiCalHits"),
+                           KeyValue("LumiCal_Clusters", "LumiCalClusters"),
+                           KeyValue("LumiCal_RecoParticles", "LumiCalRecoParticles"),
                        }) {}
 
 StatusCode GaudiLumiCalClusterer::initialize() {
