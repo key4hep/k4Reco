@@ -106,7 +106,7 @@ private:
       "Resolution in the direction of t; either one per layer or one for all layers. If the single entry is negative, "
       "disable time smearing. "};
   Gaudi::Property<bool> m_forceHitsOntoSurface{this, "ForceHitsOntoSurface", false,
-                                               "Project hits onto the surfoce in case they are not yet on the surface"};
+                                               "Project hits onto the surface in case they are not yet on the surface"};
   Gaudi::Property<double> m_minEnergy{this, "MinEnergy", 0.0, "Minimum energy (GeV) of SimTrackerHit to be digitized"};
 
   Gaudi::Property<bool> m_useTimeWindow{
