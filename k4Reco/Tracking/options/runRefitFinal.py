@@ -47,10 +47,10 @@ iosvc.Output = "output_refit_final.root"
 
 RefitFinal = RefitFinal(
     "RefitFinal",
-    InputTrackCollectionName=["SiTracks"],
+    InputTrackCollectionName="SiTracks",
     InputRelationCollectionName=[],
-    OutputTrackCollectionName=["GaudiSiTracks_Refitted"],
-    OutputRelationCollectionName=["GaudiSiTracks_Refitted_Relation"],
+    OutputTrackCollectionName="GaudiSiTracks_Refitted",
+    OutputRelationCollectionName="GaudiSiTracks_Refitted_Relation",
     EnergyLossOn=True,
     Max_Chi2_Incr=1.79769e30,
     MinClustersOnTrackAfterFit=3,

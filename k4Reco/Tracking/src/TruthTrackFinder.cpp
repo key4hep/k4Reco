@@ -88,8 +88,8 @@ TruthTrackFinder::TruthTrackFinder(const std::string& name, ISvcLocator* svcLoc)
                            KeyValues("MCParticleCollectionName", {"MCParticle"}),
                        },
                        {
-                           KeyValues("SiTrackCollectionName", {"SiTracks"}),
-                           KeyValues("SiTrackRelationCollectionName", {"SiTrackRelations"}),
+                           KeyValue("SiTrackCollectionName", "SiTracks"),
+                           KeyValue("SiTrackRelationCollectionName", "SiTrackRelations"),
                        }) {}
 
 StatusCode TruthTrackFinder::initialize() {

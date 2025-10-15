@@ -48,8 +48,8 @@ iosvc.Output = "output_truth_track_finder.root"
 truth_track_finder = TruthTrackFinder(
     "TruthTrackFinder",
     MCParticleCollectionName=["MCParticles"],
-    SiTrackCollectionName=["GaudiSiTracks"],
-    SiTrackRelationCollectionName=["GaudiSiTrackRelations"],
+    SiTrackCollectionName="GaudiSiTracks",
+    SiTrackRelationCollectionName="GaudiSiTrackRelations",
     SimTrackerHitRelCollectionNames=["VXDTrackerHitRelations", "InnerTrackerBarrelHitsRelations", "OuterTrackerBarrelHitsRelations", "VXDEndcapTrackerHitRelations", "InnerTrackerEndcapHitsRelations", "OuterTrackerEndcapHitsRelations"],
     TrackerHitCollectionNames=["VXDTrackerHits", "ITrackerHits", "OTrackerHits", "VXDEndcapTrackerHits", "ITrackerEndcapHits", "OTrackerEndcapHits"],
     UseTruthInPrefit=False,

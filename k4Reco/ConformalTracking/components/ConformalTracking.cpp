@@ -83,7 +83,7 @@ ConformalTracking::ConformalTracking(const std::string& name, ISvcLocator* svcLo
                       KeyValues("RelationsNames", {}),
                   },
                   {
-                      KeyValues("SiTrackCollectionName", {"CATracks"}),
+                      KeyValue("SiTrackCollectionName", "CATracks"),
                   }) {}
 
 StatusCode ConformalTracking::initialize() {

@@ -34,15 +34,16 @@
 #include <string>
 
 RefitFinal::RefitFinal(const std::string& name, ISvcLocator* svcLoc)
-    : MultiTransformer(name, svcLoc,
-                       {
-                           KeyValues("InputTrackCollectionName", {"TruthTracks"}),
-                           KeyValues("InputRelationCollectionName", {"SiTrackRelations"}),
-                       },
-                       {
-                           KeyValues("OutputTrackCollectionName", {"RefittedTracks"}),
-                           KeyValues("OutputRelationCollectionName", {"RefittedRelation"}),
-                       }) {}
+    : MultiTransformer(
+          name, svcLoc,
+          {
+              KeyValue("InputTrackCollectionName", "TruthTracks"),
+              KeyValues("InputRelationCollectionName", {"SiTrackRelations"}), // KeyValues so that it can be empty
+          },
+          {
+              KeyValue("OutputTrackCollectionName", "RefittedTracks"),
+              KeyValue("OutputRelationCollectionName", "RefittedRelation"),
+          }) {}
 
 StatusCode RefitFinal::initialize() {
   // Setting the streamlog output is necessary to avoid lots of overhead.
