@@ -33,7 +33,7 @@ find_package(podio 1.2.99 REQUIRED)
 find_package(EDM4HEP REQUIRED)
 find_package(DD4hep REQUIRED)
 find_package(Gaudi REQUIRED)
-find_package(k4FWCore REQUIRED)
+find_package(k4FWCore 1.4 REQUIRED)
 find_package(ROOT REQUIRED COMPONENTS RIO Tree)
 find_package(k4SimGeant4 REQUIRED)
 
