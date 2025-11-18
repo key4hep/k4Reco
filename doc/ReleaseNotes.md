@@ -1,3 +1,42 @@
+# v00.03.00
+
+* 2025-11-18 Juan Miguel Carceller ([PR#46](https://github.com/key4hep/k4Reco/pull/46))
+  - Single collections are passed to the algorithms, which is only supported since 1.4 (https://github.com/key4hep/k4FWCore/pull/345)
+
+* 2025-10-15 Juan Miguel Carceller ([PR#43](https://github.com/key4hep/k4Reco/pull/43))
+  - Use KeyValue when possible to define a single input or output. This is an example of the changes that can be done after https://github.com/key4hep/k4FWCore/pull/345 for most algorithms here.
+
+* 2025-10-09 Juan Miguel Carceller ([PR#44](https://github.com/key4hep/k4Reco/pull/44))
+  - Use get_reader instead of Reader for the script `compare-tracks.py` to be able to read TTrees and RNTuples
+
+* 2025-09-30 Juan Miguel Carceller ([PR#42](https://github.com/key4hep/k4Reco/pull/42))
+  - Add an overload for Pandora for the member function propagateToLayer that doesn't take any hits and uses the last hit added to the track to get the track measurement and propagate
+
+* 2025-09-08 jmcarcell ([PR#30](https://github.com/key4hep/k4Reco/pull/30))
+  - Add `GaudiLumiCalClusterer`, originally `MarlinLumiCalClusterer`
+  - Add a test that runs simulation (making sure there are hits in the LumiCal) and to check that the results are exactly the same as the ones produced by the Marlin wrapper
+  - Add a README with a possibly incomplete list with some of the changes with respect to the original processor
+
+* 2025-07-29 jmcarcell ([PR#39](https://github.com/key4hep/k4Reco/pull/39))
+  - Use . istead of -> for objects that are not pointers
+
+* 2025-07-16 jmcarcell ([PR#38](https://github.com/key4hep/k4Reco/pull/38))
+  - Use `edm4hep::TrackerHit` as arguments in functions belonging to the `GaudiTrkUtils` library, instead of `edm4hep::TrackerHitPlane`.
+
+* 2025-06-25 jmcarcell ([PR#37](https://github.com/key4hep/k4Reco/pull/37))
+  - Fix cmake to install k4RecoConfig.cmake and set a version of the package
+  - Remove KalTest includes from headers in GaudiDDKalTest and GaudiDDKalTestTrack
+
+* 2025-06-17 jmcarcell ([PR#36](https://github.com/key4hep/k4Reco/pull/36))
+  - ConformalTracking: Use the track obtained in the backwards direction when it has more hits than the track in the forward direction.
+
+* 2025-06-13 jmcarcell ([PR#35](https://github.com/key4hep/k4Reco/pull/35))
+  - Fix pre-commit after updating to LLVM 20
+
+* 2025-06-06 jmcarcell ([PR#34](https://github.com/key4hep/k4Reco/pull/34))
+  - Disable running the overlay in the CLDReconstruction, that can sometimes modify collections in place, making the validation fail since this is not run in Gaudi
+  - Change the tests to use underscores instead of spaces in their names
+
 # v00.02.01
 
 * 2025-05-30 jmcarcell ([PR#33](https://github.com/key4hep/k4Reco/pull/33))
