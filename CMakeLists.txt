@@ -22,8 +22,8 @@ project(k4Reco LANGUAGES CXX)
 
 # please keep this layout for version setting, used by the automatic tagging script
 set(${PROJECT_NAME}_VERSION_MAJOR 0)
-set(${PROJECT_NAME}_VERSION_MINOR 2)
-set(${PROJECT_NAME}_VERSION_PATCH 1)
+set(${PROJECT_NAME}_VERSION_MINOR 3)
+set(${PROJECT_NAME}_VERSION_PATCH 0)
 
 set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
 
