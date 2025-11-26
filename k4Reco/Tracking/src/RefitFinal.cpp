@@ -144,7 +144,7 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
       continue;
     }
 
-    edm4hep::MutableTrack lcio_trk = trackVec.create();
+    edm4hep::MutableTrack lcio_trk;
 
     GaudiTrkUtils trkUtils(static_cast<const Gaudi::Algorithm*>(this), m_ddkaltest, m_geoSvc,
                            m_encodingStringVariable.value());
@@ -218,6 +218,7 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
     //   }
     // }
 
+    trackVec.push_back(lcio_trk);
   } // for loop to the tracks
 
   // TODO:
