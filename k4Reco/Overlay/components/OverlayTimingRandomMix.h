@@ -53,34 +53,35 @@
 #include <string>
 #include <vector>
 
-struct EventHolder {
-  std::vector<std::vector<std::string>>   m_fileNames;
-  std::vector<std::vector<size_t>>        m_totalNumberOfEvents;
+namespace OverlayTimingRandomMixNS {
+  struct EventHolder {
+    std::vector<std::vector<std::string>>   m_fileNames;
+    std::vector<std::vector<size_t>>        m_totalNumberOfEvents;
+    std::vector<std::vector<size_t>> m_nextEntry;
 
-  std::vector<std::vector<size_t>> m_nextEntry;
+    EventHolder(const std::vector<std::vector<std::string>>& fileNames) : m_fileNames(fileNames) {
+      m_totalNumberOfEvents.resize(m_fileNames.size());
+      m_nextEntry.resize(m_fileNames.size());
 
-  EventHolder(const std::vector<std::vector<std::string>>& fileNames) : m_fileNames(fileNames) {
-    m_totalNumberOfEvents.resize(m_fileNames.size());
-    m_nextEntry.resize(m_fileNames.size());
-
-    for (int group = 0; group < m_fileNames.size(); group++) {
-      m_nextEntry[group].resize(m_fileNames[group].size());
-      for (auto& name : m_fileNames[group]) {
-        m_totalNumberOfEvents[group].push_back(1);//m_rootFileReaders[group].back().getEntries("events"));
+      for (int group = 0; group < m_fileNames.size(); group++) {
+        m_nextEntry[group].resize(m_fileNames[group].size());
+        for (auto& name : m_fileNames[group]) {
+          m_totalNumberOfEvents[group].push_back(1);//m_rootFileReaders[group].back().getEntries("events"));
+        }
       }
     }
-  }
-  EventHolder() = default;
+    EventHolder() = default;
 
-  podio::Reader open(int groupIndex, int index) {
-    return podio::makeReader(m_fileNames[groupIndex][index]);
-  }
+    podio::Reader open(int groupIndex, int index) {
+      return podio::makeReader(m_fileNames[groupIndex][index]);
+    }
 
-  // TODO: Cache functionality
-  // podio::Frame& read
+    // TODO: Cache functionality
+    // podio::Frame& read
 
-  size_t size() const { return m_fileNames.size(); }
-};
+    size_t size() const { return m_fileNames.size(); }
+  };
+}
 
 using retType =
     std::tuple<edm4hep::MCParticleCollection, std::vector<edm4hep::SimTrackerHitCollection>,
@@ -135,7 +136,7 @@ private:
 
   Gaudi::Property<float> m_deltaT{this, "Delta_t", float(0.5), "Time difference between BXs in the BXtrain"};
 
-  mutable std::unique_ptr<EventHolder> m_bkgEvents{};
+  mutable std::unique_ptr<OverlayTimingRandomMixNS::EventHolder> m_bkgEvents{};
 
   Gaudi::Property<std::map<std::string, std::vector<float>>> m_timeWindows{this, "TimeWindows", std::map<std::string, std::vector<float>>(), "Time windows for the different collections"};
   Gaudi::Property<bool> m_allowReusingBackgroundFiles{this, "AllowReusingBackgroundFiles", false, "If true the same background file can be used for the same event"};

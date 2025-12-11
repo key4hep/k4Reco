@@ -69,7 +69,7 @@ StatusCode OverlayTiming::initialize() {
   // TODO:: shuffle input files
   // std::shuffle(inputFiles.begin(), inputFiles.end(), rng_engine);
 
-  m_bkgEvents = make_unique<EventHolder>(inputFiles);
+  m_bkgEvents = make_unique<OverlayTimingNS::EventHolder>(inputFiles);
   for (auto& val : m_bkgEvents->m_totalNumberOfEvents) {
     if (val == 0) {
       std::string err = "No events found in the background files";

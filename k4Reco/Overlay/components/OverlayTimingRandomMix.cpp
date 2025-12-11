@@ -91,7 +91,7 @@ StatusCode OverlayTimingRandomMix::initialize() {
     }
   }
 
-  m_bkgEvents = make_unique<EventHolder>(inputFiles);
+  m_bkgEvents = make_unique<OverlayTimingRandomMixNS::EventHolder>(inputFiles);
   for (auto& valset : m_bkgEvents->m_totalNumberOfEvents) {
     for (auto& val : valset) {
       if (val == 0) {
