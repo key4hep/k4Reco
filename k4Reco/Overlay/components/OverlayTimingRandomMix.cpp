@@ -147,7 +147,7 @@ retType OverlayTimingRandomMix::operator()(
 
   // Copy MCParticles for physics event into a new collection
   for (const auto&& part : particles) {
-    oparticles->push_back(part.clone(false));
+    oparticles.push_back(part.clone(false));
   }
   // Fix relations to point to the new particles
   for (size_t i = 0; i < particles.size(); ++i) {
@@ -171,7 +171,7 @@ retType OverlayTimingRandomMix::operator()(
         auto nhit = simTrackerHit.clone(false);
         if (simTrackerHit.getParticle().getObjectID().index != -1)
           nhit.setParticle(oparticles[simTrackerHit.getParticle().getObjectID().index]);
-        ocoll->push_back(nhit);
+        ocoll.push_back(nhit);
       }
     }
     osimTrackerHits.emplace_back(std::move(ocoll));
@@ -291,7 +291,7 @@ retType OverlayTimingRandomMix::operator()(
 
             npart.setTime(bgParticles[i].getTime() + timeOffset);
             npart.setOverlay(true);
-            oparticles->push_back(npart);
+            oparticles.push_back(npart);
             for (const auto& parent : bgParticles[i].getParents()) {
               parentDaughterMap[j].first.push_back(parent.getObjectID().index);
             }
@@ -354,7 +354,7 @@ retType OverlayTimingRandomMix::operator()(
                 nhit.setMomentum({(float)mom.x, (float)mom.y, (float)mom.z}); 
               }
             }
-            ocoll->push_back(nhit);
+            ocoll.push_back(nhit);
           }
         }
 
@@ -429,17 +429,17 @@ retType OverlayTimingRandomMix::operator()(
   for (const auto& [index, calHitMap] : cellIDsMap) {
     auto ocoll = edm4hep::SimCalorimeterHitCollection();
     for (const auto& [cellID, hit] : calHitMap) {
-      ocoll->push_back(std::move(hit));
+      ocoll.push_back(std::move(hit));
     }
     osimCaloHits.emplace_back(std::move(ocoll));
   }
 
   debug() << "\n\t\tCollection\t\t|\t\tPre BIB\t\t|\t\tPost BIB\t\t\n--------------------------------------------------------------------------\n";
   for (int trkCol = 0; trkCol < simTrackerHits.size(); trkCol++) {
-    debug() << "\tTrackerHits " << trkCol << "\t|\t\t" << simTrackerHits[trkCol]->size() << "\t\t|\t\t" << osimTrackerHits[trkCol]->size() << "\n";
+    debug() << "\tTrackerHits " << trkCol << "\t|\t\t" << simTrackerHits[trkCol]->size() << "\t\t|\t\t" << osimTrackerHits[trkCol].size() << "\n";
   }
   for (int calCol = 0; calCol < simCaloHits.size(); calCol++) {
-    debug() << "\tCaloHits " << calCol << "\t|\t\t" << simCaloHits[calCol]->size() << "\t\t|\t\t" << osimCaloHits[calCol]->size() << "\n";
+    debug() << "\tCaloHits " << calCol << "\t|\t\t" << simCaloHits[calCol]->size() << "\t\t|\t\t" << osimCaloHits[calCol].size() << "\n";
   }
   debug() << endmsg;
 
