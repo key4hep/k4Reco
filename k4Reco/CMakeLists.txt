@@ -18,8 +18,14 @@ limitations under the License.
 ]]
 
 set(sources
+  FastJet/src/FastJetAlg.cpp
   DDPlanarDigi/components/DDPlanarDigi.cpp
   Overlay/components/OverlayTiming.cpp
+  Overlay/components/OverlayTimingRandomMix.cpp
+  CaloDigi/src/RealisticCaloDigiScinPpd.cc
+  CaloDigi/src/RealisticCaloDigiSilicon.cc
+  CaloDigi/src/RealisticCaloRecoScinPpd.cc
+  CaloDigi/src/RealisticCaloRecoSilicon.cc
   GaudiLumiCalClusterer/components/GaudiLumiCalClusterer.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_getCalHits.cpp
@@ -32,7 +38,15 @@ set(sources
   GaudiLumiCalClusterer/src/LCCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
+  CaloDigi/src/RealisticCaloDigi.cc
+  CaloDigi/src/RealisticCaloReco.cc
 )
+
+if(DEFINED FASTJETPLUGINS_LIBRARY)
+  message(STATUS "FASTJETPLUGINS_LIBRARY: ${FASTJETPLUGINS_LIBRARY}")
+else()
+  message(WARNING "FASTJETPLUGINS_LIBRARY is not defined")
+endif()
 
 set(libs
         podio::podioIO
@@ -45,6 +59,8 @@ set(libs
         ROOT::Core
         ROOT::MathCore
         ROOT::Tree
+        CLHEP::Random
+        ${FASTJET_LIBRARIES}
 )
 
 if(BUILD_TRACKING)
@@ -97,6 +113,7 @@ if(BUILD_TRACKING)
        Tracking/src/ClonesAndSplitTracksFinder.cpp
        Tracking/src/RefitFinal.cpp
        Tracking/src/TruthTrackFinder.cpp
+       Tracking/src/FilterDoubleLayerHits.cc
   )
 
   list(APPEND libs
@@ -115,6 +132,9 @@ gaudi_add_module(k4RecoPlugins
 # Common include directories
 set(k4RecoPlugins_public_includes
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/CaloDigi/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/FastJet/include>
+  ${FASTJET_INCLUDE_DIRS}
 )
 
 target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
@@ -122,6 +142,7 @@ target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/CaloDigi/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if(BUILD_TRACKING)
