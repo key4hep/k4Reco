@@ -19,6 +19,7 @@ limitations under the License.
 
 
 find_package(k4geo REQUIRED)
+find_package(k4GaudiPandora REQUIRED)
 
 function(set_test_env testname)
   set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT "LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}:${PROJECT_BINARY_DIR}/${PROJECT_NAME}:${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir/${PROJECT_NAME}:${PROJECT_BINARY_DIR}/test/k4FWCoreTest:${PROJECT_BINARY_DIR}/test/k4FWCoreTest/genConfDir/k4FWCoreTest:$<$<TARGET_EXISTS:ROOT::Core>:$<TARGET_FILE_DIR:ROOT::Core>>:$<$<TARGET_EXISTS:EDM4HEP::edm4hep>:$<TARGET_FILE_DIR:EDM4HEP::edm4hep>>:$<$<TARGET_EXISTS:podio::podio>:$<TARGET_FILE_DIR:podio::podio>>:$ENV{LD_LIBRARY_PATH}")
@@ -142,3 +143,21 @@ if(BUILD_TRACKING)
   set_tests_properties("compare_TruthTrackFinder" PROPERTIES FIXTURES_REQUIRED "TruthTrackFinderOutput")
 
 endif()
+
+add_test( NAME "run_ddsim_ttbar"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml --numberOfEvents 3 --outputFile sim_ttbar.edm4hep.root --inputFile CLDConfig/test/yyxyev_000.stdhep"
+)
+set_test_env("run_ddsim_ttbar")
+set_tests_properties("run_ddsim_ttbar" PROPERTIES DEPENDS "clone_CLDConfig")
+
+add_test(NAME "run_wrapper_ttbar"
+  COMMAND k4run CLDReconstruction.py --inputFiles sim_ttbar.edm4hep.root --outputBasename output_ttbar
+)
+set_test_env("run_wrapper_ttbar")
+set_tests_properties("run_wrapper_ttbar" PROPERTIES DEPENDS "clone_CLDConfig;run_ddsim_ttbar")
+
+add_test(NAME "run_PandoraPlusFastJet_ttbar"
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/pandoraPlusFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_pandoraPlusFastJet_ttbar.root
+)
+set_test_env("run_PandoraPlusFastJet_ttbar")
+set_tests_properties("run_PandoraPlusFastJet_ttbar" PROPERTIES DEPENDS "run_wrapper_ttbar")
