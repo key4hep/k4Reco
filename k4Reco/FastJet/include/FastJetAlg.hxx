@@ -32,10 +32,65 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <map>
 
-#define ITERATIVE_INCLUSIVE_MAX_ITERATIONS 20
+// some namespacing for organization
+namespace k4Reco::FastJet {
+  constexpr static int ITERATIVE_INCLUSIVE_MAX_ITERATIONS = 20;
+  
+  inline const std::map<std::string, fastjet::JetAlgorithm> NAME_TO_ALGORITHM_MAP = {
+    {"kt_algorithm", fastjet::kt_algorithm},
+    {"cambridge_algorithm", fastjet::cambridge_algorithm},
+    {"antikt_algorithm", fastjet::antikt_algorithm},
+    {"genkt_algorithm", fastjet::genkt_algorithm},
+    {"cambridge_for_passive_algorithm", fastjet::cambridge_for_passive_algorithm},
+    {"genkt_for_passive_algorithm", fastjet::genkt_for_passive_algorithm},
+    {"ee_kt_algorithm", fastjet::ee_kt_algorithm},
+    {"ee_genkt_algorithm", fastjet::ee_genkt_algorithm},
+  };
+  inline const std::map<std::string, int> NAME_TO_NR_PARAMS_MAP = {
+    {"kt_algorithm", 1},
+    {"cambridge_algorithm", 1},
+    {"antikt_algorithm", 1},
+    {"genkt_algorithm", 2},
+    {"cambridge_for_passive_algorithm", 1},
+    {"genkt_for_passive_algorithm", 1},
+    {"ee_kt_algorithm", 0},
+    {"ee_genkt_algorithm", 2},
+    {"SISConePlugin", 2},
+    {"SISConeSphericalPlugin", 2},
+  };
+  inline const std::map<std::string, int> NAME_TO_CLUSTER_MODE_MAP = {
+    {"kt_algorithm", FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut | OWN_inclusiveIteration},
+    {"cambridge_algorithm", FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut | OWN_inclusiveIteration},
+    {"antikt_algorithm", FJ_inclusive | OWN_inclusiveIteration},
+    {"genkt_algorithm", FJ_inclusive | OWN_inclusiveIteration | FJ_exclusive_nJets | FJ_exclusive_yCut},
+    {"cambridge_for_passive_algorithm", FJ_inclusive | OWN_inclusiveIteration | FJ_exclusive_nJets | FJ_exclusive_yCut},
+    {"genkt_for_passive_algorithm", FJ_inclusive | OWN_inclusiveIteration},
+    {"ee_kt_algorithm", FJ_exclusive_nJets | FJ_exclusive_yCut},
+    {"ee_genkt_algorithm", FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut},
+    {"SISConePlugin", FJ_inclusive | OWN_inclusiveIteration},
+    {"SISConeSphericalPlugin", FJ_inclusive | OWN_inclusiveIteration},
+  };
 
-//Forward declaration
+  class jetDefinitionFactory {
+    using creatorFunc = std::function<std::unique_ptr<fastjet::JetDefinition>(
+						       fastjet::JetAlgorithm,
+						       const std::vector<float>&,
+						       fastjet::RecombinationScheme,
+						       fastjet::Strategy
+						       )>;
+    std::map<std::string, creatorFunc> registry;
+  public:
+    jetDefinitionFactory();
+    std::unique_ptr<fastjet::JetDefinition> create(const std::string& type,
+						   fastjet::JetAlgorithm m_jetAlgoType,
+						   const std::vector<float>& params,
+						   fastjet::RecombinationScheme m_jetRecoScheme,
+						   fastjet::Strategy m_strategy);
+  };
+
+  //Forward declaration
 typedef std::vector< fastjet::PseudoJet > PseudoJetList;
 
 class SkippedFixedNrJetException: public std::runtime_error {
@@ -48,88 +103,64 @@ public:
     SkippedMaxIterationException(PseudoJetList& jets) :std::runtime_error(""), m_jets(jets) {}
     PseudoJetList m_jets;
 };
+}
+
+using namespace k4Reco::FastJet;
 
 struct FastJetAlg : k4FWCore::MultiTransformer<
-    std::tuple<edm4hep::ReconstructedParticleCollection,
-    edm4hep::ReconstructedParticleCollection>(const edm4hep::ReconstructedParticleCollection&)> {
+  std::tuple<edm4hep::ReconstructedParticleCollection,
+	     edm4hep::ReconstructedParticleCollection>(const edm4hep::ReconstructedParticleCollection&)> {
 public:
-    FastJetAlg(const std::string& name, ISvcLocator* svcLoc);
+  FastJetAlg(const std::string& name, ISvcLocator* svcLoc);
 
-    /** Called at the begin of the job before anything is read.
-    * Use to initialize the processor, e.g. book histograms.
-    */
-    StatusCode initialize();
+  /** Called at the begin of the job before anything is read.
+   * Use to initialize the processor, e.g. book histograms.
+   */
+  StatusCode initialize();
 
-    /** Called for every run.
-     */
-    std::tuple<edm4hep::ReconstructedParticleCollection, edm4hep::ReconstructedParticleCollection> operator()(
-        const edm4hep::ReconstructedParticleCollection& inputCollection) const;
-
-private:
-    std::vector<std::string> defaultJetAlgoNameAndParams{"kt_algorithm", "0.7"};
-    std::vector<std::string> defaultClusterMode{"Inclusive", "0.0"};
-
-    Gaudi::Property<std::string> m_jetRecoSchemeName{this, "recombinationScheme", std::string("E_scheme"), "The recombination scheme used when merging 2 particles. Usually there is no need to use anything else than 4-Vector addition: E_scheme."};
-    Gaudi::Property<std::vector<std::string>> m_jetAlgoNameAndParams{this, "algorithm", defaultJetAlgoNameAndParams, "Selects the algorithm and its parameters. E.g. 'kt_algorithm 0.7' or 'ee_kt_algorithm'. For a full list of supported algorithms, see the logfile after execution."};
-    Gaudi::Property<std::vector<std::string>> m_clusterModeNameAndParam{this, "clusteringMode", defaultClusterMode, "One of 'Inclusive <minPt>', 'InclusiveIterativeNJets <nrJets> <minE>', 'ExclusiveNJets <nrJets>', 'ExclusiveYCut <yCut>'. Note: not all modes are available for all algorithms."};
-
-    // jet algorithm
-    std::string m_jetAlgoName;
-    fastjet::JetDefinition* m_jetAlgo;
-    fastjet::JetAlgorithm m_jetAlgoType;
-
-    // clustering mode
-    std::string m_clusterModeName;
-    EClusterMode m_clusterMode;
-
-    // jet reco scheme
-    fastjet::RecombinationScheme m_jetRecoScheme;
-
-    // jet strategy
-    std::string m_strategyName;
-    fastjet::Strategy m_strategy;
-
-    // parameters
-    unsigned m_requestedNumberOfJets;
-    double m_yCut;
-    double m_minPt;
-    double m_minE;
+  /** Called for every run.
+   */
+  std::tuple<edm4hep::ReconstructedParticleCollection, edm4hep::ReconstructedParticleCollection> operator()(
+													    const edm4hep::ReconstructedParticleCollection& inputCollection) const;
 
 private:
-    bool isJetAlgo(std::string algo, int nrParams, int supportedModes) const;
+  std::vector<std::string> defaultJetAlgoNameAndParams{"kt_algorithm", "0.7"};
+  std::vector<std::string> defaultClusterMode{"Inclusive", "0.0"};
+
+  Gaudi::Property<std::string> m_jetRecoSchemeName{this, "recombinationScheme", std::string("E_scheme"), "The recombination scheme used when merging 2 particles. Usually there is no need to use anything else than 4-Vector addition: E_scheme."};
+  Gaudi::Property<std::vector<std::string>> m_jetAlgoNameAndParams{this, "algorithm", defaultJetAlgoNameAndParams, "Selects the algorithm and its parameters. E.g. 'kt_algorithm 0.7' or 'ee_kt_algorithm'. For a full list of supported algorithms, see the logfile after execution."};
+  Gaudi::Property<std::vector<std::string>> m_clusterModeNameAndParam{this, "clusteringMode", defaultClusterMode, "One of 'Inclusive <minPt>', 'InclusiveIterativeNJets <nrJets> <minE>', 'ExclusiveNJets <nrJets>', 'ExclusiveYCut <yCut>'. Note: not all modes are available for all algorithms."};
+
+  // jet algorithm
+  std::string m_jetAlgoName;
+  std::unique_ptr<fastjet::JetDefinition> m_jetAlgo;
+  fastjet::JetAlgorithm m_jetAlgoType;
+
+  // clustering mode
+  std::string m_clusterModeName;
+  EClusterMode m_clusterMode;
+
+  // jet reco scheme
+  fastjet::RecombinationScheme m_jetRecoScheme;
+
+  // jet strategy
+  std::string m_strategyName;
+  fastjet::Strategy m_strategy;
+
+  // parameters
+  unsigned m_requestedNumberOfJets;
+  double m_yCut;
+  double m_minPt;
+  double m_minE;
+
+private:
+  fastjet::JetAlgorithm getAlgoType() const;
+  void validateParams();
+  void validateClusterModes() const;
+  std::unique_ptr<jetDefinitionFactory> theJetDefinitionFactory = std::make_unique<jetDefinitionFactory>();
+  
 };
 
 DECLARE_COMPONENT(FastJetAlg)
-
-bool FastJetAlg::isJetAlgo(std::string algo, int nrParams, int supportedModes) const {
-    info() << " " << algo;
-
-    // check if the chosen algorithm is the same as it was passed
-    if (m_jetAlgoName.compare(algo) != 0) {
-    return false;
-    }
-    info() << "*"; // mark the current algorithm as the selected
-        // one, even before we did our checks on nr of
-        // parameters etc.
-
-    // check if we have enough number of parameters
-    if ((int)m_jetAlgoNameAndParams.size() - 1 != nrParams) {
-        error() << std::endl
-        << "Wrong numbers of parameters for algorithm: " << algo << std::endl
-        << "We need " << nrParams << " params, but we got " << m_jetAlgoNameAndParams.size() - 1 << std::endl;
-        throw GaudiException("You have insufficient number of parameters for this algorithm! See log for more details.", name(), StatusCode::FAILURE);
-    }
-
-    // check if the mode is supported via a binary AND
-    if ((supportedModes & m_clusterMode) != m_clusterMode) {
-        error() << std::endl
-        << "This algorithm is not capable of running in this clustering mode ("
-        << m_clusterMode << "). Sorry!" << std::endl;
-        throw GaudiException("This algorithm is not capable of running in this mode", name(), StatusCode::FAILURE);
-    }
-
-    return true;
-}
-
 
 #endif /* FASTJETALG_H_ */

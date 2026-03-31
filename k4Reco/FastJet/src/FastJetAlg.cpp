@@ -18,12 +18,74 @@
 
 #include <sstream>
 
+using namespace k4Reco::FastJet;
+
+// Constructor for jet definition factory.
+// This is largely an excuse to populate its registry for how to
+// construct the jet definition. We can define a few generic parameter
+// instances, and set specific instances to those more generic ones
+jetDefinitionFactory::jetDefinitionFactory() {
+  registry["zero_param"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
+    return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, m_jetRecoScheme, m_strategy);
+  };
+  registry["one_param"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
+    return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, params.at(0), m_jetRecoScheme, m_strategy);
+  };
+  registry["two_param"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
+    return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, params.at(0), params.at(1), m_jetRecoScheme, m_strategy);
+  };
+
+  registry["kt_algorithm"] = registry["one_param"];
+  registry["cambridge_algorithm"] = registry["one_param"];
+  registry["antikt_algorithm"] = registry["one_param"];
+  registry["genkt_algorithm"] = registry["two_param"];
+  registry["cambridge_for_passive_algorithm"] = registry["one_param"];
+  registry["genkt_for_passive_algorithm"] = registry["one_param"];
+  registry["ee_kt_algorithm"] = registry["zero_param"];
+  registry["ee_genkt_algorithm"] = registry["two_param"];
+  registry["SISConePlugin"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
+    fastjet::SISConePlugin* pl;
+    pl = new fastjet::SISConePlugin(
+				    params.at(0),
+				    params.at(1)
+				    );
+    auto jetAlgo = std::make_unique<fastjet::JetDefinition>(pl);
+    jetAlgo->delete_plugin_when_unused();
+    return std::move(jetAlgo);
+  };
+  registry["SISConeSphericalPlugin"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
+    fastjet::SISConeSphericalPlugin* pl;
+    pl = new fastjet::SISConeSphericalPlugin(
+					     params.at(0),
+					     params.at(1)
+					     );
+    auto jetAlgo = std::make_unique<fastjet::JetDefinition>(pl);
+    jetAlgo->delete_plugin_when_unused();
+    return std::move(jetAlgo);
+  };
+}
+
+// The actual method for creating the jet definition. Maps the
+// string to a function via the internal registry.
+std::unique_ptr<fastjet::JetDefinition> jetDefinitionFactory::create(
+			     const std::string& type,
+			     fastjet::JetAlgorithm m_jetAlgoType,
+			     const std::vector<float>& params,
+			     fastjet::RecombinationScheme m_jetRecoScheme,
+			     fastjet::Strategy m_strategy
+			     ){
+  if (registry.find(type) != registry.end()) {
+    return registry[type](m_jetAlgoType, params, m_jetRecoScheme, m_strategy);
+  }
+  throw GaudiException("Jet algorithm type not in factory registry", "JetDefinitionFactory", StatusCode::FAILURE);
+}
+
 FastJetAlg::FastJetAlg(const std::string& name, ISvcLocator* svcLoc) : MultiTransformer(name, svcLoc, 
-    { KeyValues("recParticleIn", {"MCParticle"}) },
-    { KeyValues("jetOut", {"JetOut"}),
-      KeyValues("recParticleOut", {"Constituents"}) }),
+    { KeyValue("recParticleIn", "MCParticle") },
+    { KeyValue("jetOut", "JetOut"),
+      KeyValue("recParticleOut", "Constituents") }),
             m_jetAlgoName(""),
-            m_jetAlgo(NULL),
+	    m_jetAlgo(nullptr),
             m_jetAlgoType(),
             m_clusterModeName(""),
             m_clusterMode( NONE ),
@@ -108,93 +170,37 @@ StatusCode FastJetAlg::initialize() {
     // save the name
     m_jetAlgoName = m_jetAlgoNameAndParams[0];
     // check all supported algorithms and create the appropriate FJ instance
-    m_jetAlgo = NULL;
-    info() << "Algorithms: ";	// the isJetAlgo function will write to streamlog_out(MESSAGE), so that we get a list of available algorithms in the log
-    // example: kt_algorithm, needs 1 parameter, supports inclusive, inclusiveIterative, exlusiveNJets and exlusiveYCut clustering
-    if (isJetAlgo("kt_algorithm", 1, FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut | OWN_inclusiveIteration)) {
-        m_jetAlgoType = fastjet::kt_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, atof(m_jetAlgoNameAndParams[1].c_str()), m_jetRecoScheme, m_strategy);
-    }
-    if (isJetAlgo("cambridge_algorithm", 1, FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut | OWN_inclusiveIteration)) {
-        m_jetAlgoType = fastjet::cambridge_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, atof(m_jetAlgoNameAndParams[1].c_str()), m_jetRecoScheme, m_strategy);
-    }
-    if (isJetAlgo("antikt_algorithm", 1, FJ_inclusive | OWN_inclusiveIteration)) {
-        m_jetAlgoType = fastjet::antikt_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, atof(m_jetAlgoNameAndParams[1].c_str()), m_jetRecoScheme, m_strategy);
-    }
-    if (isJetAlgo("genkt_algorithm", 2, FJ_inclusive | OWN_inclusiveIteration | FJ_exclusive_nJets | FJ_exclusive_yCut)) {
-        m_jetAlgoType = fastjet::genkt_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, atof(m_jetAlgoNameAndParams[1].c_str()), atof(m_jetAlgoNameAndParams[2].c_str()), m_jetRecoScheme, m_strategy);
-    }
-    if (isJetAlgo("cambridge_for_passive_algorithm", 1, FJ_inclusive | OWN_inclusiveIteration | FJ_exclusive_nJets | FJ_exclusive_yCut)) {
-        m_jetAlgoType = fastjet::cambridge_for_passive_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, atof(m_jetAlgoNameAndParams[1].c_str()), m_jetRecoScheme, m_strategy);
-    }
-    if (isJetAlgo("genkt_for_passive_algorithm", 1, FJ_inclusive | OWN_inclusiveIteration)) {
-        m_jetAlgoType = fastjet::genkt_for_passive_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, atof(m_jetAlgoNameAndParams[1].c_str()), m_jetRecoScheme, m_strategy);
-    }
-    if (isJetAlgo("ee_kt_algorithm", 0, FJ_exclusive_nJets | FJ_exclusive_yCut)) {
-        m_jetAlgoType = fastjet::ee_kt_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, m_jetRecoScheme, m_strategy);
-    }
-    // backwards compatibility for using 1 parameter only assuming exponent to be 1.
-    bool commentOnAlgo = false;
-    if ((m_jetAlgoNameAndParams[0]=="ee_genkt_algorithm") && ((int)m_jetAlgoNameAndParams.size() == 2)){
-        m_jetAlgoNameAndParams.value().push_back("1.");
-        commentOnAlgo = true;
-    }
-    if (isJetAlgo("ee_genkt_algorithm", 2, FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut)) {
-        m_jetAlgoType = fastjet::ee_genkt_algorithm;
-        m_jetAlgo = new fastjet::JetDefinition(
-        m_jetAlgoType, atof(m_jetAlgoNameAndParams[1].c_str()), atof(m_jetAlgoNameAndParams[2].c_str()), m_jetRecoScheme, m_strategy);
-    }
-    if (isJetAlgo("SISConePlugin", 2, FJ_inclusive | OWN_inclusiveIteration)) {
-        fastjet::SISConePlugin* pl;
-        pl = new fastjet::SISConePlugin(
-        atof(m_jetAlgoNameAndParams[1].c_str()),
-        atof(m_jetAlgoNameAndParams[2].c_str())
-        );
-        m_jetAlgo = new fastjet::JetDefinition(pl);
-        m_jetAlgo->delete_plugin_when_unused();
-    }
-    if (isJetAlgo("SISConeSphericalPlugin", 2, FJ_inclusive | OWN_inclusiveIteration)) {
-        fastjet::SISConeSphericalPlugin* pl;
-        pl = new fastjet::SISConeSphericalPlugin(
-            atof(m_jetAlgoNameAndParams[1].c_str()),
-            atof(m_jetAlgoNameAndParams[2].c_str())
-        );
-        m_jetAlgo = new fastjet::JetDefinition(pl);
-        m_jetAlgo->delete_plugin_when_unused();
-    }
-    // *********** VALENCIA WAS NOT IN THE FASTJET INSTALLATION SO IT IS NOT ACTIVE FOR NOW ***********
-    // if (isJetAlgo("ValenciaPlugin", 3, FJ_exclusive_nJets | FJ_exclusive_yCut)) {
-    //     fastjet::contrib::ValenciaPlugin* pl;
-    //     pl = new fastjet::contrib::ValenciaPlugin(
-    //         atof(m_jetAlgoNameAndParams[1].c_str()),  // R value
-    //         atof(m_jetAlgoNameAndParams[2].c_str()),  // beta value
-    //         atof(m_jetAlgoNameAndParams[3].c_str())   // gamma value
-    //     );
-    //     m_jetAlgo = new fastjet::JetDefinition(pl);
-    //     m_jetAlgo->delete_plugin_when_unused();
-    // }
-    info() << endmsg; // end of list of available algorithms
-    //ee_genkt_algorithm
-    if (commentOnAlgo) {info() << "When only 1 parameter is provided for ee_genkt_algorithm it is assumed to be R, and the exponent p is assumed to be equal to 1" << endmsg;}
-    if (!m_jetAlgo) {
-        error() << "The given algorithm \"" << m_jetAlgoName << "\" is unknown to me!" << endmsg;
-        throw GaudiException("Unknown FastJet algorithm.", name(), StatusCode::FAILURE);
-    }
-    info() << "jet algorithm: " << m_jetAlgo->description() << endmsg;
+    m_jetAlgo = nullptr;
 
+    // Perform retrieval of the algo type based on mapping the name
+    // Instead of a large set of if blocks
+    // The SISConePlugin and SISConeSphericalPlugin seemed never to have this
+    // So it is not performed in those special cases
+    if (m_jetAlgoName != "SISConePlugin" and m_jetAlgoName != "SISConeSphericalPlugin") m_jetAlgoType = getAlgoType();
+
+    // Validate the number of parameters that we have.
+    // This is just a function designed to throw some exceptions if we
+    // don't get what we're expecting, and handle the special ee_genkt
+    // case, so it doesn't really return anything
+    validateParams();
+    // This is similar, and performs validation of the clusting modes
+    // that we have received
+    validateClusterModes();
+
+    // This just calls factory utility that has a more generic jet definition
+    // constructor, instead of resorting to a large set of if blocks
+    std::vector<float> floatParams;
+    for (auto index = 1u; index < m_jetAlgoNameAndParams.size(); index++){floatParams.push_back(atof(m_jetAlgoNameAndParams[index].c_str()));}
+    m_jetAlgo = theJetDefinitionFactory->create(
+						m_jetAlgoName,
+						m_jetAlgoType,
+						floatParams,
+						m_jetRecoScheme,
+						m_strategy
+						
+						);
+    
+    
     return StatusCode::SUCCESS;
 }
 
@@ -334,4 +340,74 @@ std::tuple<edm4hep::ReconstructedParticleCollection, edm4hep::ReconstructedParti
     }
 
     return std::make_tuple(std::move(outputCollection), std::move(jetCollection));
+}
+
+// Double check against the name, and source the appropriate algorithm
+fastjet::JetAlgorithm FastJetAlg::getAlgoType() const {
+  if (!k4Reco::FastJet::NAME_TO_ALGORITHM_MAP.contains(m_jetAlgoName)) {
+    throw GaudiException("Could not find jet algorithm name in internal map", name(), StatusCode::FAILURE);
+  }
+  return k4Reco::FastJet::NAME_TO_ALGORITHM_MAP.at(m_jetAlgoName);
+}
+
+// Performs validation of the number of parameters we have received versus
+// the internal mapping we have. One of the responsibilities of the old
+// "isJetAlgo" function
+void FastJetAlg::validateParams() {
+  int nParams = (int)m_jetAlgoNameAndParams.size() - 1; // -1 because we also get the name
+  // Original code treats ee_kt_algorithm a bit specially, so that is
+  // reflected here
+  if ((m_jetAlgoName == "ee_genkt_algorithm") ){
+      if (nParams == 1){ // one other
+	m_jetAlgoNameAndParams.value().push_back("1.");
+	info()<< "When only 1 parameter is provided for ee_genkt_algorithm it is assumed to be R, and the exponent p is assumed to be equal to 1" << endmsg;
+	return;
+      }
+    // If we have 2 parameters and the name we're fine
+      else if (nParams == 2) { return;}
+    // Otherwise something is wrong and we throw an error
+      else{
+	error()<<std::endl<<"Wrong number of parameters for algorithm: ee_genkt_algorithm";
+      }
+      
+  }
+  // Everything else we look up, if we have the wrong number of
+  // parameters, then that's an error
+  else {
+    if(!k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.contains(m_jetAlgoName)) {
+      throw GaudiException("Could not find the jet algorithm name in the number of parameters map", name(), StatusCode::FAILURE);
+    }
+    else if (k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.at(m_jetAlgoName) != nParams) {
+      throw GaudiException(
+			   std::format("Wrong number of parameters for algorithm: {}\nExpected {} but got {}", m_jetAlgoName, k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.at(m_jetAlgoName), nParams),
+			   name(),
+			   StatusCode::FAILURE
+			   );
+    }
+    else{return;}
+  }
+  //technically impossible to hit, but here for completeness
+  return;
+}
+
+// Performs validation of the number of cluster modes we have received versus
+// the internal mapping we have. One of the responsibilities of the old
+// "isJetAlgo" function
+void FastJetAlg::validateClusterModes() const {
+  if(!k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.contains(m_jetAlgoName)) {
+    throw GaudiException(
+			 std::format("Could not find the algorithm {} in the name to cluster mode mapping", m_jetAlgoName),
+			 name(),
+			 StatusCode::FAILURE
+			 );
+  }
+
+  int supportedModes = k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.at(m_jetAlgoName);
+  if ((supportedModes & m_clusterMode) != m_clusterMode) {
+    error() << std::endl
+	    << std::format("{} is not capable of running in this cluster mode (", m_jetAlgoName)
+	    << m_clusterMode << ") "<<std::endl;
+    throw GaudiException("Cluster mode is not supported!", name(), StatusCode::FAILURE);
+  }
+    
 }

@@ -135,9 +135,9 @@ pandora = DDPandoraPFANewAlgorithm("PandoraPFANewAlgorithm", **params)
 fastJet = FastJetAlg("AntiKt FastJet",
                      algorithm = ["antikt_algorithm", "0.4"],
                      clusteringMode = ["Inclusive", "5"],
-                     jetOut = ["JetOut"],
-                     recParticleIn = ["PandoraPFOs"],
-                     recParticleOut = ["UsedPFOs"],
+                     jetOut = "JetOut",
+                     recParticleIn = "PandoraPFOs",
+                     recParticleOut = "UsedPFOs",
                      recombinationScheme = "E_scheme",
                      OutputLevel = INFO
                      )
