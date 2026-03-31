@@ -38,7 +38,6 @@ find_package(k4FWCore 1.4 REQUIRED)
 find_package(ROOT REQUIRED COMPONENTS RIO Tree)
 find_package(k4SimGeant4 REQUIRED)
 
-find_package(k4geo REQUIRED)
 find_package(CLHEP REQUIRED)
 find_package(FastJet REQUIRED)
 
@@ -55,4 +54,3 @@ endif()
 add_subdirectory(python)
 
 include(cmake/CreateProjectConfig.cmake)
-include(cmake/FindFastJet.cmake)

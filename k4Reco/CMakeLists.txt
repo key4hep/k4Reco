@@ -34,12 +34,6 @@ set(sources
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
 )
 
-if(DEFINED FASTJETPLUGINS_LIBRARY)
-  message(STATUS "FASTJETPLUGINS_LIBRARY: ${FASTJETPLUGINS_LIBRARY}")
-else()
-  message(WARNING "FASTJETPLUGINS_LIBRARY is not defined")
-endif()
-
 set(libs
         podio::podioIO
         EDM4HEP::edm4hep
