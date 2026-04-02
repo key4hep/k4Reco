@@ -38,7 +38,7 @@
 namespace k4Reco::FastJet {
   constexpr static int ITERATIVE_INCLUSIVE_MAX_ITERATIONS = 20;
   
-  inline const std::map<std::string, fastjet::JetAlgorithm> NAME_TO_ALGORITHM_MAP = {
+  static const std::map<std::string, fastjet::JetAlgorithm> NAME_TO_ALGORITHM_MAP = {
     {"kt_algorithm", fastjet::kt_algorithm},
     {"cambridge_algorithm", fastjet::cambridge_algorithm},
     {"antikt_algorithm", fastjet::antikt_algorithm},
@@ -48,7 +48,7 @@ namespace k4Reco::FastJet {
     {"ee_kt_algorithm", fastjet::ee_kt_algorithm},
     {"ee_genkt_algorithm", fastjet::ee_genkt_algorithm},
   };
-  inline const std::map<std::string, int> NAME_TO_NR_PARAMS_MAP = {
+  static const std::map<std::string, int> NAME_TO_NR_PARAMS_MAP = {
     {"kt_algorithm", 1},
     {"cambridge_algorithm", 1},
     {"antikt_algorithm", 1},
@@ -60,7 +60,7 @@ namespace k4Reco::FastJet {
     {"SISConePlugin", 2},
     {"SISConeSphericalPlugin", 2},
   };
-  inline const std::map<std::string, int> NAME_TO_CLUSTER_MODE_MAP = {
+  static const std::map<std::string, int> NAME_TO_CLUSTER_MODE_MAP = {
     {"kt_algorithm", FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut | OWN_inclusiveIteration},
     {"cambridge_algorithm", FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut | OWN_inclusiveIteration},
     {"antikt_algorithm", FJ_inclusive | OWN_inclusiveIteration},
@@ -73,7 +73,7 @@ namespace k4Reco::FastJet {
     {"SISConeSphericalPlugin", FJ_inclusive | OWN_inclusiveIteration},
   };
 
-  class jetDefinitionFactory {
+  class JetDefinitionFactory {
     using creatorFunc = std::function<std::unique_ptr<fastjet::JetDefinition>(
 						       fastjet::JetAlgorithm,
 						       const std::vector<float>&,
@@ -82,12 +82,35 @@ namespace k4Reco::FastJet {
 						       )>;
     std::map<std::string, creatorFunc> registry;
   public:
-    jetDefinitionFactory();
+    JetDefinitionFactory();
     std::unique_ptr<fastjet::JetDefinition> create(const std::string& type,
 						   fastjet::JetAlgorithm m_jetAlgoType,
 						   const std::vector<float>& params,
 						   fastjet::RecombinationScheme m_jetRecoScheme,
 						   fastjet::Strategy m_strategy);
+  private:
+    static std::unique_ptr<fastjet::JetDefinition> useZeroParams(fastjet::JetAlgorithm m_jetAlgoType,
+							  const std::vector<float>& params,
+							  fastjet::RecombinationScheme m_jetRecoScheme,
+							  fastjet::Strategy m_strategy) {
+      return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, m_jetRecoScheme, m_strategy);
+    }
+    static std::unique_ptr<fastjet::JetDefinition> useOneParams(
+							 fastjet::JetAlgorithm m_jetAlgoType,
+							 const std::vector<float>& params,
+							 fastjet::RecombinationScheme m_jetRecoScheme,
+							 fastjet::Strategy m_strategy
+							 ){
+      return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, params.at(0), m_jetRecoScheme, m_strategy);
+    }
+    static std::unique_ptr<fastjet::JetDefinition> useTwoParams(
+							 fastjet::JetAlgorithm m_jetAlgoType,
+							 const std::vector<float>& params,
+							 fastjet::RecombinationScheme m_jetRecoScheme,
+							 fastjet::Strategy m_strategy
+							 ) {
+      return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, params.at(0), params.at(1), m_jetRecoScheme, m_strategy);
+    }
   };
 
   //Forward declaration
@@ -104,8 +127,6 @@ public:
     PseudoJetList m_jets;
 };
 }
-
-using namespace k4Reco::FastJet;
 
 struct FastJetAlg : k4FWCore::MultiTransformer<
   std::tuple<edm4hep::ReconstructedParticleCollection,
@@ -127,18 +148,21 @@ private:
   std::vector<std::string> defaultJetAlgoNameAndParams{"kt_algorithm", "0.7"};
   std::vector<std::string> defaultClusterMode{"Inclusive", "0.0"};
 
+  Gaudi::Property<std::string> m_jetAlgoName{this, "algorithm", "kt_algorithm", "Name of the algorithm to use for making jets. E.g. kt_algorithm. Full list of algorithms can be seen in the FastJet code."};
+  Gaudi::Property<std::vector<float>> m_jetAlgoParams{this, "algorithmParameters", {0.7}, "Parameters required by each specific algorithm. The amount of parameters and interpretation varies per algorithm."};
+  Gaudi::Property<std::string> m_clusterModeName{this, "clusteringMode", "Inclusive", "Clustering mode for the algorithm. Not all clustering modes are available for all algorithms. See Fast Jet code for availabilities."};
+  Gaudi::Property<std::vector<float>> m_clusterModeParams{this, "clusteringParams", {0.0}, "Cluster mode parameters. One of 'Inclusive <minPt>', 'InclusiveIterativeNJets <nrJets> <minE>', 'ExclusiveNJets <nrJets>', 'ExclusiveYCut <yCut>'. Note: not all modes are available for all algorithms. Some parameters are input as floats, despite being eventual conversion to integers."};
+  
   Gaudi::Property<std::string> m_jetRecoSchemeName{this, "recombinationScheme", std::string("E_scheme"), "The recombination scheme used when merging 2 particles. Usually there is no need to use anything else than 4-Vector addition: E_scheme."};
-  Gaudi::Property<std::vector<std::string>> m_jetAlgoNameAndParams{this, "algorithm", defaultJetAlgoNameAndParams, "Selects the algorithm and its parameters. E.g. 'kt_algorithm 0.7' or 'ee_kt_algorithm'. For a full list of supported algorithms, see the logfile after execution."};
-  Gaudi::Property<std::vector<std::string>> m_clusterModeNameAndParam{this, "clusteringMode", defaultClusterMode, "One of 'Inclusive <minPt>', 'InclusiveIterativeNJets <nrJets> <minE>', 'ExclusiveNJets <nrJets>', 'ExclusiveYCut <yCut>'. Note: not all modes are available for all algorithms."};
 
   // jet algorithm
-  std::string m_jetAlgoName;
+  //std::string m_jetAlgoName;
   std::unique_ptr<fastjet::JetDefinition> m_jetAlgo;
   fastjet::JetAlgorithm m_jetAlgoType;
 
   // clustering mode
-  std::string m_clusterModeName;
-  EClusterMode m_clusterMode;
+  //std::string m_clusterModeName;
+  k4Reco::FastJet::EClusterMode m_clusterMode;
 
   // jet reco scheme
   fastjet::RecombinationScheme m_jetRecoScheme;
@@ -155,9 +179,9 @@ private:
 
 private:
   fastjet::JetAlgorithm getAlgoType() const;
-  void validateParams();
-  void validateClusterModes() const;
-  std::unique_ptr<jetDefinitionFactory> theJetDefinitionFactory = std::make_unique<jetDefinitionFactory>();
+  bool validateParams();
+  bool validateClusterModes() const;
+  std::unique_ptr<k4Reco::FastJet::JetDefinitionFactory> theJetDefinitionFactory = std::make_unique<k4Reco::FastJet::JetDefinitionFactory>();
   
 };
 

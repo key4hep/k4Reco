@@ -18,31 +18,23 @@
 
 #include <sstream>
 
+#include <k4FWCore/GaudiChecks.h>
+
 using namespace k4Reco::FastJet;
 
 // Constructor for jet definition factory.
 // This is largely an excuse to populate its registry for how to
 // construct the jet definition. We can define a few generic parameter
 // instances, and set specific instances to those more generic ones
-jetDefinitionFactory::jetDefinitionFactory() {
-  registry["zero_param"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
-    return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, m_jetRecoScheme, m_strategy);
-  };
-  registry["one_param"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
-    return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, params.at(0), m_jetRecoScheme, m_strategy);
-  };
-  registry["two_param"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
-    return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, params.at(0), params.at(1), m_jetRecoScheme, m_strategy);
-  };
-
-  registry["kt_algorithm"] = registry["one_param"];
-  registry["cambridge_algorithm"] = registry["one_param"];
-  registry["antikt_algorithm"] = registry["one_param"];
-  registry["genkt_algorithm"] = registry["two_param"];
-  registry["cambridge_for_passive_algorithm"] = registry["one_param"];
-  registry["genkt_for_passive_algorithm"] = registry["one_param"];
-  registry["ee_kt_algorithm"] = registry["zero_param"];
-  registry["ee_genkt_algorithm"] = registry["two_param"];
+JetDefinitionFactory::JetDefinitionFactory() {
+  registry["kt_algorithm"] = useOneParams;
+  registry["cambridge_algorithm"] = useOneParams;
+  registry["antikt_algorithm"] = useOneParams;
+  registry["genkt_algorithm"] = useTwoParams;
+  registry["cambridge_for_passive_algorithm"] = useOneParams;
+  registry["genkt_for_passive_algorithm"] = useOneParams;
+  registry["ee_kt_algorithm"] = useZeroParams;
+  registry["ee_genkt_algorithm"] = useTwoParams;
   registry["SISConePlugin"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
     fastjet::SISConePlugin* pl;
     pl = new fastjet::SISConePlugin(
@@ -51,7 +43,7 @@ jetDefinitionFactory::jetDefinitionFactory() {
 				    );
     auto jetAlgo = std::make_unique<fastjet::JetDefinition>(pl);
     jetAlgo->delete_plugin_when_unused();
-    return std::move(jetAlgo);
+    return jetAlgo;
   };
   registry["SISConeSphericalPlugin"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params, fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
     fastjet::SISConeSphericalPlugin* pl;
@@ -61,21 +53,21 @@ jetDefinitionFactory::jetDefinitionFactory() {
 					     );
     auto jetAlgo = std::make_unique<fastjet::JetDefinition>(pl);
     jetAlgo->delete_plugin_when_unused();
-    return std::move(jetAlgo);
+    return jetAlgo;
   };
 }
 
 // The actual method for creating the jet definition. Maps the
 // string to a function via the internal registry.
-std::unique_ptr<fastjet::JetDefinition> jetDefinitionFactory::create(
+std::unique_ptr<fastjet::JetDefinition> JetDefinitionFactory::create(
 			     const std::string& type,
 			     fastjet::JetAlgorithm m_jetAlgoType,
 			     const std::vector<float>& params,
 			     fastjet::RecombinationScheme m_jetRecoScheme,
 			     fastjet::Strategy m_strategy
 			     ){
-  if (registry.find(type) != registry.end()) {
-    return registry[type](m_jetAlgoType, params, m_jetRecoScheme, m_strategy);
+  if (const auto it = registry.find(type); it != registry.end()) {
+    return it->second(m_jetAlgoType, params, m_jetRecoScheme, m_strategy);
   }
   throw GaudiException("Jet algorithm type not in factory registry", "JetDefinitionFactory", StatusCode::FAILURE);
 }
@@ -84,10 +76,8 @@ FastJetAlg::FastJetAlg(const std::string& name, ISvcLocator* svcLoc) : MultiTran
     { KeyValue("recParticleIn", "MCParticle") },
     { KeyValue("jetOut", "JetOut"),
       KeyValue("recParticleOut", "Constituents") }),
-            m_jetAlgoName(""),
 	    m_jetAlgo(nullptr),
             m_jetAlgoType(),
-            m_clusterModeName(""),
             m_clusterMode( NONE ),
             m_jetRecoScheme(),
             m_strategyName(""),
@@ -120,55 +110,49 @@ StatusCode FastJetAlg::initialize() {
         m_jetRecoScheme = fastjet::BIpt2_scheme;
     else {
         error() << "Unknown recombination scheme: " << m_jetRecoSchemeName << endmsg;
-        throw GaudiException("Unknown FastJet recombination scheme! See log for more details.", name(), StatusCode::FAILURE);
+	return StatusCode::FAILURE;
     }
     info() << "recombination scheme: " << m_jetRecoSchemeName << endmsg;
 
     // ------------------ Init Cluster Mode ------------------
-    // at least a name has to be given
-    if (m_clusterModeNameAndParam.size() == 0)
-        throw GaudiException("Cluster mode not specified", name(), StatusCode::FAILURE);
-    // save the name of the cluster mode
-    m_clusterModeName = m_clusterModeNameAndParam[0];
     m_clusterMode = NONE;
     // check the different cluster mode possibilities, and check if the number of parameters are correct
-    if (m_clusterModeName.compare("Inclusive") == 0) {
-        if (m_clusterModeNameAndParam.size() != 2) {
-            error()  << "Wrong number of values for parameter clusteringMode 'Inclusive': missing minPt" << endmsg;
-            throw GaudiException("Wrong Parameter(s) for Clustering Mode. Expected:\n <parameter name=\"clusteringMode\" type=\"StringVec\"> Inclusive <minPt> </parameter>", name(), StatusCode::FAILURE);
+    if (m_clusterModeName.value().compare("Inclusive") == 0) {
+      if(m_clusterModeParams.size() != 1){
+	error()  << "Wrong number of values for parameter clusteringMode 'Inclusive': missing minPt" << endmsg;
+	return StatusCode::FAILURE;
+      }
+      m_minPt = m_clusterModeParams[0];
+      m_clusterMode = FJ_inclusive;
+    } else if (m_clusterModeName.value().compare("InclusiveIterativeNJets") == 0) {
+        if (m_clusterModeParams.size() != 2) {
+	  error() << "Wrong number of parameters for clustering mode 'InclusiveIterativeNJets'. Expected: NJets, minE." << endmsg;
+	  return StatusCode::FAILURE;
         }
-        m_minPt = atof(m_clusterModeNameAndParam[1].c_str());
-        m_clusterMode = FJ_inclusive;
-    } else if (m_clusterModeName.compare("InclusiveIterativeNJets") == 0) {
-        if (m_clusterModeNameAndParam.size() != 3) {
-            throw GaudiException("Wrong Parameter(s) for Clustering Mode. Expected:\n <parameter name=\"clusteringMode\" type=\"StringVec\"> InclusiveIterativeNJets <NJets> <minE> </parameter>", name(), StatusCode::FAILURE);
-        }
-        m_requestedNumberOfJets = atoi(m_clusterModeNameAndParam[1].c_str());
-        m_minE = atoi(m_clusterModeNameAndParam[2].c_str());
+        m_requestedNumberOfJets = (int)m_clusterModeParams[0];
+	m_minE = (int)m_clusterModeParams[1];
         m_clusterMode = OWN_inclusiveIteration;
-    }  else if (m_clusterModeName.compare("ExclusiveNJets") == 0) {
-        if (m_clusterModeNameAndParam.size() != 2) {
-            throw GaudiException("Wrong Parameter(s) for Clustering Mode. Expected:\n <parameter name=\"clusteringMode\" type=\"StringVec\"> ExclusiveNJets <NJets> </parameter>", name(), StatusCode::FAILURE);
+    }  else if (m_clusterModeName.value().compare("ExclusiveNJets") == 0) {
+        if (m_clusterModeParams.size() != 1) {
+	  error() << "Wrong number of parameters for clustering mode 'ExclusiveNJets'. Expected: NJets."  << endmsg;
+	  return StatusCode::FAILURE;
         }
-        m_requestedNumberOfJets = atoi(m_clusterModeNameAndParam[1].c_str());
+        m_requestedNumberOfJets = (int)m_clusterModeParams[0];
         m_clusterMode = FJ_exclusive_nJets;
-    } else if (m_clusterModeName.compare("ExclusiveYCut") == 0) {
-        if (m_clusterModeNameAndParam.size() != 2) {
-            throw GaudiException("Wrong Parameter(s) for Clustering Mode. Expected:\n <parameter name=\"clusteringMode\" type=\"StringVec\"> ExclusiveYCut <yCut> </parameter>", name(), StatusCode::FAILURE);
+    } else if (m_clusterModeName.value().compare("ExclusiveYCut") == 0) {
+        if (m_clusterModeParams.size() != 1) {
+	  error() << "Wrong number of parameters for clustering mode 'ExclusiveYCut'. Expected: ExclusiveYCut."<< endmsg;
+	  return StatusCode::FAILURE;
         }
-        m_yCut = atof(m_clusterModeNameAndParam[1].c_str());
+        m_yCut = m_clusterModeParams[0];
         m_clusterMode = FJ_exclusive_yCut;
     } else {
-        throw GaudiException("Unknown cluster mode.", name(), StatusCode::FAILURE);
+	error() << "Unknwon cluster mode." << endmsg;
+	return StatusCode::FAILURE;
     }
     info() << "Cluster mode: " << m_clusterMode << endmsg;
 
     // ------------------ Init Jet Algorithm ------------------
-    // sanity check
-    if (m_jetAlgoNameAndParams.size() < 1)
-        throw GaudiException("No Jet algorithm provided!", name(), StatusCode::FAILURE);
-    // save the name
-    m_jetAlgoName = m_jetAlgoNameAndParams[0];
     // check all supported algorithms and create the appropriate FJ instance
     m_jetAlgo = nullptr;
 
@@ -182,23 +166,18 @@ StatusCode FastJetAlg::initialize() {
     // This is just a function designed to throw some exceptions if we
     // don't get what we're expecting, and handle the special ee_genkt
     // case, so it doesn't really return anything
-    validateParams();
+    K4_GAUDI_CHECK(validateParams());
     // This is similar, and performs validation of the clusting modes
     // that we have received
-    validateClusterModes();
-
-    // This just calls factory utility that has a more generic jet definition
+    K4_GAUDI_CHECK(validateClusterModes());
+    
+    // This just calls a factory utility that has a more generic jet definition
     // constructor, instead of resorting to a large set of if blocks
-    std::vector<float> floatParams;
-    for (auto index = 1u; index < m_jetAlgoNameAndParams.size(); index++){floatParams.push_back(atof(m_jetAlgoNameAndParams[index].c_str()));}
-    m_jetAlgo = theJetDefinitionFactory->create(
-						m_jetAlgoName,
+    m_jetAlgo = theJetDefinitionFactory->create(m_jetAlgoName,
 						m_jetAlgoType,
-						floatParams,
+						m_jetAlgoParams,
 						m_jetRecoScheme,
-						m_strategy
-						
-						);
+						m_strategy);
     
     
     return StatusCode::SUCCESS;
@@ -223,118 +202,110 @@ std::tuple<edm4hep::ReconstructedParticleCollection, edm4hep::ReconstructedParti
     }
     
     fastjet::ClusterSequence cs = fastjet::ClusterSequence(pjList, *m_jetAlgo);
-    try {
-        if (m_clusterMode == FJ_inclusive) {
-            jets = cs.inclusive_jets(m_minPt);
-        } else if (m_clusterMode == FJ_exclusive_yCut) {
-            jets = cs.exclusive_jets_ycut(m_yCut);
-        } else if (m_clusterMode == FJ_exclusive_nJets) {
-            // sanity check: if we have not enough particles, FJ will cause an assert
-            if (inputCollection.size() < (int)m_requestedNumberOfJets) {
-                warning() << "Not enough elements in the input collection to create " << m_requestedNumberOfJets << " jets." << endmsg;
-                throw SkippedFixedNrJetException();
-            } else {
-                jets = cs.exclusive_jets((int)(m_requestedNumberOfJets));
-            }
-        } else if (m_clusterMode == OWN_inclusiveIteration) {
-            // sanity check: if we have not enough particles, FJ will cause an assert
-            if (inputCollection.size() < (int)m_requestedNumberOfJets) {
-                warning() << "Not enough elements in the input collection to create " << m_requestedNumberOfJets << " jets." << endmsg;
-                throw SkippedFixedNrJetException();
-            } else {
-                // lets do a iterative procedure until we found the correct number of jets
-                // for that we will do inclusive clustering, modifying the R parameter in some kind of minimization
-                // this is based on Marco Battaglia's FastJetClustering
-                double R = M_PI_4;	// maximum of R is Pi/2, minimum is 0. So we start hat Pi/4
-                double RDiff = R / 2;	// the step size we modify the R parameter at each iteration. Its size for the n-th step is R/(2n), i.e. starts with R/2
-                PseudoJetList jets_it;
-                unsigned nJets;
-                int iIter = 0;	// nr of current iteration
-                // these variables are only used if the SisCone(Spherical)Plugin is selected
-                // This is necessary, as these are plugins and hence use a different constructor than
-                // the built in fastjet algorithms
-                // here we save pointer to the plugins, so that if they are created, we can delete them again after usage
-                fastjet::SISConePlugin* pluginSisCone = NULL;
-                fastjet::SISConeSphericalPlugin* pluginSisConeSph = NULL;
-                // check if we use the siscones
-                bool useSisCone = m_jetAlgoName.compare("SISConePlugin") == 0;
-                bool useSisConeSph = m_jetAlgoName.compare("SISConeSphericalPlugin") == 0;
-                // save the 2nd parameter of the SisCones
-                double sisConeOverlapThreshold = 0;
-                if (useSisCone || useSisConeSph)
-                sisConeOverlapThreshold = atof(m_jetAlgoNameAndParams[2].c_str());
-                // do a maximum of N iterations
-                for (iIter=0; iIter<ITERATIVE_INCLUSIVE_MAX_ITERATIONS; iIter++) {
-                    // do the clustering for this value of R. For this we need to re-initialize the JetDefinition, as it takes the R parameter
-                    fastjet::JetDefinition* jetDefinition = NULL;
-                    // unfortunately SisCone(spherical) are being initialized differently, so we have to check for this
-                    if (useSisCone) {
-                        pluginSisCone = new fastjet::SISConePlugin(R, sisConeOverlapThreshold);
-                        jetDefinition = new fastjet::JetDefinition(pluginSisCone);
-                    } else if (useSisConeSph) {
-                        pluginSisConeSph = new fastjet::SISConeSphericalPlugin(R, sisConeOverlapThreshold);
-                        jetDefinition = new fastjet::JetDefinition(pluginSisConeSph);
-                    } else {
-                        jetDefinition = new fastjet::JetDefinition(m_jetAlgoType, R, m_jetRecoScheme, m_strategy);
-                    }
-                    // now we can finally create the cluster sequence
-                    fastjet::ClusterSequence cs_it(pjList, *jetDefinition);
-                    jets_it = cs_it.inclusive_jets(0);	// no pt cut, we will do an energy cut
-                    jets.clear();
-                    // count the number of jets above threshold
-                    nJets = 0;
-                    for (unsigned j=0; j<jets_it.size(); j++)
-                        if (jets_it[j].E() > m_minE)
-                            jets.push_back(jets_it[j]);
-                    nJets = jets.size();
-                    debug() << iIter << " " << R << " " << jets_it.size() << " " << nJets << endmsg;
-                    if (nJets == m_requestedNumberOfJets) { // if the number of jets is correct: success!
-                        delete pluginSisCone; pluginSisCone = NULL;
-                        delete pluginSisConeSph; pluginSisConeSph = NULL;
-                        delete jetDefinition;
-                        break;
-                    } else if (nJets < m_requestedNumberOfJets) {
-                        // if number of jets is too small: we need a smaller Radius per jet (so
-                        // that we get more jets)
-                        R -= RDiff;
-                    } else if (nJets > m_requestedNumberOfJets) {	// if the number of jets is too
-                        // high: increase the Radius
-                        R += RDiff;
-                    }
-                    RDiff /= 2;
-                    // clean up
-                    delete pluginSisCone; pluginSisCone = NULL;
-                    delete pluginSisConeSph; pluginSisConeSph = NULL;
-                    delete jetDefinition;
-                }
-                if (iIter == ITERATIVE_INCLUSIVE_MAX_ITERATIONS) {
-                    warning() << "Maximum number of iterations reached. Canceling" << endmsg;
-                    throw SkippedMaxIterationException( jets );
-                    // Currently we will return the latest results, independent if the number is actually matched
-                    // jets.clear();
-                }
-            }
-        }
-    } catch(const SkippedFixedNrJetException& e ) {
-    } catch(const SkippedMaxIterationException& e ) {
-        jets = e.m_jets;
+
+    if (m_clusterMode == FJ_inclusive) {
+      jets = cs.inclusive_jets(m_minPt);
+    } else if (m_clusterMode == FJ_exclusive_yCut) {
+      jets = cs.exclusive_jets_ycut(m_yCut);
+    } else if (m_clusterMode == FJ_exclusive_nJets) {
+      // sanity check: if we have not enough particles, FJ will cause an assert
+      if (inputCollection.size() < (int)m_requestedNumberOfJets) {
+	warning() << "Not enough elements in the input collection to create " << m_requestedNumberOfJets << " jets." << endmsg;
+      } else {
+	jets = cs.exclusive_jets((int)(m_requestedNumberOfJets));
+      }
+    } else if (m_clusterMode == OWN_inclusiveIteration) {
+      // sanity check: if we have not enough particles, FJ will cause an assert
+      if (inputCollection.size() < (int)m_requestedNumberOfJets) {
+	warning() << "Not enough elements in the input collection to create " << m_requestedNumberOfJets << " jets." << endmsg;
+
+      } else {
+	// lets do a iterative procedure until we found the correct number of jets
+	// for that we will do inclusive clustering, modifying the R parameter in some kind of minimization
+	// this is based on Marco Battaglia's FastJetClustering
+	double R = M_PI_4;	// maximum of R is Pi/2, minimum is 0. So we start hat Pi/4
+	double RDiff = R / 2;	// the step size we modify the R parameter at each iteration. Its size for the n-th step is R/(2n), i.e. starts with R/2
+	PseudoJetList jets_it;
+	unsigned nJets;
+	int iIter = 0;	// nr of current iteration
+	// these variables are only used if the SisCone(Spherical)Plugin is selected
+	// This is necessary, as these are plugins and hence use a different constructor than
+	// the built in fastjet algorithms
+	// here we save pointer to the plugins, so that if they are created, we can delete them again after usage
+	std::unique_ptr<fastjet::SISConePlugin> pluginSisCone;
+	std::unique_ptr<fastjet::SISConeSphericalPlugin> pluginSisConeSph;
+	// check if we use the siscones
+	bool useSisCone = m_jetAlgoName.value().compare("SISConePlugin") == 0;
+	bool useSisConeSph = m_jetAlgoName.value().compare("SISConeSphericalPlugin") == 0;
+	// save the 2nd parameter of the SisCones
+	double sisConeOverlapThreshold = 0;
+	if (useSisCone || useSisConeSph)
+	  sisConeOverlapThreshold = m_jetAlgoParams[1];
+	// do a maximum of N iterations
+	for (iIter=0; iIter<ITERATIVE_INCLUSIVE_MAX_ITERATIONS; iIter++) {
+	  // do the clustering for this value of R. For this we need to re-initialize the JetDefinition, as it takes the R parameter
+	  std::unique_ptr<fastjet::JetDefinition> jetDefinition;
+	  // unfortunately SisCone(spherical) are being initialized differently, so we have to check for this
+	  if (useSisCone) {
+	    pluginSisCone = std::make_unique<fastjet::SISConePlugin>(R, sisConeOverlapThreshold);
+	    jetDefinition = std::make_unique<fastjet::JetDefinition>(pluginSisCone.get());
+	  } else if (useSisConeSph) {
+	    pluginSisConeSph = std::make_unique<fastjet::SISConeSphericalPlugin>(R, sisConeOverlapThreshold);
+	    jetDefinition = std::make_unique<fastjet::JetDefinition>(pluginSisConeSph.get());
+	  } else {
+	    jetDefinition = std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, R, m_jetRecoScheme, m_strategy);
+	  }
+	  // now we can finally create the cluster sequence
+	  fastjet::ClusterSequence cs_it(pjList, *jetDefinition);
+	  jets_it = cs_it.inclusive_jets(0);	// no pt cut, we will do an energy cut
+	  jets.clear();
+	  // count the number of jets above threshold
+	  nJets = 0;
+	  for (unsigned j=0; j<jets_it.size(); j++) {
+	    if (jets_it[j].E() > m_minE){
+	      jets.push_back(jets_it[j]);
+	    }
+	  }
+	    
+	  nJets = jets.size();
+	  debug() << iIter << " " << R << " " << jets_it.size() << " " << nJets << endmsg;
+	  if (nJets == m_requestedNumberOfJets) { // if the number of jets is correct: success!
+	    pluginSisCone.reset(nullptr);
+	    pluginSisConeSph.reset(nullptr);
+	    jetDefinition.reset(nullptr);
+	    break;
+	  } else if (nJets < m_requestedNumberOfJets) {
+	    // if number of jets is too small: we need a smaller Radius per jet (so
+	    // that we get more jets)
+	    R -= RDiff;
+	  } else if (nJets > m_requestedNumberOfJets) {	// if the number of jets is too
+	    // high: increase the Radius
+	    R += RDiff;
+	  }
+	  RDiff /= 2;
+	  // clean up
+	  pluginSisCone.reset(nullptr);
+	  pluginSisConeSph.reset(nullptr);
+	  jetDefinition.reset(nullptr);
+	}
+      }
     }
 
     PseudoJetList::iterator it;
-    for (it=jets.begin(); it != jets.end(); it++) {
+    for (const auto& jet: jets){
         // create a reconstructed particle for this jet, and add all the containing particles to it
         edm4hep::MutableReconstructedParticle rec = jetCollection.create();
-        rec.setEnergy( (*it).E() );
-        rec.setMass( (*it).m() );
-        edm4hep::Vector3f mom((*it).px(), (*it).py(), (*it).pz());
+        rec.setEnergy( jet.E() );
+        rec.setMass( jet.m() );
+        edm4hep::Vector3f mom(jet.px(), jet.py(), jet.pz());
         rec.setMomentum(mom);
-        for (unsigned int n = 0; n < cs.constituents(*it).size(); ++n) {
-            rec.addToParticles(inputCollection.at(cs.constituents(*it)[n].user_index()));
+        for (unsigned int n = 0; n < cs.constituents(jet).size(); ++n) {
+            rec.addToParticles(inputCollection.at(cs.constituents(jet)[n].user_index()));
         }
 
         // add jet constituents to output collection
-        for (unsigned int n = 0; n < cs.constituents(*it).size(); ++n) {
-            edm4hep::ReconstructedParticle p = inputCollection.at((cs.constituents(*it))[n].user_index());
+        for (unsigned int n = 0; n < cs.constituents(jet).size(); ++n) {
+            edm4hep::ReconstructedParticle p = inputCollection.at((cs.constituents(jet))[n].user_index());
             outputCollection.push_back( p );
         }
     }
@@ -353,61 +324,43 @@ fastjet::JetAlgorithm FastJetAlg::getAlgoType() const {
 // Performs validation of the number of parameters we have received versus
 // the internal mapping we have. One of the responsibilities of the old
 // "isJetAlgo" function
-void FastJetAlg::validateParams() {
-  int nParams = (int)m_jetAlgoNameAndParams.size() - 1; // -1 because we also get the name
+bool FastJetAlg::validateParams() {
+  int nParams = (int)m_jetAlgoParams.size();
   // Original code treats ee_kt_algorithm a bit specially, so that is
   // reflected here
   if ((m_jetAlgoName == "ee_genkt_algorithm") ){
       if (nParams == 1){ // one other
-	m_jetAlgoNameAndParams.value().push_back("1.");
+	m_jetAlgoParams.value().push_back(1.);
 	info()<< "When only 1 parameter is provided for ee_genkt_algorithm it is assumed to be R, and the exponent p is assumed to be equal to 1" << endmsg;
-	return;
+	return true;
       }
     // If we have 2 parameters and the name we're fine
-      else if (nParams == 2) { return;}
+      else if (nParams == 2) { return true;}
     // Otherwise something is wrong and we throw an error
-      else{
-	error()<<std::endl<<"Wrong number of parameters for algorithm: ee_genkt_algorithm";
-      }
+      else{ return false;}
       
   }
   // Everything else we look up, if we have the wrong number of
   // parameters, then that's an error
   else {
-    if(!k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.contains(m_jetAlgoName)) {
-      throw GaudiException("Could not find the jet algorithm name in the number of parameters map", name(), StatusCode::FAILURE);
-    }
-    else if (k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.at(m_jetAlgoName) != nParams) {
-      throw GaudiException(
-			   std::format("Wrong number of parameters for algorithm: {}\nExpected {} but got {}", m_jetAlgoName, k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.at(m_jetAlgoName), nParams),
-			   name(),
-			   StatusCode::FAILURE
-			   );
-    }
-    else{return;}
+    if(const auto it = k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.find(m_jetAlgoName); it != k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.end()){
+      if(it->second != nParams) {return false;} // Wrong number of parameters
+      else { return true;} // Correct number of parameters
+    } else { return false;} // Could not find this in the map
   }
   //technically impossible to hit, but here for completeness
-  return;
+  return true;
 }
 
 // Performs validation of the number of cluster modes we have received versus
 // the internal mapping we have. One of the responsibilities of the old
 // "isJetAlgo" function
-void FastJetAlg::validateClusterModes() const {
-  if(!k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.contains(m_jetAlgoName)) {
-    throw GaudiException(
-			 std::format("Could not find the algorithm {} in the name to cluster mode mapping", m_jetAlgoName),
-			 name(),
-			 StatusCode::FAILURE
-			 );
-  }
+bool FastJetAlg::validateClusterModes() const {
+  if(const auto it = k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.find(m_jetAlgoName); it != k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.end()){
+    if ((it->second & m_clusterMode) != m_clusterMode) {return false;} // Bad clustering modes
+  } else { return false;} // Couldn't find the name in the lookup
 
-  int supportedModes = k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.at(m_jetAlgoName);
-  if ((supportedModes & m_clusterMode) != m_clusterMode) {
-    error() << std::endl
-	    << std::format("{} is not capable of running in this cluster mode (", m_jetAlgoName)
-	    << m_clusterMode << ") "<<std::endl;
-    throw GaudiException("Cluster mode is not supported!", name(), StatusCode::FAILURE);
-  }
+  // if there are no problems, default to successful
+  return true;
     
 }

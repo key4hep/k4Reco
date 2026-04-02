@@ -133,8 +133,12 @@ params = {
 pandora = DDPandoraPFANewAlgorithm("PandoraPFANewAlgorithm", **params)
 
 fastJet = FastJetAlg("AntiKt FastJet",
-                     algorithm = ["antikt_algorithm", "0.4"],
-                     clusteringMode = ["Inclusive", "5"],
+                     # algorithm = ["antikt_algorithm", "0.4"],
+                     algorithm = "antikt_algorithm",
+                     algorithmParameters = [0.4,],
+                     #clusteringMode = ["Inclusive", "5"],
+                     clusteringMode = "Inclusive",
+                     clusteringParams = [0.0,],
                      jetOut = "JetOut",
                      recParticleIn = "PandoraPFOs",
                      recParticleOut = "UsedPFOs",

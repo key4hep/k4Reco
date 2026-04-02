@@ -30,4 +30,4 @@ namespace k4Reco::FastJet {
   }
 
 }
-#endif // EClusterMode_h
+#endif K4RECO_FASTJET_ECLUSTERMODE_H
