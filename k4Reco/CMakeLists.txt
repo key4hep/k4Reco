@@ -126,6 +126,14 @@ set(k4RecoPlugins_public_includes
 
 target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
 target_include_directories(k4RecoPlugins PUBLIC
+$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
+$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_include_directories(k4RecoPlugins SYSTEM PUBLIC ${FASTJET_INCLUDE_DIRS})
+
+target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
+target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
