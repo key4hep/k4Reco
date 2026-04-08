@@ -34,16 +34,16 @@ JetDefinitionFactory::JetDefinitionFactory() {
   registry["genkt_for_passive_algorithm"] = useOneParams;
   registry["ee_kt_algorithm"] = useZeroParams;
   registry["ee_genkt_algorithm"] = useTwoParams;
-  registry["SISConePlugin"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params,
-                                 fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
+  registry["SISConePlugin"] = [](fastjet::JetAlgorithm, const std::vector<float>& params, fastjet::RecombinationScheme,
+                                 fastjet::Strategy) {
     fastjet::SISConePlugin* pl;
     pl = new fastjet::SISConePlugin(params.at(0), params.at(1));
     auto jetAlgo = std::make_unique<fastjet::JetDefinition>(pl);
     jetAlgo->delete_plugin_when_unused();
     return jetAlgo;
   };
-  registry["SISConeSphericalPlugin"] = [](fastjet::JetAlgorithm m_jetAlgoType, const std::vector<float>& params,
-                                          fastjet::RecombinationScheme m_jetRecoScheme, fastjet::Strategy m_strategy) {
+  registry["SISConeSphericalPlugin"] = [](fastjet::JetAlgorithm, const std::vector<float>& params,
+                                          fastjet::RecombinationScheme, fastjet::Strategy) {
     fastjet::SISConeSphericalPlugin* pl;
     pl = new fastjet::SISConeSphericalPlugin(params.at(0), params.at(1));
     auto jetAlgo = std::make_unique<fastjet::JetDefinition>(pl);
@@ -173,7 +173,7 @@ FastJetAlg::operator()(const edm4hep::ReconstructedParticleCollection& inputColl
 
   PseudoJetList jets;
   PseudoJetList pjList;
-  for (int i = 0; i < inputCollection.size(); ++i) {
+  for (size_t i = 0; i < inputCollection.size(); ++i) {
     edm4hep::ReconstructedParticle par = inputCollection.at(i);
     pjList.push_back(
         fastjet::PseudoJet(par.getMomentum().x, par.getMomentum().y, par.getMomentum().z, par.getEnergy()));
@@ -188,7 +188,7 @@ FastJetAlg::operator()(const edm4hep::ReconstructedParticleCollection& inputColl
     jets = cs.exclusive_jets_ycut(m_yCut);
   } else if (m_clusterMode == FJ_exclusive_nJets) {
     // sanity check: if we have not enough particles, FJ will cause an assert
-    if (inputCollection.size() < (int)m_requestedNumberOfJets) {
+    if (inputCollection.size() < (size_t)m_requestedNumberOfJets) {
       warning() << "Not enough elements in the input collection to create " << m_requestedNumberOfJets << " jets."
                 << endmsg;
     } else {
@@ -196,7 +196,7 @@ FastJetAlg::operator()(const edm4hep::ReconstructedParticleCollection& inputColl
     }
   } else if (m_clusterMode == OWN_inclusiveIteration) {
     // sanity check: if we have not enough particles, FJ will cause an assert
-    if (inputCollection.size() < (int)m_requestedNumberOfJets) {
+    if (inputCollection.size() < (size_t)m_requestedNumberOfJets) {
       warning() << "Not enough elements in the input collection to create " << m_requestedNumberOfJets << " jets."
                 << endmsg;
 

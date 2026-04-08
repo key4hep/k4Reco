@@ -34,4 +34,4 @@ std::ostream& operator<<(std::ostream& out, EClusterMode& m) {
 }
 
 } // namespace k4Reco::FastJet
-#endif K4RECO_FASTJET_ECLUSTERMODE_H
+#endif

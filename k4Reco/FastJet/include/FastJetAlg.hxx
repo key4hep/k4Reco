@@ -86,7 +86,7 @@ public:
 
 private:
   static std::unique_ptr<fastjet::JetDefinition> useZeroParams(fastjet::JetAlgorithm m_jetAlgoType,
-                                                               const std::vector<float>& params,
+                                                               const std::vector<float>&,
                                                                fastjet::RecombinationScheme m_jetRecoScheme,
                                                                fastjet::Strategy m_strategy) {
     return std::make_unique<fastjet::JetDefinition>(m_jetAlgoType, m_jetRecoScheme, m_strategy);
@@ -127,9 +127,6 @@ public:
   operator()(const edm4hep::ReconstructedParticleCollection& inputCollection) const;
 
 private:
-  std::vector<std::string> defaultJetAlgoNameAndParams{"kt_algorithm", "0.7"};
-  std::vector<std::string> defaultClusterMode{"Inclusive", "0.0"};
-
   Gaudi::Property<std::string> m_jetAlgoName{this, "algorithm", "kt_algorithm",
                                              "Name of the algorithm to use for making jets. E.g. kt_algorithm. Full "
                                              "list of algorithms can be seen in the FastJet code."};
@@ -145,9 +142,11 @@ private:
       this,
       "clusteringParams",
       {0.0},
-      "Cluster mode parameters. One of 'Inclusive <minPt>', 'InclusiveIterativeNJets <nrJets> <minE>', 'ExclusiveNJets "
-      "<nrJets>', 'ExclusiveYCut <yCut>'. Note: not all modes are available for all algorithms. Some parameters are "
-      "input as floats, despite being eventual conversion to integers."};
+      "Parameters for the clusteringMode. \nclusterMode \"Inclusive\" takes <minPt>\nclusterMode "
+      "\"InclusiveIterativeNJets\" takes <nrJets> <minE>\n"
+      "clusterMode \"ExclusiveNJets\" takes <nrJets>\nclusterMode \"ExclusiveYCut\" takes <yCut>. Note: not all modes "
+      "are available for all algorithms."
+      "Some parameters are input as floats, despite conversion to integers."};
 
   Gaudi::Property<std::string> m_jetRecoSchemeName{
       this, "recombinationScheme", std::string("E_scheme"),
