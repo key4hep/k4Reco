@@ -171,7 +171,7 @@ for i, frame_gaudi in enumerate(events_gaudi):
             ]:
                 assert (
                     getattr(hit_gaudi, f"get{attr}")() == getattr(hit_marlin, f"get{attr}")()
-                ), f"{attr} differ for hit {j}: {getattr(hit_gaudi, f'get{attr}')()} vs {getattr(hit_marlin, f'get{attr}')()}"
+                ), f"{attr} differ for particle {j}: {getattr(hit_gaudi, f'get{attr}')()} vs {getattr(hit_marlin, f'get{attr}')()}"
 
 
             for relation in [
@@ -180,7 +180,7 @@ for i, frame_gaudi in enumerate(events_gaudi):
                 assert (
                     getattr(hit_gaudi, f"get{relation}")().id().index ==
                     getattr(hit_marlin, f"get{relation}")().id().index
-                ), f"{relation} differ for hit {j}: {getattr(hit_gaudi, f'get{relation}')()} vs {getattr(hit_marlin, f'get{relation}')()}"
+                ), f"{relation} differ for particle {j}: {getattr(hit_gaudi, f'get{relation}')()} vs {getattr(hit_marlin, f'get{relation}')()}"
 
             for relation in [
                 "Clusters",
@@ -190,4 +190,4 @@ for i, frame_gaudi in enumerate(events_gaudi):
                 assert (
                     [elem.id().index for elem in getattr(hit_gaudi, f"get{relation}")()] ==
                     [elem.id().index for elem in getattr(hit_marlin, f"get{relation}")()]
-                ), f"{relation} differ for hit {j}: {getattr(hit_gaudi, f'get{relation}')()} vs {getattr(hit_marlin, f'get{relation}')()}"
+                ), f"{relation} differ for particle {j}: {getattr(hit_gaudi, f'get{relation}')()} vs {getattr(hit_marlin, f'get{relation}')()}"
