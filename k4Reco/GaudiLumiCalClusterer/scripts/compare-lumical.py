@@ -124,7 +124,7 @@ for i, frame_gaudi in enumerate(events_gaudi):
                 "Position",
                 "PositionError",
                 "ITheta",
-                "Phi",
+                "IPhi",
                 "DirectionError",
             ]:
                 assert (
