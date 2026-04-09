@@ -103,25 +103,29 @@ if(BUILD_TRACKING)
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runClonesAndSplitTracksFinder.py
   )
   set_test_env("run_ClonesAndSplitTracksFinder")
-  set_tests_properties("run_ClonesAndSplitTracksFinder" PROPERTIES FIXTURES_REQUIRED "WrapperOutput_fixture")
+  set_tests_properties("run_ClonesAndSplitTracksFinder" PROPERTIES
+    FIXTURES_REQUIRED "WrapperOutput_fixture"
+    FIXTURES_SETUP ClonesAndSplitTracksFinderOutput_fixture)
 
   add_test(NAME "compare_ClonesAndSplitTracksFinder"
     COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file output_clones_and_split_tracks_finder.root --marlin-tracks SiTracks --gaudi-tracks GaudiSiTracks
   )
   set_test_env("compare_ClonesAndSplitTracksFinder")
-  set_tests_properties("compare_ClonesAndSplitTracksFinder" PROPERTIES FIXTURES_REQUIRED "ConformalTrackingOutput_fixture")
+  set_tests_properties("compare_ClonesAndSplitTracksFinder" PROPERTIES FIXTURES_REQUIRED "ClonesAndSplitTracksFinderOutput_fixture")
 
   add_test(NAME "run_RefitFinal"
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runRefitFinal.py
   )
   set_test_env("run_RefitFinal")
-  set_tests_properties("run_RefitFinal" PROPERTIES FIXTURES_REQUIRED "WrapperOutput_fixture")
+  set_tests_properties("run_RefitFinal" PROPERTIES
+    FIXTURES_REQUIRED "WrapperOutput_fixture"
+    FIXTURES_SETUP RefitFinalOutput_fixture)
 
   add_test(NAME "compare_RefitFinal"
     COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file output_refit_final.root --marlin-tracks SiTracks_Refitted --gaudi-tracks GaudiSiTracks_Refitted
   )
   set_test_env("compare_RefitFinal")
-  set_tests_properties("compare_RefitFinal" PROPERTIES FIXTURES_REQUIRED "ConformalTrackingOutput_fixture")
+  set_tests_properties("compare_RefitFinal" PROPERTIES FIXTURES_REQUIRED "RefitFinalOutput_fixture")
 
   add_test(NAME "run_wrapper_TruthTracking"
     COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
@@ -133,12 +137,14 @@ if(BUILD_TRACKING)
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runTruthTrackFinder.py
   )
   set_test_env("run_TruthTrackFinder")
-  set_tests_properties("run_TruthTrackFinder" PROPERTIES FIXTURES_REQUIRED "TruthTrackingOutput_fixture")
+  set_tests_properties("run_TruthTrackFinder" PROPERTIES
+    FIXTURES_REQUIRED "TruthTrackingOutput_fixture"
+    FIXTURES_SETUP TruthTrackFinderOutput_fixture)
 
   add_test(NAME "compare_TruthTrackFinder"
     COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --marlin-file output_truth_tracking_REC.edm4hep.root --gaudi-file output_truth_track_finder.root --marlin-tracks SiTracks --gaudi-tracks GaudiSiTracks
   )
   set_test_env("compare_TruthTrackFinder")
-  set_tests_properties("compare_TruthTrackFinder" PROPERTIES FIXTURES_REQUIRED "ConformalTrackingOutput_fixture")
+  set_tests_properties("compare_TruthTrackFinder" PROPERTIES FIXTURES_REQUIRED "TruthTrackFinderOutput_fixture")
 
 endif()
