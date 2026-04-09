@@ -45,10 +45,7 @@ set(libs
         ROOT::Core
         ROOT::MathCore
         ROOT::Tree
-
-        CLHEP::Random
         ${FASTJET_LIBRARIES}
-
       )
 
 if(BUILD_TRACKING)

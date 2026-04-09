@@ -331,11 +331,9 @@ bool FastJetAlg::validateParams() {
              << endmsg;
       return true;
     }
-    // If we have 2 parameters and the name we're fine
     else if (nParams == 2) {
       return true;
     }
-    // Otherwise something is wrong and we throw an error
     else {
       return false;
     }
@@ -348,15 +346,14 @@ bool FastJetAlg::validateParams() {
         it != k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.end()) {
       if (it->second != nParams) {
         return false;
-      } // Wrong number of parameters
+      }
       else {
         return true;
-      } // Correct number of parameters
+      } 
     } else {
       return false;
-    } // Could not find this in the map
+    }
   }
-  // technically impossible to hit, but here for completeness
   return false;
 }
 
@@ -368,11 +365,10 @@ bool FastJetAlg::validateClusterModes() const {
       it != k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.end()) {
     if ((it->second & m_clusterMode) != m_clusterMode) {
       return false;
-    } // Bad clustering modes
+    }
   } else {
     return false;
-  } // Couldn't find the name in the lookup
+  }
 
-  // if there are no problems, default to successful
   return true;
 }
