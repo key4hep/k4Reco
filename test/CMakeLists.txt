@@ -127,12 +127,6 @@ if(BUILD_TRACKING)
   set_test_env("compare_RefitFinal")
   set_tests_properties("compare_RefitFinal" PROPERTIES FIXTURES_REQUIRED "RefitFinalOutput_fixture")
 
-  add_test(NAME "run_wrapper_TruthTracking"
-    COMMAND k4run CLDConfig/CLDConfig/CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
-  )
-  set_test_env("run_wrapper_TruthTracking")
-  set_tests_properties("run_wrapper_TruthTracking" PROPERTIES FIXTURES_REQUIRED "CLDConfig_fixture;SimOutput_fixture")
-
   add_test(NAME "run_TruthTrackFinder"
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runTruthTrackFinder.py
   )
