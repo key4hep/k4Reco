@@ -26,17 +26,20 @@ set(${PROJECT_NAME}_VERSION_MINOR 3)
 set(${PROJECT_NAME}_VERSION_PATCH 0)
 
 set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 option(BUILD_TRACKING "Build conformal tracking" ON)
 
-find_package(podio 1.2.99 REQUIRED)
+find_package(podio 1.3 REQUIRED)
 find_package(EDM4HEP REQUIRED)
 find_package(DD4hep REQUIRED)
 find_package(Gaudi REQUIRED)
 find_package(k4FWCore 1.4 REQUIRED)
 find_package(ROOT REQUIRED COMPONENTS RIO Tree)
 find_package(k4SimGeant4 REQUIRED)
-
+find_package(k4geo REQUIRED)
+find_package(CLHEP REQUIRED)
+find_package(FastJet REQUIRED)
 include(cmake/Key4hepConfig.cmake)
 
 include(GNUInstallDirs)
@@ -50,3 +53,4 @@ endif()
 add_subdirectory(python)
 
 include(cmake/CreateProjectConfig.cmake)
+include(cmake/FindFastJet.cmake)

@@ -77,7 +77,7 @@ public:
   //   virtual void setOption(unsigned CFGOption, bool val);
 
   /** initialise track fitter system */
-  void init();
+  void init(bool msOn = true, bool energyLossOn = true);
 
   // Copy the encoder
   void setEncoder(const dd4hep::DDSegmentation::BitFieldCoder& encoder) { m_encoder = encoder; }

@@ -53,11 +53,6 @@ StatusCode RefitFinal::initialize() {
   streamlog::logscope* scope = new streamlog::logscope(streamlog::out);
   setStreamlogOutputLevel(this, scope);
 
-  // usually a good idea to
-  // printParameters();
-
-  // _trksystem = MarlinTrk::Factory::createMarlinTrkSystem("DDKalTest", nullptr, "");
-
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
   if (!m_geoSvc) {
     error() << "Unable to retrieve GeoSvc" << endmsg;
@@ -66,35 +61,16 @@ StatusCode RefitFinal::initialize() {
   std::string cellIDEncodingString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
   m_encoder = dd4hep::DDSegmentation::BitFieldCoder(cellIDEncodingString);
 
-  m_ddkaltest.init();
+  m_ddkaltest.init(m_MSOn, m_ElossOn);
   m_ddkaltest.setEncoder(m_encoder);
-
-  // ///////////////////////////////
-
-  // _encoder = std::make_shared<UTIL::BitField64>(lcio::LCTrackerCellID::encoding_string());
-
-  // if (not _trksystem) {
-  //   throw EVENT::Exception("Cannot initialize MarlinTrkSystem of Type: DDKalTest");
-  // }
-
-  // _trksystem->setOption(MarlinTrk::IMarlinTrkSystem::CFG::useQMS, _MSOn);
-  // _trksystem->setOption(MarlinTrk::IMarlinTrkSystem::CFG::usedEdx, _ElossOn);
-  // _trksystem->setOption(MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing, _SmoothOn);
-  // _trksystem->init();
-
-  // _n_run = 0;
 
   return StatusCode::SUCCESS;
 }
 
-std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection>
-RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
-                       const std::vector<const edm4hep::TrackMCParticleLinkCollection*>& input_rel_col) const {
-  // // set the correct configuration for the tracking system for this event
-  // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::useQMS> mson(_trksystem, _MSOn);
-  // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::usedEdx> elosson(_trksystem, _ElossOn);
-  // MarlinTrk::TrkSysConfig<MarlinTrk::IMarlinTrkSystem::CFG::useSmoothing> smoothon(_trksystem, _SmoothOn);
-
+std::tuple<edm4hep::TrackCollection, edm4hep::TrackMCParticleLinkCollection> RefitFinal::operator()(
+  const edm4hep::TrackCollection& input_track_col,
+  const std::vector<const edm4hep::TrackMCParticleLinkCollection*>& input_rel_col
+) const {
   // establish the track collection that will be created
   edm4hep::TrackCollection trackVec;
   edm4hep::TrackMCParticleLinkCollection trackRelationCollection;
@@ -103,11 +79,22 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
     debug() << "No input relation collection, not creating one either" << endmsg;
   }
 
+  std::map<int, edm4hep::MCParticle> trackIndexToMCParticle;
+  if (!input_rel_col.empty()) {
+    const auto& relationCol = *input_rel_col[0];
+    for (const auto& rel : relationCol) {
+      edm4hep::Track trk = rel.getFrom();
+      trackIndexToMCParticle[trk.getObjectID().index] = rel.getTo();
+    }
+  }
+
   const size_t nTracks = input_track_col.size();
 
   debug() << " Number of Tracks " << nTracks << endmsg;
 
   // loop over the input tracks and refit
+  int counter = 0;
+  std::map<int, int> hitInSubDet;
   for (size_t iTrack = 0; iTrack < nTracks; ++iTrack) {
     const auto& track = input_track_col.at(iTrack);
     const auto& trkHits = track.getTrackerHits();
@@ -118,51 +105,56 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
       trkHitsPtr.push_back(&hit);
     }
 
-    auto marlin_trk = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
+    auto gaudi_trk = GaudiDDKalTestTrack(this, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
 
     debug() << "---- track n = " << iTrack << "  n hits = " << trkHits.size() << endmsg;
+    if (trkHits.size() < 3) {
+      debug() << "Track " << iTrack << " has less than 3 hits, skipping" << endmsg;
+      continue;
+    }
+
+    hitInSubDet.clear();
 
     for (const auto& ptr : trkHitsPtr) {
-      marlin_trk.addHit(ptr);
+      gaudi_trk.addHit(ptr);
+      ++hitInSubDet[m_encoder.get(ptr->getCellID(), "system")];
     }
 
-    int init_status = FitInit2(track, marlin_trk);
 
-    if (init_status != 0) {
-      continue;
-    }
+    edm4hep::MutableTrack edm4hep_trk = trackVec.create();
 
-    // debug() << "Refit: Trackstate after initialisation\n" << marlin_trk.toString() << endmsg;
+    edm4hep::CovMatrix6f initialCov;
+    initialCov[0] = m_initialTrackError_d0;
+    initialCov[2] = m_initialTrackError_phi0;
+    initialCov[5] = m_initialTrackError_omega;
+    initialCov[9] = m_initialTrackError_z0;
+    initialCov[14] = m_initialTrackError_tanL;
 
-    debug() << "track initialised " << endmsg;
+    const bool fit_direction = m_extrapolateForward;
 
-    int fit_status = marlin_trk.fit();
+    GaudiTrkUtils trkUtils(
+      static_cast<const Gaudi::Algorithm*>(this), 
+      m_ddkaltest, m_geoSvc, 
+      m_encodingStringVariable.value()
+    );
 
-    // debug() << "RefitHit: Trackstate after fit()\n" << marlin_trk.toString() << endmsg;
-
-    if (fit_status != 0) {
-      continue;
-    }
-
-    edm4hep::MutableTrack lcio_trk;
-
-    GaudiTrkUtils trkUtils(static_cast<const Gaudi::Algorithm*>(this), m_ddkaltest, m_geoSvc,
-                           m_encodingStringVariable.value());
-
-    int return_code = trkUtils.finaliseLCIOTrack(marlin_trk, lcio_trk, trkHitsPtr, true);
+    int return_code = trkUtils.createFinalisedLCIOTrack(
+      gaudi_trk, trkHitsPtr, edm4hep_trk, 
+      fit_direction, initialCov, m_bField, 
+      m_Max_Chi2_Incr.value()
+    );
 
     if (return_code != 0) {
       debug() << "finaliseLCIOTrack failed" << endmsg;
       continue;
     }
 
-    // debug() << " *** created finalized LCIO track - return code " << return_code << std::endl << *lcio_trk << endmsg;
+    debug() << " *** created finalized LCIO track - return code " << return_code << endmsg;
 
     // fit finished - get hits in the fit
-
     // remember the hits are ordered in the order in which they were fitted
 
-    const auto hits_in_fit = marlin_trk.getHitsInFit();
+    const auto hits_in_fit = gaudi_trk.getHitsInFit();
 
     if (int(hits_in_fit.size()) < m_minClustersOnTrackAfterFit) {
       debug() << "Less than " << m_minClustersOnTrackAfterFit
@@ -172,7 +164,7 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
       continue;
     }
 
-    const auto outliers = marlin_trk.getOutliers();
+    const auto outliers = gaudi_trk.getOutliers();
 
     std::vector<const edm4hep::TrackerHit*> all_hits;
     std::vector<const edm4hep::TrackerHit*> hits_in_fit_ptr;
@@ -194,52 +186,38 @@ RefitFinal::operator()(const edm4hep::TrackCollection& input_track_col,
     trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, all_hits, false, encoder2);
     trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, hits_in_fit_ptr, true, encoder2);
     for (const auto num : subdetectorHitNumbers) {
-      lcio_trk.addToSubdetectorHitNumbers(num);
+      edm4hep_trk.addToSubdetectorHitNumbers(num);
     }
 
-    // debug() << "processEvent: Hit numbers for track " << lcio_trk.id() << ":  " << endmsg;
+    // debug() << "processEvent: Hit numbers for track " << edm4hep_trk.id() << ":  " << endmsg;
     int detID = 0;
-    for (size_t ip = 0; ip < lcio_trk.getSubdetectorHitNumbers().size(); ip = ip + 2) {
+    for (size_t ip = 0; ip < edm4hep_trk.getSubdetectorHitNumbers().size(); ip = ip + 2) {
       detID++;
-      debug() << "  det id " << detID << " , nhits in track = " << lcio_trk.getSubdetectorHitNumbers()[ip]
-              << " , nhits in fit = " << lcio_trk.getSubdetectorHitNumbers()[ip + 1] << endmsg;
-      if (lcio_trk.getSubdetectorHitNumbers()[ip] > 0)
+      debug() << "  det id " << detID << " , nhits in track = " << edm4hep_trk.getSubdetectorHitNumbers()[ip]
+              << " , nhits in fit = " << edm4hep_trk.getSubdetectorHitNumbers()[ip + 1] << endmsg;
+      if (edm4hep_trk.getSubdetectorHitNumbers()[ip] > 0)
         // TODO: is detID - 1 correct?
-        lcio_trk.setType(lcio_trk.getType() | (1 << detID));
+        edm4hep_trk.setType(edm4hep_trk.getType() | (1 << detID));
     }
 
-    // TODO:
-    // if (input_rel_col) {
-    //   auto mcParticleVec = relation->getRelatedToObjects(track);
-    //   auto weightVec     = relation->getRelatedToWeights(track);
-    //   for (size_t i = 0; i < mcParticleVec.size(); ++i) {
-    //     LCRelationImpl* relationTrack = new LCRelationImpl(lcioTrkPtr, mcParticleVec[i], weightVec[i]);
-    //     trackRelationCollection->addElement(relationTrack);
-    //   }
-    // }
+    // if required apply the ReducedChi2 cut
+    if (m_ReducedChi2Cut > 0.0 && edm4hep_trk.getChi2() / edm4hep_trk.getNdf() > m_ReducedChi2Cut) {
+      debug() << "Track Discarded due to ReducedChi2 cut:  Chi2 = " << edm4hep_trk.getChi2()
+              << " Ndf = " << edm4hep_trk.getNdf() << " ReducedChi2 = " << edm4hep_trk.getChi2() / edm4hep_trk.getNdf()
+              << endmsg;
+      ++counter;
+      continue;
+    }
 
-    trackVec.push_back(lcio_trk);
+    //trackVec.push_back(lcio_trk);
+    // create the Track-MCParticle relation
+    edm4hep::MutableTrackMCParticleLink relation = trackRelationCollection.create();
+    relation.setFrom(edm4hep_trk);
+    relation.setTo(trackIndexToMCParticle.at(static_cast<int>(iTrack)));
   } // for loop to the tracks
 
-  // TODO:
-  // if (input_rel_col) {
-  //   evt->addCollection(trackRelationCollection, _output_track_rel_name);
-  // }
+  debug() << "Final number of Tracks after refit = " << trackVec.size()
+          << " Number of discarded Tracks = " << counter << endmsg;
+
   return std::make_tuple(std::move(trackVec), std::move(trackRelationCollection));
-}
-
-int RefitFinal::FitInit2(const edm4hep::Track& track, GaudiDDKalTestTrack& marlinTrk) const {
-  edm4hep::TrackState trackState;
-
-  size_t refPoint = m_refPoint.value() == -1 ? 0 : static_cast<size_t>(m_refPoint.value());
-  if (refPoint >= track.getTrackStates().size()) {
-    error() << "Cannot find trackstate for " << m_refPoint << endmsg;
-    return 1;
-  }
-  trackState = track.getTrackStates()[refPoint];
-
-  const bool direction = m_extrapolateForward ? true : false;
-  marlinTrk.initialise(trackState, direction);
-
-  return 0;
 }
