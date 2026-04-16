@@ -35,11 +35,11 @@ def main(args) -> int:
 
             assert(
                 gaudiJet.getMomentum().y == marlinJet.getMomentum().y
-            ), f"{eventStr} {jetStr} Jet momentum discrepancy, y component, Gaudi {gaudiJet.getMomentum().x}, Marlin: {marlinJet.getMomentum().x}"
+            ), f"{eventStr} {jetStr} Jet momentum discrepancy, y component, Gaudi {gaudiJet.getMomentum().y}, Marlin: {marlinJet.getMomentum().y}"
 
             assert(
                 gaudiJet.getMomentum().z == marlinJet.getMomentum().z
-            ), f"{eventStr} {jetStr} Jet momentum discrepancy, z component, Gaudi {gaudiJet.getMomentum().x}, Marlin: {marlinJet.getMomentum().x}"
+            ), f"{eventStr} {jetStr} Jet momentum discrepancy, z component, Gaudi {gaudiJet.getMomentum().z}, Marlin: {marlinJet.getMomentum().z}"
             
 
     print("Comparison succeeded!")
