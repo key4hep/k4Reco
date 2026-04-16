@@ -160,3 +160,15 @@ add_test(NAME "run_PandoraPlusFastJet_ttbar"
 )
 set_test_env("run_PandoraPlusFastJet_ttbar")
 set_tests_properties("run_PandoraPlusFastJet_ttbar" PROPERTIES DEPENDS "run_wrapper_ttbar")
+
+add_test(NAME "run_PandoraPlusMarlinFastJet_ttbar"
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/marlinPandoraPlusFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_marlinPandoraPlusFastJet_ttbar.root
+)
+set_test_env("run_PandoraPlusMarlinFastJet_ttbar")
+set_tests_properties("run_PandoraPlusMarlinFastJet_ttbar" PROPERTIES DEPENDS "run_wrapper_ttbar")
+
+add_test(NAME "compare_FastJet"
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/FastJet/scripts/compareJets.py" --marlin-file output_marlinPandoraPlusFastJet_ttbar.root --gaudi-file output_pandoraPlusFastJet_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+)
+set_test_env("compare_FastJet")
+set_tests_properties("compare_FastJet" PROPERTIES DEPENDS "run_wrapper_ttbar")
