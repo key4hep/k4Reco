@@ -330,11 +330,9 @@ bool FastJetAlg::validateParams() {
                 "assumed to be equal to 1"
              << endmsg;
       return true;
-    }
-    else if (nParams == 2) {
+    } else if (nParams == 2) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
 
@@ -346,10 +344,9 @@ bool FastJetAlg::validateParams() {
         it != k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.end()) {
       if (it->second != nParams) {
         return false;
-      }
-      else {
+      } else {
         return true;
-      } 
+      }
     } else {
       return false;
     }
