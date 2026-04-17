@@ -31,7 +31,7 @@ def main(args) -> int:
         marlinFrame = marlinEvents[i]
 
         gaudiJets = gaudiFrame.get(args.gaudi_jets)
-        marlinJets = gaudiFrame.get(args.marlin_jets)
+        marlinJets = marlinFrame.get(args.marlin_jets)
 
         eventStr = f"Event #{i:0>4}"
         
