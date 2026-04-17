@@ -25,11 +25,27 @@ from Configurables import EventDataSvc
 from Configurables import GeoSvc
 from Configurables import UniqueIDGenSvc
 from Configurables import MarlinProcessorWrapper
+
+from k4MarlinWrapper.io_helpers import IOHandlerHelper
+from k4FWCore.parseArgs import parser
+
 from FastJet.pandoraSettings import pandora
 
+parser.add_argument(
+    "--inputfile", help="Input (REC) file", default="output_REC.edm4hep.root"
+)
+parser.add_argument(
+    "--outputfile",
+    help="Output file after running FastJet and Pandora",
+    default="output_pandora.root",
+)
+
+args = parser.parse_known_args()[0]
+
+algList = []
 iosvc = IOSvc()
-iosvc.Input = "output_REC.edm4hep.root"
-iosvc.Output = "output_pandora.root"
+io_handler = IOHandlerHelper(algList, iosvc)
+io_handler.add_reader([args.inputfile])
 
 id_service = UniqueIDGenSvc("UniqueIDGenSvc")
 
@@ -53,8 +69,14 @@ marlinFastJet.Parameters = {
     "storeParticlesInJets": ["true"],
 }
 
+algList.append(pandora)
+algList.append(marlinFastJet)
+
+io_handler.add_edm4hep_writer(args.outputfile)
+io_handler.finalize_converters()
+
 ApplicationMgr(
-    TopAlg=[pandora, marlinFastJet],
+    TopAlg=algList,
     EvtSel="NONE",
     EvtMax=1,
     ExtSvc=[EventDataSvc("EventDataSvc")],

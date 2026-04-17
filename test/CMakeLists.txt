@@ -171,7 +171,7 @@ set_tests_properties("run_PandoraPlusFastJet_ttbar" PROPERTIES
 )
 
 add_test(NAME "run_PandoraPlusMarlinFastJet_ttbar"
-  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/marlinPandoraPlusFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_marlinPandoraPlusFastJet_ttbar.root
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/marlinPandoraPlusFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlinPandoraPlusFastJet_ttbar.root
 )
 set_test_env("run_PandoraPlusMarlinFastJet_ttbar")
 set_tests_properties("run_PandoraPlusMarlinFastJet_ttbar" PROPERTIES
