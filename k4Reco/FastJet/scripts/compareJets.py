@@ -34,7 +34,7 @@ def main(args) -> int:
         marlinJets = marlinFrame.get(args.marlin_jets)
 
         eventStr = f"Event #{i:0>4}"
-        
+
         assert( len(gaudiJets) == len(marlinJets)), f"{eventStr} Number of jets differ, Gaudi: {len(gaudiJets)}, Marlin: {len(marlinJets)}"
 
         for j, (gaudiJet, marlinJet) in enumerate(zip(gaudiJets, marlinJets)):
@@ -58,7 +58,7 @@ def main(args) -> int:
             assert(
                 gaudiJet.getMomentum().z == marlinJet.getMomentum().z
             ), f"{eventStr} {jetStr} Jet momentum discrepancy, z component, Gaudi {gaudiJet.getMomentum().z}, Marlin: {marlinJet.getMomentum().z}"
-            
+
 
     print("Comparison succeeded!")
     return 0
