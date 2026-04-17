@@ -18,12 +18,10 @@
 #
 
 import os
-print(os.getcwd())
 
 from Gaudi.Configuration import INFO, WARNING
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
-from Configurables import DDPandoraPFANewAlgorithm
 from Configurables import GeoSvc
 from Configurables import UniqueIDGenSvc
 from Configurables import MarlinProcessorWrapper
@@ -52,13 +50,13 @@ marlinFastJet.Parameters = {
     "recParticleIn": ["GaudiPandoraPFOs"],
     "recParticleOut": ["PFOsFromJets"],
     "recombinationScheme": ["E_scheme"],
-    "storeParticlesInJets": ["true"]
+    "storeParticlesInJets": ["true"],
 }
 
 ApplicationMgr(
-    TopAlg = [pandora, marlinFastJet],
-    EvtSel = "NONE",
-    EvtMax = 1,
-    ExtSvc = [EventDataSvc("EventDataSvc")],
+    TopAlg=[pandora, marlinFastJet],
+    EvtSel="NONE",
+    EvtMax=1,
+    ExtSvc=[EventDataSvc("EventDataSvc")],
     OutputLevel=INFO,
 )
