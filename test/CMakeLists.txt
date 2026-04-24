@@ -142,3 +142,48 @@ if(BUILD_TRACKING)
   set_tests_properties("compare_TruthTrackFinder" PROPERTIES FIXTURES_REQUIRED "TruthTrackFinderOutput")
 
 endif()
+
+add_test( NAME "run_ddsim_ttbar"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml --numberOfEvents 3 --outputFile sim_ttbar.edm4hep.root --inputFile CLDConfig/test/yyxyev_000.stdhep"
+)
+set_test_env("run_ddsim_ttbar")
+set_tests_properties("run_ddsim_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "CLDConfig"
+  FIXTURES_SETUP SimOutputTTbar
+)
+
+add_test(NAME "run_wrapper_ttbar"
+  COMMAND k4run CLDReconstruction.py --inputFiles sim_ttbar.edm4hep.root --outputBasename output_ttbar
+)
+set_test_env("run_wrapper_ttbar")
+set_tests_properties("run_wrapper_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "CLDConfig;SimOutputTTbar"
+  FIXTURES_SETUP WrapperTTbar
+)
+
+add_test(NAME "run_PandoraPlusFastJet_ttbar"
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/pandoraPlusFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_pandoraPlusFastJet_ttbar.root
+)
+set_test_env("run_PandoraPlusFastJet_ttbar")
+set_tests_properties("run_PandoraPlusFastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP GaudiFastJet
+)
+
+add_test(NAME "run_PandoraPlusMarlinFastJet_ttbar"
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/marlinPandoraPlusFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlinPandoraPlusFastJet_ttbar.root
+)
+set_test_env("run_PandoraPlusMarlinFastJet_ttbar")
+set_tests_properties("run_PandoraPlusMarlinFastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP MarlinFastJet
+)
+
+add_test(NAME "compare_FastJet"
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/FastJet/scripts/compareJets.py" --marlin-file output_marlinPandoraPlusFastJet_ttbar.root --gaudi-file output_pandoraPlusFastJet_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+)
+set_test_env("compare_FastJet")
+set_tests_properties("compare_FastJet" PROPERTIES
+  FIXTURES_REQUIRED "GaudiFastJet;MarlinFastJet"
+  FIXTURES_SETUP GaudiMarlinFastJetComparison
+)
