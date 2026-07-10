@@ -176,25 +176,29 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
               << " ns according to resolution: " << resT << " ns" << endmsg;
     }
 
+    // Skip the hit if its time is outside the acceptance time window
+    if (m_useTimeWindow) {
+      // TODO: Check that the length of the time window is OK
+      float timeWindow_min = m_timeWindowMin.size() > 1 ? m_timeWindowMin[layer] : m_timeWindowMin[0];
+      float timeWindow_max = m_timeWindowMax.size() > 1 ? m_timeWindowMax[layer] : m_timeWindowMax[0];
+      double windowT = hitT;
+      if (m_correctTimeWindowForPropagation) {
+        windowT -= oldPos.r() / (TMath::C() / 1e6);
+      }
+      if (windowT < timeWindow_min || windowT > timeWindow_max) {
+        debug() << "hit at T: " << hit.getTime() << " smeared to: " << windowT
+                << " is outside the time window: hit dropped" << endmsg;
+        ++nDismissedHits;
+        continue;
+      }
+    }
+
     // Correcting for the propagation time
     if (m_correctTimesForPropagation) {
       double dt = oldPos.r() / (TMath::C() / 1e6);
       hitT -= dt;
       debug() << "corrected hit at R: " << oldPos.r() << " mm by propagation time: " << dt << " ns to T: " << hitT
               << " ns" << endmsg;
-    }
-
-    // Skip the hit if its time is outside the acceptance time window
-    if (m_useTimeWindow) {
-      // TODO: Check that the length of the time window is OK
-      float timeWindow_min = m_timeWindowMin.size() > 1 ? m_timeWindowMin[layer] : m_timeWindowMin[0];
-      float timeWindow_max = m_timeWindowMax.size() > 1 ? m_timeWindowMax[layer] : m_timeWindowMax[0];
-      if (hitT < timeWindow_min || hitT > timeWindow_max) {
-        debug() << "hit at T: " << hit.getTime() << " smeared to: " << hitT
-                << " is outside the time window: hit dropped" << endmsg;
-        ++nDismissedHits;
-        continue;
-      }
     }
 
     // Try to smear the hit position but ensure the hit is inside the sensitive region
