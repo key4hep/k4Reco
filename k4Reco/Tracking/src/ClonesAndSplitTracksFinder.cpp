@@ -139,7 +139,7 @@ ClonesAndSplitTracksFinder::removeClones(const edm4hep::TrackCollection& input_t
     int countClones = 0;
     const edm4hep::Track& track1 = input_track_col.at(iTrack);
 
-    for (size_t jTrack = iTrack + 1; jTrack < input_track_col.size(); ++jTrack) {
+    for (size_t jTrack = 0; jTrack < input_track_col.size(); ++jTrack) {
       const edm4hep::Track& track2 = input_track_col.at(jTrack);
 
       if (track1 != track2) {
