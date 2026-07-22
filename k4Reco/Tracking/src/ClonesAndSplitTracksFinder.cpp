@@ -104,7 +104,10 @@ edm4hep::TrackCollection ClonesAndSplitTracksFinder::operator()(const edm4hep::T
     // mergeSplitTracks(trackVec, input_track_col, tracksWithoutClones);
   } else {
     debug() << " Not even try to merge tracks ..." << endmsg;
-    trackVec = std::move(tracksWithoutClones);
+    // convert subset collection to a normal collection
+    for (const edm4hep::Track& track : tracksWithoutClones) {
+      trackVec.push_back(track.clone());
+    }
   }
 
   return trackVec;
@@ -125,6 +128,7 @@ size_t ClonesAndSplitTracksFinder::overlappingHits(const edm4hep::Track& track1,
 edm4hep::TrackCollection
 ClonesAndSplitTracksFinder::removeClones(const edm4hep::TrackCollection& input_track_col) const {
   edm4hep::TrackCollection tracksWithoutClones;
+  tracksWithoutClones.setSubsetCollection(true);
   debug() << "ClonesAndSplitTracksFinder::removeClones " << endmsg;
 
   // loop over the input tracks
@@ -152,7 +156,7 @@ ClonesAndSplitTracksFinder::removeClones(const edm4hep::TrackCollection& input_t
     } // end second track loop
 
     if (countClones == 0) {
-      tracksWithoutClones.push_back(track1.clone());
+      tracksWithoutClones.push_back(track1);
     }
 
   } // end first track loop
@@ -181,7 +185,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
         if (it_trk != trackVecFinal.end()) { // if the track is already there, do nothing
           continue;
         }
-        trackVecFinal.push_back(track_final.clone());
+        trackVecFinal.push_back(track_final);
       } else { // mergeable tracks: compare the sets of tracker hits
 
         const auto& track_final_hits = track_final.getTrackerHits();
@@ -196,7 +200,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
 
         if (toBeSaved) {
           savedHitVec.push_back(track_final_hits);
-          trackVecFinal.push_back(track_final.clone());
+          trackVecFinal.push_back(track_final);
         }
       }
 
@@ -211,6 +215,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
                          // std::pair<std::multimap<edm4hep::Track*,std::pair<edm4hep::Track*,edm4hep::Track*>>::iterator,
                          // std::multimap<edm4hep::Track*,std::pair<edm4hep::Track*,edm4hep::Track*>>::iterator> ]
         edm4hep::TrackCollection bestTracksMultiConnections;
+        bestTracksMultiConnections.setSubsetCollection(true);
         for (auto it = ret.first; it != ret.second; ++it) {
           edm4hep::Track track_best = it->second.second;
           bestTracksMultiConnections.push_back(track_best);
@@ -222,7 +227,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
           if (it_trk != trackVecFinal.end()) { // if the track is already there, do nothing
             continue;
           }
-          trackVecFinal.push_back(bestTracksMultiConnections.at(0).clone());
+          trackVecFinal.push_back(bestTracksMultiConnections.at(0));
 
         } else { // multiple best tracks with the same track key
           continue;
@@ -240,8 +245,8 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
           continue;
         }
         // otherwise store the two tracks
-        trackVecFinal.push_back(track_a.clone());
-        trackVecFinal.push_back(track_b.clone());
+        trackVecFinal.push_back(track_a);
+        trackVecFinal.push_back(track_b);
 
       } // end of mergeable tracks
     }
