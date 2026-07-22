@@ -222,7 +222,7 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
           if (it_trk != trackVecFinal.end()) { // if the track is already there, do nothing
             continue;
           }
-          trackVecFinal.push_back(bestTracksMultiConnections.at(0));
+          trackVecFinal.push_back(bestTracksMultiConnections.at(0).clone());
 
         } else { // multiple best tracks with the same track key
           continue;
@@ -240,8 +240,8 @@ void ClonesAndSplitTracksFinder::filterClonesAndMergedTracks(
           continue;
         }
         // otherwise store the two tracks
-        trackVecFinal.push_back(track_a);
-        trackVecFinal.push_back(track_b);
+        trackVecFinal.push_back(track_a.clone());
+        trackVecFinal.push_back(track_b.clone());
 
       } // end of mergeable tracks
     }
