@@ -26,7 +26,7 @@ add_test(NAME "clone_CLDConfig"
 set_tests_properties("clone_CLDConfig" PROPERTIES FIXTURES_SETUP CLDConfig)
 
 add_test(NAME "run_ddsim"
-  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim.edm4hep.root --gun.energy '10*GeV' --gun.particle 'mu-' --gun.distribution uniform --gun.multiplicity 10"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim.edm4hep.root --gun.energy '10*GeV' --gun.particle 'mu-' --gun.distribution uniform --gun.multiplicity 30 --gun.thetaMin='89*deg' --gun.thetaMax='91*deg' --gun.phiMin='89*deg' --gun.phiMax='91*deg'"
   )
 set_tests_properties("run_ddsim" PROPERTIES FIXTURES_SETUP SimOutput)
 
