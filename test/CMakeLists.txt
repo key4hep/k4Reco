@@ -72,6 +72,18 @@ set_tests_properties("compare_LumiCalClusterer" PROPERTIES FIXTURES_REQUIRED "Wr
 
 if(BUILD_TRACKING)
 
+  add_test(NAME "run_ddsim_ClonesAndSplitTracksFinder"
+    COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml -G --numberOfEvents 3 --outputFile sim_clones_and_split_tracks_finder.edm4hep.root --gun.energy '10*GeV' --gun.particle 'mu-' --gun.distribution uniform --gun.multiplicity 30 --gun.thetaMin='89*deg' --gun.thetaMax='91*deg' --gun.phiMin='89*deg' --gun.phiMax='91*deg'"
+  )
+  set_tests_properties("run_ddsim_ClonesAndSplitTracksFinder" PROPERTIES FIXTURES_SETUP ClonesAndSplitTracksFinderSimOutput)
+
+  add_test(NAME "run_marlin_wrapper_ClonesAndSplitTracksFinder"
+    COMMAND k4run CLDReconstruction.py --inputFiles sim_clones_and_split_tracks_finder.edm4hep.root --trackingOnly --outputBasename output_clones_and_split_tracks_finder
+  )
+  set_tests_properties("run_marlin_wrapper_ClonesAndSplitTracksFinder" PROPERTIES
+    FIXTURES_REQUIRED "CLDConfig;ClonesAndSplitTracksFinderSimOutput"
+    FIXTURES_SETUP ClonesAndSplitTracksFinderWrapperOutput)
+
   add_test(NAME "run_ConformalTracking"
     COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/options/runConformalTracking.py
   )
@@ -85,14 +97,14 @@ if(BUILD_TRACKING)
   set_tests_properties("compare_ConformalTracking" PROPERTIES FIXTURES_REQUIRED "ConformalTrackingOutput")
 
   add_test(NAME "run_ClonesAndSplitTracksFinder"
-    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runClonesAndSplitTracksFinder.py
+    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/Tracking/options/runClonesAndSplitTracksFinder.py --IOSvc.Input output_clones_and_split_tracks_finder_REC.edm4hep.root
   )
   set_tests_properties("run_ClonesAndSplitTracksFinder" PROPERTIES
-    FIXTURES_REQUIRED "WrapperOutput"
+    FIXTURES_REQUIRED "ClonesAndSplitTracksFinderWrapperOutput"
     FIXTURES_SETUP ClonesAndSplitTracksFinderOutput)
 
   add_test(NAME "compare_ClonesAndSplitTracksFinder"
-    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --gaudi-file output_clones_and_split_tracks_finder.root --marlin-tracks SiTracks --gaudi-tracks GaudiSiTracks
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --marlin-file output_clones_and_split_tracks_finder_REC.edm4hep.root --gaudi-file output_clones_and_split_tracks_finder.root --marlin-tracks SiTracks --gaudi-tracks GaudiSiTracks
   )
   set_tests_properties("compare_ClonesAndSplitTracksFinder" PROPERTIES FIXTURES_REQUIRED "ClonesAndSplitTracksFinderOutput")
 
