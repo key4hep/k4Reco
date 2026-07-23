@@ -20,18 +20,6 @@ limitations under the License.
 
 find_package(k4geo REQUIRED)
 
-set(_test_environment "\
-LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}:\
-${PROJECT_BINARY_DIR}/${PROJECT_NAME}:\
-$ENV{LD_LIBRARY_PATH};\
-PYTHONPATH=${PROJECT_SOURCE_DIR}/python:\
-${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir:\
-$ENV{PYTHONPATH}")
-
-function(set_test_env testname)
-  set_tests_properties(${testname} PROPERTIES ENVIRONMENT "${_test_environment}")
-endfunction()
-
 add_test(NAME "clone_CLDConfig"
   COMMAND bash -c "if [ ! -d CLDConfig ]; then git clone https://github.com/key4hep/CLDConfig.git --depth 1; fi && cp -r CLDConfig/CLDConfig/* . && sed -i -e '/Overlay.Overlay/d' -e '/HighLevelReco.RecoMCTruthLink/d' CLDReconstruction.py"
 )
@@ -149,3 +137,31 @@ if(BUILD_TRACKING)
   set_tests_properties("compare_TruthTrackFinder" PROPERTIES FIXTURES_REQUIRED "TruthTrackFinderOutput")
 
 endif()
+
+
+get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
+set(test_environment "\
+LD_LIBRARY_PATH=\
+${PROJECT_BINARY_DIR}:\
+${PROJECT_BINARY_DIR}/${PROJECT_NAME}:\
+${CMAKE_CURRENT_BINARY_DIR}:\
+${CMAKE_CURRENT_BINARY_DIR}/genConfDir/${CURRENT_DIR_NAME}:\
+$ENV{LD_LIBRARY_PATH};\
+\
+GAUDI_PLUGIN_PATH=
+${PROJECT_BINARY_DIR}:\
+${PROJECT_BINARY_DIR}/${PROJECT_NAME}:\
+${CMAKE_CURRENT_BINARY_DIR}:\
+${CMAKE_CURRENT_BINARY_DIR}/genConfDir/${CURRENT_DIR_NAME}:\
+$ENV{GAUDI_PLUGIN_PATH}:\
+$ENV{LD_LIBRARY_PATH};\
+\
+PYTHONPATH=\
+${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir:\
+${CMAKE_CURRENT_BINARY_DIR}/genConfDir:\
+$ENV{PYTHONPATH};\
+"
+)
+get_property(test_names DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY TESTS)
+set_tests_properties(${test_names} PROPERTIES ENVIRONMENT "${test_environment}")
