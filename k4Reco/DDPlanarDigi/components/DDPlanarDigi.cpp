@@ -295,16 +295,30 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
     trkHit.setV(v_direction);
     trkHit.setDu(resU);
 
+    float resVForCovariance = resV;
     if (m_isStrip) {
       // store the resolution from the length of the wafer - in case a fitter might want to treat this as 2d hit ....
       double stripRes = surf->length_along_v() / dd4hep::mm / std::sqrt(12);
       trkHit.setDv(stripRes);
+      resVForCovariance = stripRes;
       // TODO: Set type?
       // trkHit.setType( UTIL::set_bit( trkHit.getType() ,  UTIL::ILDTrkHitTypeBit::ONE_DIMENSIONAL ) );
 
     } else {
       trkHit.setDv(resV);
     }
+
+    // Transform the local UV measurement uncertainties into the global Cartesian frame
+    const float varianceU = resU * resU;
+    const float varianceV = resVForCovariance * resVForCovariance;
+    edm4hep::CovMatrix3f covariance{};
+    covariance[0] = varianceU * u[0] * u[0] + varianceV * v[0] * v[0];
+    covariance[1] = varianceU * u[1] * u[0] + varianceV * v[1] * v[0];
+    covariance[2] = varianceU * u[1] * u[1] + varianceV * v[1] * v[1];
+    covariance[3] = varianceU * u[2] * u[0] + varianceV * v[2] * v[0];
+    covariance[4] = varianceU * u[2] * u[1] + varianceV * v[2] * v[1];
+    covariance[5] = varianceU * u[2] * u[2] + varianceV * v[2] * v[2];
+    trkHit.setCovMatrix(covariance);
 
     auto association = thsthcol.create();
     association.setTo(hit);
