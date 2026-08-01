@@ -375,8 +375,6 @@ edm4hep::TrackCollection ConformalTracking::operator()(
 
   // Collections to be stored throughout the tracking
   std::map<size_t, SharedKDClusters> collectionClusters; // Conformal hits
-  // Store the TrackerHit interface objects once per input hit. Track candidates frequently share hits, and recreating
-  // an interface object for every candidate performs a heap allocation and virtual-model clone.
   std::map<SKDCluster, edm4hep::TrackerHit> kdClusterMap;
 
   // Debug collections (not filled if debug off)
