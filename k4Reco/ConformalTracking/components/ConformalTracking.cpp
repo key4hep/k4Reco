@@ -374,8 +374,10 @@ edm4hep::TrackCollection ConformalTracking::operator()(
   // the corresponding tracker hit.
 
   // Collections to be stored throughout the tracking
-  std::map<size_t, SharedKDClusters> collectionClusters;       // Conformal hits
-  std::map<SKDCluster, edm4hep::TrackerHitPlane> kdClusterMap; // Their link to "real" hits
+  std::map<size_t, SharedKDClusters> collectionClusters; // Conformal hits
+  // Store the TrackerHit interface objects once per input hit. Track candidates frequently share hits, and recreating
+  // an interface object for every candidate performs a heap allocation and virtual-model clone.
+  std::map<SKDCluster, edm4hep::TrackerHit> kdClusterMap;
 
   // Debug collections (not filled if debug off)
   // std::map<MCParticle*, SharedKDClusters> particleHits;   // List of conformal hits on each MC particle
@@ -635,12 +637,9 @@ edm4hep::TrackCollection ConformalTracking::operator()(
 
     // Make the LCIO track hit vector
     std::vector<const edm4hep::TrackerHit*> trackHits;
-    std::vector<edm4hep::TrackerHit> trackHitsObjects;
+    trackHits.reserve(conformalTrack->m_clusters.size());
     for (const auto& cluster : conformalTrack->m_clusters) {
-      trackHitsObjects.emplace_back(kdClusterMap[cluster]);
-    }
-    for (auto& trackHit : trackHitsObjects) {
-      trackHits.push_back(&trackHit);
+      trackHits.push_back(&kdClusterMap.at(cluster));
     }
 
     // Sort the hits from smaller to larger radius
