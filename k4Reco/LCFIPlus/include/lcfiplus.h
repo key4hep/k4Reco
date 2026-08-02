@@ -108,9 +108,9 @@ typedef std::vector<const Jet*>::const_iterator JetVecIte;
 class Exception : std::exception {
 public:
   Exception(const char* message) : _message(message) {}
-  virtual ~Exception() throw() {}
+  ~Exception() noexcept override {}
 
-  virtual const char* what() const throw() { return _message.c_str(); }
+  const char* what() const noexcept override { return _message.c_str(); }
   void Print() { std::cerr << "lcfiplus_Exception: " << _message << std::endl; }
 
 private:
@@ -360,8 +360,10 @@ private:
 class Track : public TLorentzVector { //, protected TrackData {//, public EventPointer {
 public:
   // constructor
-  // Track() {}
+  Track() = default;
   //      Track(const TrackData& d);
+  Track(const Track&) = default;
+  Track& operator=(const Track&) = default;
   ~Track() {}
 
   int getId() const { return _id; }
@@ -491,6 +493,8 @@ public:
   // Neutral() : _id(0), _pdg(0), _isV0(false), _mcp(0), _clstr() {}
   // TODO: Add cluster?
   Neutral() : _id(0), _pdg(0), _isV0(false), _mcp(0) {}
+  Neutral(const Neutral&) = default;
+  Neutral& operator=(const Neutral&) = default;
   ~Neutral() {}
 
   int getId() const { return _id; }

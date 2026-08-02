@@ -23,12 +23,11 @@
 #include <list>
 #include <vector>
 
-using namespace vertex_lcfi::util;
-
 namespace vertex_lcfi {
 class Track;
 //! Namespace containing ZVTOP Implementation
 namespace ZVTOP {
+  using namespace vertex_lcfi::util;
   // Forward Declarations
   class CandidateVertex;
   class InteractionPoint;

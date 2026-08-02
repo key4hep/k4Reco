@@ -22,14 +22,14 @@
 #include "../../util/inc/matrix.h"
 #include "../../util/inc/vector3.h"
 #include "vertexfitter.h"
+#include <map>
 #include <vector>
-
-using namespace vertex_lcfi::util;
 
 namespace vertex_lcfi {
 class TrackState;
 
 namespace ZVTOP {
+  using namespace vertex_lcfi::util;
   class CandidateVertex;
   class InteractionPoint;
 
