@@ -25,14 +25,13 @@
 #include <map>
 #include <vector>
 
-using namespace vertex_lcfi::util;
-
 namespace vertex_lcfi {
 // Forward Declarations
 class TrackState;
 class Track;
 
 namespace ZVTOP {
+  using namespace vertex_lcfi::util;
   // Forward Declarations
   class InteractionPoint;
   class VertexFitter;

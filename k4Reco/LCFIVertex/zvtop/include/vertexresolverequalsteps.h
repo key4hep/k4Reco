@@ -22,10 +22,9 @@
 #include "../../util/inc/vector3.h"
 #include "vertexresolver.h"
 
-using namespace vertex_lcfi::util;
-
 namespace vertex_lcfi {
 namespace ZVTOP {
+  using namespace vertex_lcfi::util;
   // Forward Declarations
   class VertexFunction;
 

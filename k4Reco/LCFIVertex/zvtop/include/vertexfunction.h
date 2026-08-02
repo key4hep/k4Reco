@@ -23,12 +23,11 @@
 #include "../../util/inc/vector3.h"
 #include <vector>
 
-using namespace vertex_lcfi::util;
-
 namespace vertex_lcfi {
 class TrackState;
 
 namespace ZVTOP {
+  using namespace vertex_lcfi::util;
   // Forward Declaration
   class VertexFunctionElement;
   class InteractionPoint;

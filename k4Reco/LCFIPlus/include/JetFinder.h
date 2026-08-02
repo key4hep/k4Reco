@@ -22,10 +22,8 @@
 #include "TObject.h"
 #include "lcfiplus.h"
 
-using namespace std;
-using namespace lcfiplus;
-
 namespace lcfiplus {
+using namespace std;
 
 /**
         Holds parameters for jet clustering algorithms.

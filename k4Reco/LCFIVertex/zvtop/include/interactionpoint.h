@@ -22,10 +22,9 @@
 #include "../../util/inc/matrix.h"
 #include "../../util/inc/vector3.h"
 
-using namespace vertex_lcfi::util;
-
 namespace vertex_lcfi {
 namespace ZVTOP {
+  using namespace vertex_lcfi::util;
   //! Interaction Point representation
   /*!
   Provides ZVTOP with information about the IP if known. Used in the VertexFunction,

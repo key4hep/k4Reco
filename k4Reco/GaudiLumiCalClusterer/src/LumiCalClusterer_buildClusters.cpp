@@ -341,7 +341,6 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
         // update the multi-layer CM position
         // APS: BUGFIX This used to have the CM2 from the clusterNow2 loop above, instead of closestCluster
         avrgCM[closestCluster->first].addToEnergy(thisCluster.getE());
-#pragma message("(BP) temporary fix, need modify cluster CM method ")
         //
         double wt_closest = avrgCM[closestCluster->first].getWeight();
         double wt_this = thisCluster.getWeight();
@@ -510,7 +509,6 @@ int LumiCalClustererClass::buildClusters(const MapIntVCalHit& calHits, MapIntCal
       // ???????? DECIDE/FIX - incorparate the parameters given here better in the code ????????
       // ???????? DECIDE/FIX - consider a different middle layer for the else condition ????????
       // extrapolated cluster radius around CM position
-#pragma message("WARNING: Fix these parameters")
       if (avrgCM[clusterNow].getE() > 1) {
         fitPar0 = 236.7;
         fitPar1 = 9.11;

@@ -31,10 +31,8 @@
 #include <inc/track.h>
 #include <inc/vertex.h>
 
-using namespace lcio;
-using namespace vertex_lcfi;
-
 namespace vertex_lcfi {
+using namespace lcio;
 
 vertex_lcfi::Track* trackFromLCIORP(Event* MyEvent, lcio::ReconstructedParticle* RP);
 vertex_lcfi::Jet* jetFromLCIORP(Event* MyEvent, lcio::ReconstructedParticle* RP);
