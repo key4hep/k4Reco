@@ -31,6 +31,18 @@ set(sources
   GaudiLumiCalClusterer/src/LCCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
+  LCFIPlus/components/PrimaryVertexFinder.cpp
+  LCFIPlus/components/BuildUpVertex.cpp
+  LCFIPlus/components/JetClustering.cpp
+  LCFIPlus/components/JetVertexRefiner.cpp
+  LCFIPlus/src/algoEtc.cc
+  LCFIPlus/src/geometry.cc
+  LCFIPlus/src/Jet.cc
+  LCFIPlus/src/JetFinder.cc
+  LCFIPlus/src/lcfiplus.cc
+  LCFIPlus/src/VertexFinderSuehara.cpp
+  LCFIPlus/src/VertexFinderSueharaRefiner.cc
+  LCFIPlus/src/VertexFinderTearDown.cc
 )
 
 set(libs
@@ -44,7 +56,12 @@ set(libs
         ROOT::Core
         ROOT::MathCore
         ROOT::Tree
+        ROOT::Physics
+        ROOT::Minuit2
 )
+
+add_subdirectory(LCFIVertex)
+list(APPEND libs LCFIVertexKalman)
 
 if(BUILD_TRACKING)
 
@@ -121,6 +138,7 @@ target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/LCFIPlus/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if(BUILD_TRACKING)
@@ -136,11 +154,15 @@ if(BUILD_TRACKING)
   )
 endif()
 
-install(TARGETS GaudiTrkUtils k4RecoPlugins
+set(k4Reco_install_targets k4RecoPlugins)
+if(BUILD_TRACKING)
+  list(APPEND k4Reco_install_targets GaudiTrkUtils)
+endif()
+
+install(TARGETS ${k4Reco_install_targets}
   EXPORT k4RecoTargets
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
   PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   FILE_SET headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/k4Reco"
   INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-
