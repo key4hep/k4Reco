@@ -1,3 +1,44 @@
+# v00.04.00
+
+* 2026-08-07 David ([PR#64](https://github.com/key4hep/k4Reco/pull/64))
+  - Change geometry returned by geosvc to be used as const in TruthTrackFinder.cpp
+
+* 2026-08-01 Juan Miguel Carceller ([PR#62](https://github.com/key4hep/k4Reco/pull/62))
+  - Reuse TrackerHit interfaces across ConformalTracking candidates to reduce allocations
+
+* 2026-07-24 Juan Miguel Carceller ([PR#61](https://github.com/key4hep/k4Reco/pull/61))
+  - Set the covariance matrix for tracker hits in DDPlanarDigi
+
+* 2026-07-23 Juan Miguel Carceller ([PR#60](https://github.com/key4hep/k4Reco/pull/60))
+  - Copy the test environment from k4FWCore, setting also `GAUDI_PLUGIN_PATH`
+
+* 2026-07-23 Leonhard Reichenbach ([PR#58](https://github.com/key4hep/k4Reco/pull/58))
+  - Fixed the `ClonesAndSplitTracksFinder` and increased its test coverage
+
+* 2026-05-19 Thomas Madlener ([PR#56](https://github.com/key4hep/k4Reco/pull/56))
+  - Cleanup the test environment
+
+* 2026-04-16 Juan Miguel Carceller ([PR#55](https://github.com/key4hep/k4Reco/pull/55))
+  - Remove OverlayTiming. It will be moved to k4FWCore in https://github.com/key4hep/k4FWCore/pull/394
+
+* 2026-04-16 Thomas Madlener ([PR#52](https://github.com/key4hep/k4Reco/pull/52))
+  - Remove deprecated call to `k4FWCore::getParameter` without passing `this`
+  - Switch to new `getCellIDEncoding` functionality
+
+* 2026-04-10 Thomas Madlener ([PR#54](https://github.com/key4hep/k4Reco/pull/54))
+  - Make the `clone_CLDConfig` test work on repeated calls
+  - Fix a deprecation warning in one of the comparison scripts
+  - Replace test dependencies using `DEPENDS` with proper fixtures
+
+* 2026-02-24 Mateusz Jakub Fila ([PR#49](https://github.com/key4hep/k4Reco/pull/49))
+  - Remove histogram interface compatibility with Gaudi versions older that v39
+
+* 2025-11-26 Juan Miguel Carceller ([PR#48](https://github.com/key4hep/k4Reco/pull/48))
+  - Make sure to only create tracks when fitting is successful
+
+* 2025-11-21 Juan Miguel Carceller ([PR#47](https://github.com/key4hep/k4Reco/pull/47))
+  - Fix warning about possible dangling reference, after the warning is allowed since (https://github.com/key4hep/key4hep-dev-utils/pull/15)
+
 # v00.03.00
 
 * 2025-11-18 Juan Miguel Carceller ([PR#46](https://github.com/key4hep/k4Reco/pull/46))
