@@ -34,7 +34,7 @@ find_package(EDM4HEP REQUIRED)
 find_package(DD4hep REQUIRED)
 find_package(Gaudi REQUIRED)
 find_package(k4FWCore 1.4 REQUIRED)
-find_package(ROOT REQUIRED COMPONENTS RIO Tree)
+find_package(ROOT REQUIRED COMPONENTS RIO Tree Physics Minuit2)
 find_package(k4SimGeant4 REQUIRED)
 
 include(cmake/Key4hepConfig.cmake)
