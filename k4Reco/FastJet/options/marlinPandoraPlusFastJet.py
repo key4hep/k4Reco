@@ -64,7 +64,7 @@ marlinFastJet.Parameters = {
     "clusteringMode": ["Inclusive", "5.0"],
     "jetOut": ["JetOut"],
     "recParticleIn": ["GaudiPandoraPFOs"],
-    "recParticleOut": ["PFOsFromJets"],
+    "recParticleOut": ["UsedPFOs"],
     "recombinationScheme": ["E_scheme"],
     "storeParticlesInJets": ["true"],
 }
