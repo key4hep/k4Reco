@@ -17,3 +17,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ]]
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/conformal_tracking_utils DESTINATION python)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/FastJet DESTINATION python)

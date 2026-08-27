@@ -112,7 +112,7 @@ StatusCode TruthTrackFinder::initialize() {
   m_ddkaltest.setEncoder(m_encoder);
 
   // // Get the magnetic field
-  dd4hep::Detector* lcdd = m_geoSvc->getDetector();
+  const dd4hep::Detector* lcdd = m_geoSvc->getDetector();
   const double position[3] = {0, 0, 0};      // position to calculate magnetic field at (the origin in this case)
   double magneticFieldVector[3] = {0, 0, 0}; // initialise object to hold magnetic field
   lcdd->field().magneticField(position, magneticFieldVector); // get the magnetic field vector from DD4hep
