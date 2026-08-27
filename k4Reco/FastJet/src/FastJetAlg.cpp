@@ -305,7 +305,7 @@ FastJetAlg::operator()(const edm4hep::ReconstructedParticleCollection& inputColl
     }
   }
 
-  return std::make_tuple(std::move(outputCollection), std::move(jetCollection));
+  return std::make_tuple(std::move(jetCollection), std::move(outputCollection));
 }
 
 // Double check against the name, and source the appropriate algorithm
