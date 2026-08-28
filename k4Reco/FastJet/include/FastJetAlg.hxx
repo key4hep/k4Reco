@@ -91,6 +91,19 @@ static const std::map<std::string, int> NAME_TO_CLUSTER_MODE_MAP = {
     {"SISConeSphericalPlugin", FJ_inclusive | OWN_inclusiveIteration},
 };
 
+/// The parameters that are expected for a given clustering mode, together with
+/// the EClusterMode value they map to
+struct ClusterModeParams {
+  EClusterMode mode;                   ///< The cluster mode corresponding to this name
+  std::vector<std::string> paramNames; ///< The names of the expected clusteringParams (in order)
+};
+static const std::map<std::string, ClusterModeParams> NAME_TO_CLUSTER_MODE_PARAMS_MAP = {
+    {"Inclusive", {FJ_inclusive, {"minPt"}}},
+    {"InclusiveIterativeNJets", {OWN_inclusiveIteration, {"nrJets", "minE"}}},
+    {"ExclusiveNJets", {FJ_exclusive_nJets, {"nrJets"}}},
+    {"ExclusiveYCut", {FJ_exclusive_yCut, {"yCut"}}},
+};
+
 class JetDefinitionFactory {
   using creatorFunc = std::function<std::unique_ptr<fastjet::JetDefinition>(
       fastjet::JetAlgorithm, const std::vector<float>&, fastjet::RecombinationScheme, fastjet::Strategy)>;
@@ -198,6 +211,7 @@ private:
   fastjet::JetAlgorithm getAlgoType() const;
   bool validateParams();
   bool validateClusterModes() const;
+  bool validateClusterModeParams() const;
   std::unique_ptr<k4Reco::FastJet::JetDefinitionFactory> theJetDefinitionFactory =
       std::make_unique<k4Reco::FastJet::JetDefinitionFactory>();
 };

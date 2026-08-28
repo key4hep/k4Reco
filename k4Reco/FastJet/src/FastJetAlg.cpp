@@ -34,6 +34,10 @@
 #include <edm4hep/MutableVertex.h>
 #include <edm4hep/ReconstructedParticle.h>
 
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
+#include <ranges>
 #include <sstream>
 
 #include <k4FWCore/GaudiChecks.h>
@@ -118,41 +122,28 @@ StatusCode FastJetAlg::initialize() {
   info() << "recombination scheme: " << m_jetRecoSchemeName << endmsg;
 
   // ------------------ Init Cluster Mode ------------------
-  m_clusterMode = NONE;
-  // check the different cluster mode possibilities, and check if the number of parameters are correct
-  if (m_clusterModeName.value().compare("Inclusive") == 0) {
-    if (m_clusterModeParams.size() != 1) {
-      error() << "Wrong number of values for parameter clusteringMode 'Inclusive': missing minPt" << endmsg;
-      return StatusCode::FAILURE;
-    }
+  // Make sure that we know the cluster mode and that we got the expected
+  // number of parameters for it
+  K4_GAUDI_CHECK(validateClusterModeParams());
+
+  m_clusterMode = NAME_TO_CLUSTER_MODE_PARAMS_MAP.at(m_clusterModeName).mode;
+  // The parameters are validated above, so we can simply assign them here
+  switch (m_clusterMode) {
+  case FJ_inclusive:
     m_minPt = m_clusterModeParams[0];
-    m_clusterMode = FJ_inclusive;
-  } else if (m_clusterModeName.value().compare("InclusiveIterativeNJets") == 0) {
-    if (m_clusterModeParams.size() != 2) {
-      error() << "Wrong number of parameters for clustering mode 'InclusiveIterativeNJets'. Expected: NJets, minE."
-              << endmsg;
-      return StatusCode::FAILURE;
-    }
+    break;
+  case OWN_inclusiveIteration:
     m_requestedNumberOfJets = (int)m_clusterModeParams[0];
     m_minE = (int)m_clusterModeParams[1];
-    m_clusterMode = OWN_inclusiveIteration;
-  } else if (m_clusterModeName.value().compare("ExclusiveNJets") == 0) {
-    if (m_clusterModeParams.size() != 1) {
-      error() << "Wrong number of parameters for clustering mode 'ExclusiveNJets'. Expected: NJets." << endmsg;
-      return StatusCode::FAILURE;
-    }
+    break;
+  case FJ_exclusive_nJets:
     m_requestedNumberOfJets = (int)m_clusterModeParams[0];
-    m_clusterMode = FJ_exclusive_nJets;
-  } else if (m_clusterModeName.value().compare("ExclusiveYCut") == 0) {
-    if (m_clusterModeParams.size() != 1) {
-      error() << "Wrong number of parameters for clustering mode 'ExclusiveYCut'. Expected: ExclusiveYCut." << endmsg;
-      return StatusCode::FAILURE;
-    }
+    break;
+  case FJ_exclusive_yCut:
     m_yCut = m_clusterModeParams[0];
-    m_clusterMode = FJ_exclusive_yCut;
-  } else {
-    error() << "Unknwon cluster mode." << endmsg;
-    return StatusCode::FAILURE;
+    break;
+  case NONE:
+    break;
   }
   info() << "Cluster mode: " << m_clusterMode << endmsg;
 
@@ -352,6 +343,30 @@ bool FastJetAlg::validateParams() {
     }
   }
   return false;
+}
+
+// Performs validation of the clustering mode and the number of parameters it
+// needs against the internal mapping we have. The names of the expected
+// parameters are part of that mapping and are used for the error messages
+bool FastJetAlg::validateClusterModeParams() const {
+  const auto it = k4Reco::FastJet::NAME_TO_CLUSTER_MODE_PARAMS_MAP.find(m_clusterModeName);
+  if (it == k4Reco::FastJet::NAME_TO_CLUSTER_MODE_PARAMS_MAP.end()) {
+    error() << fmt::format("Unknown cluster mode: '{}'. Available modes are: {}", m_clusterModeName.value(),
+                           fmt::join(k4Reco::FastJet::NAME_TO_CLUSTER_MODE_PARAMS_MAP | std::views::keys, ", "))
+            << endmsg;
+    return false;
+  }
+
+  const auto& paramNames = it->second.paramNames;
+  if (m_clusterModeParams.size() != paramNames.size()) {
+    error() << fmt::format("Wrong number of parameters for clustering mode '{}'. Expected {} ({}) but got {}",
+                           m_clusterModeName.value(), paramNames.size(), fmt::join(paramNames, ", "),
+                           m_clusterModeParams.size())
+            << endmsg;
+    return false;
+  }
+
+  return true;
 }
 
 // Performs validation of the number of cluster modes we have received versus
