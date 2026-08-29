@@ -151,7 +151,7 @@ set_tests_properties("run_wrapper_ttbar" PROPERTIES
 )
 
 add_test(NAME "run_PandoraPlusFastJet_ttbar"
-  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/pandoraPlusFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_pandoraPlusFastJet_ttbar.root
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/pandoraPlusFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_pandoraPlusFastJet_ttbar.root
 )
 set_tests_properties("run_PandoraPlusFastJet_ttbar" PROPERTIES
   FIXTURES_REQUIRED "WrapperTTbar"
@@ -159,7 +159,7 @@ set_tests_properties("run_PandoraPlusFastJet_ttbar" PROPERTIES
 )
 
 add_test(NAME "run_PandoraPlusMarlinFastJet_ttbar"
-  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/FastJet/options/marlinPandoraPlusFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlinPandoraPlusFastJet_ttbar.root
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/marlinPandoraPlusFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlinPandoraPlusFastJet_ttbar.root
 )
 set_tests_properties("run_PandoraPlusMarlinFastJet_ttbar" PROPERTIES
   FIXTURES_REQUIRED "WrapperTTbar"
@@ -194,6 +194,7 @@ $ENV{LD_LIBRARY_PATH};\
 \
 PYTHONPATH=\
 ${PROJECT_SOURCE_DIR}/python:\
+${CMAKE_CURRENT_SOURCE_DIR}:\
 ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir:\
 ${CMAKE_CURRENT_BINARY_DIR}/genConfDir:\
 $ENV{PYTHONPATH};\
