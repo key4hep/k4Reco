@@ -134,7 +134,7 @@ StatusCode FastJetAlg::initialize() {
     break;
   case OWN_inclusiveIteration:
     m_requestedNumberOfJets = (int)m_clusterModeParams[0];
-    m_minE = (int)m_clusterModeParams[1];
+    m_minE = m_clusterModeParams[1];
     break;
   case FJ_exclusive_nJets:
     m_requestedNumberOfJets = (int)m_clusterModeParams[0];
