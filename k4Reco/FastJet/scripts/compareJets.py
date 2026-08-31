@@ -17,82 +17,104 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+# A simple script to compare the jets from the Gaudi and Marlin output
 import argparse
 from podio.reading import get_reader
 
-def main(args) -> int:
-    gaudiReader = get_reader(args.gaudi_file)
-    marlinReader = get_reader(args.marlin_file)
+parser = argparse.ArgumentParser(description="Compare jets from Gaudi and Marlin")
+parser.add_argument(
+    "--gaudi-file", default="output_fastjet_ttbar.root", help="Gaudi output file"
+)
+parser.add_argument(
+    "--marlin-file", default="output_marlin_fastjet_ttbar.root", help="Marlin output file"
+)
+parser.add_argument("--gaudi-jets", default="JetOut", help="Gaudi jet collection")
+parser.add_argument("--marlin-jets", default="JetOut", help="Marlin jet collection")
+parser.add_argument(
+    "--gaudi-constituents", default="UsedPFOs", help="Gaudi jet constituent collection"
+)
+parser.add_argument(
+    "--marlin-constituents", default="UsedPFOs", help="Marlin jet constituent collection"
+)
 
-    gaudiEvents = gaudiReader.get("events")
-    marlinEvents = marlinReader.get("events")
+args = parser.parse_args()
 
-    for i, gaudiFrame in enumerate(gaudiEvents):
-        marlinFrame = marlinEvents[i]
-
-        gaudiJets = gaudiFrame.get(args.gaudi_jets)
-        marlinJets = marlinFrame.get(args.marlin_jets)
-
-        eventStr = f"Event #{i:0>4}"
-
-        assert( len(gaudiJets) == len(marlinJets)), f"{eventStr} Number of jets differ, Gaudi: {len(gaudiJets)}, Marlin: {len(marlinJets)}"
-
-        for j, (gaudiJet, marlinJet) in enumerate(zip(gaudiJets, marlinJets)):
-            jetStr = f"Jet #{j:0>4}"
-            assert(
-                gaudiJet.getEnergy() == marlinJet.getEnergy()
-            ), f"{eventStr} {jetStr} Jet energy discrepancy, Gaudi {gaudiJet.getEnergy()}, Marlin: {marlinJet.getEnergy()}"
-
-            assert(
-                gaudiJet.getMass() == marlinJet.getMass()
-            ), f"{eventStr} {jetStr} Jet mass discrepancy, Gaudi {gaudiJet.getMass()}, Marlin: {marlinJet.getMass()}"
-
-            assert(
-                gaudiJet.getMomentum().x == marlinJet.getMomentum().x
-            ), f"{eventStr} {jetStr} Jet momentum discrepancy, x component, Gaudi {gaudiJet.getMomentum().x}, Marlin: {marlinJet.getMomentum().x}"
-
-            assert(
-                gaudiJet.getMomentum().y == marlinJet.getMomentum().y
-            ), f"{eventStr} {jetStr} Jet momentum discrepancy, y component, Gaudi {gaudiJet.getMomentum().y}, Marlin: {marlinJet.getMomentum().y}"
-
-            assert(
-                gaudiJet.getMomentum().z == marlinJet.getMomentum().z
-            ), f"{eventStr} {jetStr} Jet momentum discrepancy, z component, Gaudi {gaudiJet.getMomentum().z}, Marlin: {marlinJet.getMomentum().z}"
+# Everything a ReconstructedParticle carries. Only energy, mass, momentum and the
+# particle relation are actually set on the jets, but comparing all of them also
+# catches anything that ends up set on one side and not on the other
+MEMBERS = [
+    "PDG",
+    "Energy",
+    "Momentum",
+    "ReferencePoint",
+    "Charge",
+    "Mass",
+    "GoodnessOfPID",
+    "CovMatrix",
+]
+MULTI_RELATIONS = ["Clusters", "Tracks", "Particles"]
+SINGLE_RELATIONS = ["DecayVertex"]
 
 
-    print("Comparison succeeded!")
-    return 0
+def multi_relation(particle, relation):
+    # The related objects can only be compared through their index within the
+    # collection they live in, the collection IDs differ between the two files
+    return [elem.id().index for elem in getattr(particle, f"get{relation}")()]
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description = "Compare Gaudi FastJet jets to Marlin"
+
+def single_relation(particle, relation):
+    related = getattr(particle, f"get{relation}")()
+    return related.id().index if related.isAvailable() else None
+
+
+def compare(particles_gaudi, particles_marlin, what, event):
+    print(f"Checking event {event} with {len(particles_gaudi)} {what}")
+    assert len(particles_gaudi) == len(
+        particles_marlin
+    ), f"Number of {what} differ in event {event}: {len(particles_gaudi)} vs {len(particles_marlin)}"
+
+    for j, (gaudi, marlin) in enumerate(zip(particles_gaudi, particles_marlin)):
+        for member in MEMBERS:
+            value_gaudi = getattr(gaudi, f"get{member}")()
+            value_marlin = getattr(marlin, f"get{member}")()
+            assert (
+                value_gaudi == value_marlin
+            ), f"{member} differ for {what} {j} in event {event}: {value_gaudi} vs {value_marlin}"
+
+        for relation in MULTI_RELATIONS:
+            value_gaudi = multi_relation(gaudi, relation)
+            value_marlin = multi_relation(marlin, relation)
+            assert (
+                value_gaudi == value_marlin
+            ), f"{relation} differ for {what} {j} in event {event}: {value_gaudi} vs {value_marlin}"
+
+        for relation in SINGLE_RELATIONS:
+            value_gaudi = single_relation(gaudi, relation)
+            value_marlin = single_relation(marlin, relation)
+            assert (
+                value_gaudi == value_marlin
+            ), f"{relation} differ for {what} {j} in event {event}: {value_gaudi} vs {value_marlin}"
+
+
+reader_gaudi = get_reader(args.gaudi_file)
+reader_marlin = get_reader(args.marlin_file)
+
+events_gaudi = reader_gaudi.get("events")
+events_marlin = reader_marlin.get("events")
+
+assert len(events_gaudi) == len(
+    events_marlin
+), f"Number of events differ: {len(events_gaudi)} vs {len(events_marlin)}"
+
+for i, frame_gaudi in enumerate(events_gaudi):
+    frame_marlin = events_marlin[i]
+    compare(
+        frame_gaudi.get(args.gaudi_jets), frame_marlin.get(args.marlin_jets), "jets", i
     )
-
-    parser.add_argument(
-        "--gaudi-file",
-        default = "output_fastjet_ttbar.root",
-        help="File containing the gaudi created fast jet outputs"
+    compare(
+        frame_gaudi.get(args.gaudi_constituents),
+        frame_marlin.get(args.marlin_constituents),
+        "jet constituents",
+        i,
     )
-
-    parser.add_argument(
-        "--marlin-file",
-        default = "output_marlin_fastjet_ttbar.root",
-        help = "File containing the marlin created fast jet outputs"
-    )
-
-    parser.add_argument(
-        "--gaudi-jets",
-        default = "JetOut",
-        help = "Gaudi jet collection"
-    )
-
-    parser.add_argument(
-        "--marlin-jets",
-        default = "JetOut",
-        help = "Marlin jet collection"
-    )
-
-    args = parser.parse_args()
-
-    returnCode = main(args)
-    exit(returnCode)
