@@ -45,14 +45,12 @@
 #include <fastjet/PseudoJet.hh>
 #include <fastjet/SISConePlugin.hh>
 #include <fastjet/SISConeSphericalPlugin.hh>
-// #include <fastjet/contrib/ValenciaPlugin.hh>
 
 #include <map>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-// some namespacing for organization
 namespace k4Reco::FastJet {
 constexpr static int ITERATIVE_INCLUSIVE_MAX_ITERATIONS = 20;
 
@@ -138,8 +136,7 @@ private:
   }
 };
 
-// Forward declaration
-typedef std::vector<fastjet::PseudoJet> PseudoJetList;
+using PseudoJetList = std::vector<fastjet::PseudoJet>;
 } // namespace k4Reco::FastJet
 
 struct FastJetAlg : k4FWCore::MultiTransformer<
@@ -148,13 +145,10 @@ struct FastJetAlg : k4FWCore::MultiTransformer<
 public:
   FastJetAlg(const std::string& name, ISvcLocator* svcLoc);
 
-  /** Called at the begin of the job before anything is read.
-   * Use to initialize the processor, e.g. book histograms.
-   */
+  /// Validates the configured algorithm, clustering mode and parameters and builds the jet definition
   StatusCode initialize();
 
-  /** Called for every run.
-   */
+  /// Clusters the input particles into jets, returning the jets and their constituents
   std::tuple<edm4hep::ReconstructedParticleCollection, edm4hep::ReconstructedParticleCollection>
   operator()(const edm4hep::ReconstructedParticleCollection& inputCollection) const;
 
@@ -186,12 +180,10 @@ private:
       "4-Vector addition: E_scheme."};
 
   // jet algorithm
-  // std::string m_jetAlgoName;
   std::unique_ptr<fastjet::JetDefinition> m_jetAlgo;
   fastjet::JetAlgorithm m_jetAlgoType;
 
   // clustering mode
-  // std::string m_clusterModeName;
   k4Reco::FastJet::EClusterMode m_clusterMode;
 
   // jet reco scheme

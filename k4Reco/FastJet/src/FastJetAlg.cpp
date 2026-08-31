@@ -28,26 +28,19 @@
 
 #include "FastJetAlg.hxx"
 
-#include <edm4hep/MCParticle.h>
-#include <edm4hep/MutableParticleID.h>
 #include <edm4hep/MutableReconstructedParticle.h>
-#include <edm4hep/MutableVertex.h>
 #include <edm4hep/ReconstructedParticle.h>
 
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 
 #include <ranges>
-#include <sstream>
 
 #include <k4FWCore/GaudiChecks.h>
 
 using namespace k4Reco::FastJet;
 
-// Constructor for jet definition factory.
-// This is largely an excuse to populate its registry for how to
-// construct the jet definition. We can define a few generic parameter
-// instances, and set specific instances to those more generic ones
+// The registry maps each algorithm name onto the JetDefinition constructor it needs
 JetDefinitionFactory::JetDefinitionFactory() {
   registry["kt_algorithm"] = useOneParams;
   registry["cambridge_algorithm"] = useOneParams;
@@ -75,8 +68,6 @@ JetDefinitionFactory::JetDefinitionFactory() {
   };
 }
 
-// The actual method for creating the jet definition. Maps the
-// string to a function via the internal registry.
 std::unique_ptr<fastjet::JetDefinition> JetDefinitionFactory::create(const std::string& type,
                                                                      fastjet::JetAlgorithm m_jetAlgoType,
                                                                      const std::vector<float>& params,
@@ -95,12 +86,10 @@ FastJetAlg::FastJetAlg(const std::string& name, ISvcLocator* svcLoc)
       m_requestedNumberOfJets(0), m_yCut(0.0), m_minPt(0.0), m_minE(0.0) {}
 
 StatusCode FastJetAlg::initialize() {
-  // ------------------ Init Strategy ------------------
   m_strategy = fastjet::Best;
   m_strategyName = "Best";
   info() << "Strategy: " << m_strategyName << endmsg;
 
-  // ------------------ Init Reco Scheme ------------------
   if (m_jetRecoSchemeName.value().compare("E_scheme") == 0)
     m_jetRecoScheme = fastjet::E_scheme;
   else if (m_jetRecoSchemeName.value().compare("pt_scheme") == 0)
@@ -121,13 +110,10 @@ StatusCode FastJetAlg::initialize() {
   }
   info() << "recombination scheme: " << m_jetRecoSchemeName << endmsg;
 
-  // ------------------ Init Cluster Mode ------------------
-  // Make sure that we know the cluster mode and that we got the expected
-  // number of parameters for it
   K4_GAUDI_CHECK(validateClusterModeParams());
 
+  // The parameters have been validated above, so they can simply be assigned here
   m_clusterMode = NAME_TO_CLUSTER_MODE_PARAMS_MAP.at(m_clusterModeName).mode;
-  // The parameters are validated above, so we can simply assign them here
   switch (m_clusterMode) {
   case FJ_inclusive:
     m_minPt = m_clusterModeParams[0];
@@ -147,28 +133,13 @@ StatusCode FastJetAlg::initialize() {
   }
   info() << "Cluster mode: " << m_clusterMode << endmsg;
 
-  // ------------------ Init Jet Algorithm ------------------
-  // check all supported algorithms and create the appropriate FJ instance
-  m_jetAlgo = nullptr;
-
-  // Perform retrieval of the algo type based on mapping the name
-  // Instead of a large set of if blocks
-  // The SISConePlugin and SISConeSphericalPlugin seemed never to have this
-  // So it is not performed in those special cases
+  // The SISCone plugins are not built from a fastjet::JetAlgorithm, so they have no type to look up
   if (m_jetAlgoName != "SISConePlugin" and m_jetAlgoName != "SISConeSphericalPlugin")
     m_jetAlgoType = getAlgoType();
 
-  // Validate the number of parameters that we have.
-  // This is just a function designed to throw some exceptions if we
-  // don't get what we're expecting, and handle the special ee_genkt
-  // case, so it doesn't really return anything
   K4_GAUDI_CHECK(validateParams());
-  // This is similar, and performs validation of the clusting modes
-  // that we have received
   K4_GAUDI_CHECK(validateClusterModes());
 
-  // This just calls a factory utility that has a more generic jet definition
-  // constructor, instead of resorting to a large set of if blocks
   m_jetAlgo =
       theJetDefinitionFactory->create(m_jetAlgoName, m_jetAlgoType, m_jetAlgoParams, m_jetRecoScheme, m_strategy);
 
@@ -252,8 +223,7 @@ FastJetAlg::operator()(const edm4hep::ReconstructedParticleCollection& inputColl
         fastjet::ClusterSequence cs_it(pjList, *jetDefinition);
         jets_it = cs_it.inclusive_jets(0); // no pt cut, we will do an energy cut
         jets.clear();
-        // count the number of jets above threshold
-        nJets = 0;
+        // keep only the jets above the energy threshold
         for (unsigned j = 0; j < jets_it.size(); j++) {
           if (jets_it[j].E() > m_minE) {
             jets.push_back(jets_it[j]);
@@ -277,29 +247,22 @@ FastJetAlg::operator()(const edm4hep::ReconstructedParticleCollection& inputColl
     }
   }
 
-  PseudoJetList::iterator it;
   for (const auto& jet : jets) {
-    // create a reconstructed particle for this jet, and add all the containing particles to it
     edm4hep::MutableReconstructedParticle rec = jetCollection.create();
     rec.setEnergy(jet.E());
     rec.setMass(jet.m());
-    edm4hep::Vector3f mom(jet.px(), jet.py(), jet.pz());
-    rec.setMomentum(mom);
-    for (unsigned int n = 0; n < cs.constituents(jet).size(); ++n) {
-      rec.addToParticles(inputCollection.at(cs.constituents(jet)[n].user_index()));
-    }
+    rec.setMomentum(edm4hep::Vector3f(jet.px(), jet.py(), jet.pz()));
 
-    // add jet constituents to output collection
-    for (unsigned int n = 0; n < cs.constituents(jet).size(); ++n) {
-      edm4hep::ReconstructedParticle p = inputCollection.at((cs.constituents(jet))[n].user_index());
-      outputCollection.push_back(p);
+    for (const auto& constituent : cs.constituents(jet)) {
+      const auto particle = inputCollection.at(constituent.user_index());
+      rec.addToParticles(particle);
+      outputCollection.push_back(particle);
     }
   }
 
   return std::make_tuple(std::move(jetCollection), std::move(outputCollection));
 }
 
-// Double check against the name, and source the appropriate algorithm
 fastjet::JetAlgorithm FastJetAlg::getAlgoType() const {
   if (!k4Reco::FastJet::NAME_TO_ALGORITHM_MAP.contains(m_jetAlgoName)) {
     throw GaudiException("Could not find jet algorithm name in internal map", name(), StatusCode::FAILURE);
@@ -307,47 +270,28 @@ fastjet::JetAlgorithm FastJetAlg::getAlgoType() const {
   return k4Reco::FastJet::NAME_TO_ALGORITHM_MAP.at(m_jetAlgoName);
 }
 
-// Performs validation of the number of parameters we have received versus
-// the internal mapping we have. One of the responsibilities of the old
-// "isJetAlgo" function
+// Checks the number of algorithm parameters against the expected number
 bool FastJetAlg::validateParams() {
-  int nParams = (int)m_jetAlgoParams.size();
-  // Original code treats ee_kt_algorithm a bit specially, so that is
-  // reflected here
-  if ((m_jetAlgoName == "ee_genkt_algorithm")) {
-    if (nParams == 1) { // one other
+  const int nParams = static_cast<int>(m_jetAlgoParams.size());
+
+  // ee_genkt_algorithm may be given R only, in which case the exponent p defaults to 1
+  if (m_jetAlgoName == "ee_genkt_algorithm") {
+    if (nParams == 1) {
       m_jetAlgoParams.value().push_back(1.);
       info() << "When only 1 parameter is provided for ee_genkt_algorithm it is assumed to be R, and the exponent p is "
                 "assumed to be equal to 1"
              << endmsg;
       return true;
-    } else if (nParams == 2) {
-      return true;
-    } else {
-      return false;
     }
+    return nParams == 2;
+  }
 
-  }
-  // Everything else we look up, if we have the wrong number of
-  // parameters, then that's an error
-  else {
-    if (const auto it = k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.find(m_jetAlgoName);
-        it != k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.end()) {
-      if (it->second != nParams) {
-        return false;
-      } else {
-        return true;
-      }
-    } else {
-      return false;
-    }
-  }
-  return false;
+  const auto it = k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.find(m_jetAlgoName);
+  return it != k4Reco::FastJet::NAME_TO_NR_PARAMS_MAP.end() && it->second == nParams;
 }
 
-// Performs validation of the clustering mode and the number of parameters it
-// needs against the internal mapping we have. The names of the expected
-// parameters are part of that mapping and are used for the error messages
+// Checks the clustering mode and the number of parameters it expects. The names of the
+// expected parameters are part of that mapping and are used for the error messages
 bool FastJetAlg::validateClusterModeParams() const {
   const auto it = k4Reco::FastJet::NAME_TO_CLUSTER_MODE_PARAMS_MAP.find(m_clusterModeName);
   if (it == k4Reco::FastJet::NAME_TO_CLUSTER_MODE_PARAMS_MAP.end()) {
@@ -369,18 +313,8 @@ bool FastJetAlg::validateClusterModeParams() const {
   return true;
 }
 
-// Performs validation of the number of cluster modes we have received versus
-// the internal mapping we have. One of the responsibilities of the old
-// "isJetAlgo" function
+// Checks that the requested clustering mode is supported by the requested algorithm
 bool FastJetAlg::validateClusterModes() const {
-  if (const auto it = k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.find(m_jetAlgoName);
-      it != k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.end()) {
-    if ((it->second & m_clusterMode) != m_clusterMode) {
-      return false;
-    }
-  } else {
-    return false;
-  }
-
-  return true;
+  const auto it = k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.find(m_jetAlgoName);
+  return it != k4Reco::FastJet::NAME_TO_CLUSTER_MODE_MAP.end() && (it->second & m_clusterMode) == m_clusterMode;
 }
