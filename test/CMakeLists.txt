@@ -150,24 +150,24 @@ set_tests_properties("run_wrapper_ttbar" PROPERTIES
   FIXTURES_SETUP WrapperTTbar
 )
 
-add_test(NAME "run_PandoraPlusFastJet_ttbar"
-  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/pandoraPlusFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_pandoraPlusFastJet_ttbar.root
+add_test(NAME "run_FastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_fastjet_ttbar.root
 )
-set_tests_properties("run_PandoraPlusFastJet_ttbar" PROPERTIES
+set_tests_properties("run_FastJet_ttbar" PROPERTIES
   FIXTURES_REQUIRED "WrapperTTbar"
   FIXTURES_SETUP GaudiFastJet
 )
 
-add_test(NAME "run_PandoraPlusMarlinFastJet_ttbar"
-  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/marlinPandoraPlusFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlinPandoraPlusFastJet_ttbar.root
+add_test(NAME "run_MarlinFastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runMarlinFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlin_fastjet_ttbar.root
 )
-set_tests_properties("run_PandoraPlusMarlinFastJet_ttbar" PROPERTIES
+set_tests_properties("run_MarlinFastJet_ttbar" PROPERTIES
   FIXTURES_REQUIRED "WrapperTTbar"
   FIXTURES_SETUP MarlinFastJet
 )
 
 add_test(NAME "compare_FastJet"
-  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/FastJet/scripts/compareJets.py" --marlin-file output_marlinPandoraPlusFastJet_ttbar.root --gaudi-file output_pandoraPlusFastJet_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/FastJet/scripts/compareJets.py" --marlin-file output_marlin_fastjet_ttbar.root --gaudi-file output_fastjet_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
 )
 set_tests_properties("compare_FastJet" PROPERTIES
   FIXTURES_REQUIRED "GaudiFastJet;MarlinFastJet"

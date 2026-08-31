@@ -70,13 +70,13 @@ if __name__ == '__main__':
 
     parser.add_argument(
         "--gaudi-file",
-        default = "output_pandoraPlusFastJet_ttbar.root",
+        default = "output_fastjet_ttbar.root",
         help="File containing the gaudi created fast jet outputs"
     )
 
     parser.add_argument(
         "--marlin-file",
-        default = "output_marlinPandoraPlusFastJet_ttbar.root",
+        default = "output_marlin_fastjet_ttbar.root",
         help = "File containing the marlin created fast jet outputs"
     )
 
