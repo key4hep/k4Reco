@@ -18,8 +18,8 @@ limitations under the License.
 ]]
 
 set(sources
-  FastJet/src/FastJetAlg.cpp
   DDPlanarDigi/components/DDPlanarDigi.cpp
+  FastJet/src/FastJetAlg.cpp
   GaudiLumiCalClusterer/components/GaudiLumiCalClusterer.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer.cpp
   GaudiLumiCalClusterer/src/LumiCalClusterer_getCalHits.cpp
@@ -46,7 +46,7 @@ set(libs
         ROOT::MathCore
         ROOT::Tree
         ${FASTJET_LIBRARIES}
-      )
+)
 
 if(BUILD_TRACKING)
 
@@ -116,17 +116,19 @@ gaudi_add_module(k4RecoPlugins
 # Common include directories
 set(k4RecoPlugins_public_includes
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/FastJet/include>
-  ${FASTJET_INCLUDE_DIRS}
 )
 
 target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
 target_include_directories(k4RecoPlugins PUBLIC
-$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
-$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
-$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
-$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-target_include_directories(k4RecoPlugins SYSTEM PUBLIC ${FASTJET_INCLUDE_DIRS})
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+# Only the FastJetAlg sources use these, nothing links against a Gaudi module
+target_include_directories(k4RecoPlugins PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/FastJet/include>)
+target_include_directories(k4RecoPlugins SYSTEM PRIVATE ${FASTJET_INCLUDE_DIRS})
 
 if(BUILD_TRACKING)
   target_include_directories(k4RecoPlugins
@@ -141,7 +143,12 @@ if(BUILD_TRACKING)
   )
 endif()
 
-install(TARGETS GaudiTrkUtils k4RecoPlugins
+set(install_targets k4RecoPlugins)
+if(BUILD_TRACKING)
+  list(APPEND install_targets GaudiTrkUtils)
+endif()
+
+install(TARGETS ${install_targets}
   EXPORT k4RecoTargets
   RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT bin
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" COMPONENT shlib
