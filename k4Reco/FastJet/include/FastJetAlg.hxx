@@ -64,6 +64,11 @@ static const std::map<std::string, fastjet::JetAlgorithm> NAME_TO_ALGORITHM_MAP 
     {"ee_kt_algorithm", fastjet::ee_kt_algorithm},
     {"ee_genkt_algorithm", fastjet::ee_genkt_algorithm},
 };
+static const std::map<std::string, fastjet::RecombinationScheme> NAME_TO_RECO_SCHEME_MAP = {
+    {"E_scheme", fastjet::E_scheme},         {"pt_scheme", fastjet::pt_scheme},   {"pt2_scheme", fastjet::pt2_scheme},
+    {"Et_scheme", fastjet::Et_scheme},       {"Et2_scheme", fastjet::Et2_scheme}, {"BIpt_scheme", fastjet::BIpt_scheme},
+    {"BIpt2_scheme", fastjet::BIpt2_scheme},
+};
 static const std::map<std::string, int> NAME_TO_NR_PARAMS_MAP = {
     {"kt_algorithm", 1},
     {"cambridge_algorithm", 1},

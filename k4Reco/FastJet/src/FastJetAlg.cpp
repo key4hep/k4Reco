@@ -80,7 +80,7 @@ std::unique_ptr<fastjet::JetDefinition> JetDefinitionFactory::create(const std::
 }
 
 FastJetAlg::FastJetAlg(const std::string& name, ISvcLocator* svcLoc)
-    : MultiTransformer(name, svcLoc, {KeyValue("recParticleIn", "MCParticle")},
+    : MultiTransformer(name, svcLoc, {KeyValue("recParticleIn", "ReconstructedParticles")},
                        {KeyValue("jetOut", "JetOut"), KeyValue("recParticleOut", "Constituents")}),
       m_jetAlgo(nullptr), m_jetAlgoType(), m_clusterMode(NONE), m_jetRecoScheme(), m_strategyName(""), m_strategy(),
       m_requestedNumberOfJets(0), m_yCut(0.0), m_minPt(0.0), m_minE(0.0) {}
@@ -90,24 +90,14 @@ StatusCode FastJetAlg::initialize() {
   m_strategyName = "Best";
   info() << "Strategy: " << m_strategyName << endmsg;
 
-  if (m_jetRecoSchemeName.value().compare("E_scheme") == 0)
-    m_jetRecoScheme = fastjet::E_scheme;
-  else if (m_jetRecoSchemeName.value().compare("pt_scheme") == 0)
-    m_jetRecoScheme = fastjet::pt_scheme;
-  else if (m_jetRecoSchemeName.value().compare("pt2_scheme") == 0)
-    m_jetRecoScheme = fastjet::pt2_scheme;
-  else if (m_jetRecoSchemeName.value().compare("Et_scheme") == 0)
-    m_jetRecoScheme = fastjet::Et_scheme;
-  else if (m_jetRecoSchemeName.value().compare("Et2_scheme") == 0)
-    m_jetRecoScheme = fastjet::Et2_scheme;
-  else if (m_jetRecoSchemeName.value().compare("BIpt_scheme") == 0)
-    m_jetRecoScheme = fastjet::BIpt_scheme;
-  else if (m_jetRecoSchemeName.value().compare("BIpt2_scheme") == 0)
-    m_jetRecoScheme = fastjet::BIpt2_scheme;
-  else {
-    error() << "Unknown recombination scheme: " << m_jetRecoSchemeName << endmsg;
+  const auto recoScheme = NAME_TO_RECO_SCHEME_MAP.find(m_jetRecoSchemeName);
+  if (recoScheme == NAME_TO_RECO_SCHEME_MAP.end()) {
+    error() << fmt::format("Unknown recombination scheme: '{}'. Available schemes are: {}", m_jetRecoSchemeName.value(),
+                           fmt::join(NAME_TO_RECO_SCHEME_MAP | std::views::keys, ", "))
+            << endmsg;
     return StatusCode::FAILURE;
   }
+  m_jetRecoScheme = recoScheme->second;
   info() << "recombination scheme: " << m_jetRecoSchemeName << endmsg;
 
   K4_GAUDI_CHECK(validateClusterModeParams());
