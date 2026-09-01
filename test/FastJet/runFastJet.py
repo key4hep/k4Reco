@@ -26,16 +26,29 @@ from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
 from Configurables import FastJetAlg
 
+from k4FWCore.parseArgs import parser
+
+parser.add_argument("--algorithm", default="antikt_algorithm", help="Jet algorithm")
+parser.add_argument(
+    "--algorithm-params", nargs="*", default=["0.4"], help="Parameters of the jet algorithm"
+)
+parser.add_argument("--clustering-mode", default="Inclusive", help="Clustering mode")
+parser.add_argument(
+    "--clustering-params", nargs="+", default=["5.0"], help="Parameters of the clustering mode"
+)
+
+args = parser.parse_known_args()[0]
+
 iosvc = IOSvc()
 iosvc.Input = "output_ttbar_REC.edm4hep.root"
 iosvc.Output = "output_fastjet.root"
 
 fastJet = FastJetAlg(
-    "AntiKtFastJet",
-    algorithm="antikt_algorithm",
-    algorithmParameters=[0.4],
-    clusteringMode="Inclusive",
-    clusteringParams=[5.0],
+    "FastJet",
+    algorithm=args.algorithm,
+    algorithmParameters=[float(p) for p in args.algorithm_params],
+    clusteringMode=args.clustering_mode,
+    clusteringParams=[float(p) for p in args.clustering_params],
     jetOut="JetOut",
     recParticleIn="PandoraPFOs",
     recParticleOut="UsedPFOs",

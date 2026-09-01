@@ -174,6 +174,34 @@ set_tests_properties("compare_FastJet" PROPERTIES
   FIXTURES_SETUP GaudiMarlinFastJetComparison
 )
 
+# The Valencia plugin with the parameters that the CLD reconstruction uses for jet clustering,
+# see CLDConfig/HighLevelReco/JetClusteringOrRenaming.py
+set(valencia_config --algorithm ValenciaPlugin --algorithm-params 1.2 1.0 0.7 --clustering-mode ExclusiveNJets --clustering-params 2)
+
+add_test(NAME "run_ValenciaFastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_valencia_ttbar.root ${valencia_config}
+)
+set_tests_properties("run_ValenciaFastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP GaudiValenciaFastJet
+)
+
+add_test(NAME "run_MarlinValenciaFastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runMarlinFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlin_valencia_ttbar.root ${valencia_config}
+)
+set_tests_properties("run_MarlinValenciaFastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP MarlinValenciaFastJet
+)
+
+add_test(NAME "compare_ValenciaFastJet"
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/FastJet/scripts/compareJets.py" --marlin-file output_marlin_valencia_ttbar.root --gaudi-file output_valencia_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+)
+set_tests_properties("compare_ValenciaFastJet" PROPERTIES
+  FIXTURES_REQUIRED "GaudiValenciaFastJet;MarlinValenciaFastJet"
+  FIXTURES_SETUP GaudiMarlinValenciaFastJetComparison
+)
+
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(test_environment "\

@@ -37,6 +37,14 @@ parser.add_argument(
 parser.add_argument(
     "--outputfile", help="Output file after running FastJet", default="output_marlin_fastjet.root"
 )
+parser.add_argument("--algorithm", default="antikt_algorithm", help="Jet algorithm")
+parser.add_argument(
+    "--algorithm-params", nargs="*", default=["0.4"], help="Parameters of the jet algorithm"
+)
+parser.add_argument("--clustering-mode", default="Inclusive", help="Clustering mode")
+parser.add_argument(
+    "--clustering-params", nargs="+", default=["5.0"], help="Parameters of the clustering mode"
+)
 
 args = parser.parse_known_args()[0]
 
@@ -49,8 +57,8 @@ marlinFastJet = MarlinProcessorWrapper("MyFastJetProcessor")
 marlinFastJet.OutputLevel = WARNING
 marlinFastJet.ProcessorType = "FastJetProcessor"
 marlinFastJet.Parameters = {
-    "algorithm": ["antikt_algorithm", "0.4"],
-    "clusteringMode": ["Inclusive", "5.0"],
+    "algorithm": [args.algorithm] + args.algorithm_params,
+    "clusteringMode": [args.clustering_mode] + args.clustering_params,
     "jetOut": ["JetOut"],
     "recParticleIn": ["PandoraPFOs"],
     "recParticleOut": ["UsedPFOs"],

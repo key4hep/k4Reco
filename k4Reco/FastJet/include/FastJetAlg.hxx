@@ -46,6 +46,8 @@
 #include <fastjet/SISConePlugin.hh>
 #include <fastjet/SISConeSphericalPlugin.hh>
 
+#include <fastjet/contrib/ValenciaPlugin.hh>
+
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -80,6 +82,7 @@ static const std::map<std::string, int> NAME_TO_NR_PARAMS_MAP = {
     {"ee_genkt_algorithm", 2},
     {"SISConePlugin", 2},
     {"SISConeSphericalPlugin", 2},
+    {"ValenciaPlugin", 3},
 };
 static const std::map<std::string, int> NAME_TO_CLUSTER_MODE_MAP = {
     {"kt_algorithm", FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut | OWN_inclusiveIteration},
@@ -92,6 +95,7 @@ static const std::map<std::string, int> NAME_TO_CLUSTER_MODE_MAP = {
     {"ee_genkt_algorithm", FJ_inclusive | FJ_exclusive_nJets | FJ_exclusive_yCut},
     {"SISConePlugin", FJ_inclusive | OWN_inclusiveIteration},
     {"SISConeSphericalPlugin", FJ_inclusive | OWN_inclusiveIteration},
+    {"ValenciaPlugin", FJ_exclusive_nJets | FJ_exclusive_yCut},
 };
 
 /// The parameters that are expected for a given clustering mode, together with

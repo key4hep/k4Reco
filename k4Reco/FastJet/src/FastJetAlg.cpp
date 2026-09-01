@@ -66,6 +66,15 @@ JetDefinitionFactory::JetDefinitionFactory() {
     jetAlgo->delete_plugin_when_unused();
     return jetAlgo;
   };
+  registry["ValenciaPlugin"] = [](fastjet::JetAlgorithm, const std::vector<float>& params, fastjet::RecombinationScheme,
+                                  fastjet::Strategy) {
+    // The Valencia parameters are R, beta and gamma, in that order
+    fastjet::contrib::ValenciaPlugin* pl;
+    pl = new fastjet::contrib::ValenciaPlugin(params.at(0), params.at(1), params.at(2));
+    auto jetAlgo = std::make_unique<fastjet::JetDefinition>(pl);
+    jetAlgo->delete_plugin_when_unused();
+    return jetAlgo;
+  };
 }
 
 std::unique_ptr<fastjet::JetDefinition> JetDefinitionFactory::create(const std::string& type,
@@ -123,8 +132,9 @@ StatusCode FastJetAlg::initialize() {
   }
   info() << "Cluster mode: " << m_clusterMode << endmsg;
 
-  // The SISCone plugins are not built from a fastjet::JetAlgorithm, so they have no type to look up
-  if (m_jetAlgoName != "SISConePlugin" and m_jetAlgoName != "SISConeSphericalPlugin")
+  // The plugins (SISCone, Valencia) are not built from a fastjet::JetAlgorithm and so have no
+  // type to look up
+  if (NAME_TO_ALGORITHM_MAP.contains(m_jetAlgoName))
     m_jetAlgoType = getAlgoType();
 
   K4_GAUDI_CHECK(validateParams());
