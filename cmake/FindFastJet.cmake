@@ -51,9 +51,20 @@ mark_as_advanced(FASTJET_FOUND FASTJET_INCLUDE_DIR FASTJET_LIBRARY FASTJET_CONTR
 
 set(FASTJET_INCLUDE_DIRS ${FASTJET_INCLUDE_DIR} ${FASTJET_CONTRIB_INCLUDE_DIR})
 list(REMOVE_DUPLICATES FASTJET_INCLUDE_DIRS)
-# Order matters: the contrib library has unresolved references into fastjettools, and with
-# --as-needed the linker only keeps a library that resolves symbols still undefined when it
-# is reached. Dependents must therefore come before their dependencies
-set(FASTJET_LIBRARIES ${FASTJETCONTRIB_LIBRARY} ${FASTJETTOOLS_LIBRARY} ${FASTJETPLUGINS_LIBRARY}
+# libfastjetcontribfragile.so is built without linking the FastJet libraries it uses (hence
+# "fragile"): it carries undefined references to fastjettools, and has no DT_NEEDED of its
+# own to satisfy them. Nothing in k4Reco references fastjettools directly, so where
+# --as-needed is the compiler default (Debian/Ubuntu) the linker drops it from our DT_NEEDED
+# and loading the plugin then fails with
+#   undefined symbol: _ZTIN7fastjet28JetMedianBackgroundEstimatorE
+# Pin the pair with --no-as-needed, and keep dependents before dependencies
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(FASTJET_CONTRIB_LINK "-Wl,--push-state,--no-as-needed" ${FASTJETCONTRIB_LIBRARY}
+                           ${FASTJETTOOLS_LIBRARY} "-Wl,--pop-state")
+else()
+  set(FASTJET_CONTRIB_LINK ${FASTJETCONTRIB_LIBRARY} ${FASTJETTOOLS_LIBRARY})
+endif()
+
+set(FASTJET_LIBRARIES ${FASTJET_CONTRIB_LINK} ${FASTJETPLUGINS_LIBRARY}
                       ${SISCONE_SPHERICAL_LIBRARY} ${SISCONE_LIBRARY} ${FASTJET_LIBRARY})
 get_filename_component(FASTJET_LIBRARY_DIRS ${FASTJET_LIBRARY} PATH)
