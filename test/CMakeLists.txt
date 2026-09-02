@@ -167,7 +167,7 @@ set_tests_properties("run_MarlinFastJet_ttbar" PROPERTIES
 )
 
 add_test(NAME "compare_FastJet"
-  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/FastJet/scripts/compareJets.py" --marlin-file output_marlin_fastjet_ttbar.root --gaudi-file output_fastjet_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/FastJet/compareJets.py" --marlin-file output_marlin_fastjet_ttbar.root --gaudi-file output_fastjet_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
 )
 set_tests_properties("compare_FastJet" PROPERTIES
   FIXTURES_REQUIRED "GaudiFastJet;MarlinFastJet"
@@ -195,7 +195,7 @@ set_tests_properties("run_MarlinValenciaFastJet_ttbar" PROPERTIES
 )
 
 add_test(NAME "compare_ValenciaFastJet"
-  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/FastJet/scripts/compareJets.py" --marlin-file output_marlin_valencia_ttbar.root --gaudi-file output_valencia_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/FastJet/compareJets.py" --marlin-file output_marlin_valencia_ttbar.root --gaudi-file output_valencia_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
 )
 set_tests_properties("compare_ValenciaFastJet" PROPERTIES
   FIXTURES_REQUIRED "GaudiValenciaFastJet;MarlinValenciaFastJet"
