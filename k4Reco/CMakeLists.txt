@@ -125,7 +125,6 @@ target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-# Only the FastJetAlg sources use these, nothing links against a Gaudi module
 target_include_directories(k4RecoPlugins PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/FastJet/include>)
 target_include_directories(k4RecoPlugins SYSTEM PRIVATE ${FASTJET_INCLUDE_DIRS})
