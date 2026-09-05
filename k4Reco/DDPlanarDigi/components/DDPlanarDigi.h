@@ -104,7 +104,10 @@ private:
       "Only accept hits with time (after smearing) within the specified time window (default: false)"};
   Gaudi::Property<bool> m_correctTimesForPropagation{
       this, "CorrectTimesForPropagation", false,
-      "Correct hit time for the propagation: radial distance/c (default: false)"};
+      "Correct the stored hit time for the propagation time-of-flight: radial distance/c (default: false)"};
+  Gaudi::Property<bool> m_correctTimeWindowForPropagation{
+      this, "CorrectTimeWindowForPropagation", true,
+      "Correct the hit time for the propagation time-of-flight when applying the time window cut (default: true)"};
   Gaudi::Property<std::vector<float>> m_timeWindowMin{
       this, "TimeWindowMin", {-1e9}, "Minimum time (ns) of SimTrackerHit to be digitized"};
   Gaudi::Property<std::vector<float>> m_timeWindowMax{
