@@ -134,6 +134,73 @@ if(BUILD_TRACKING)
 
 endif()
 
+add_test( NAME "run_ddsim_ttbar"
+  COMMAND bash -c "ddsim --compactFile $K4GEO/FCCee/CLD/compact/CLD_o2_v07/CLD_o2_v07.xml --numberOfEvents 3 --outputFile sim_ttbar.edm4hep.root --inputFile CLDConfig/test/yyxyev_000.stdhep"
+)
+set_tests_properties("run_ddsim_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "CLDConfig"
+  FIXTURES_SETUP SimOutputTTbar
+)
+
+add_test(NAME "run_wrapper_ttbar"
+  COMMAND k4run CLDReconstruction.py --inputFiles sim_ttbar.edm4hep.root --outputBasename output_ttbar
+)
+set_tests_properties("run_wrapper_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "CLDConfig;SimOutputTTbar"
+  FIXTURES_SETUP WrapperTTbar
+)
+
+add_test(NAME "run_FastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_fastjet_ttbar.root
+)
+set_tests_properties("run_FastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP GaudiFastJet
+)
+
+add_test(NAME "run_MarlinFastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runMarlinFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlin_fastjet_ttbar.root
+)
+set_tests_properties("run_MarlinFastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP MarlinFastJet
+)
+
+add_test(NAME "compare_FastJet"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/FastJet/compareJets.py" --marlin-file output_marlin_fastjet_ttbar.root --gaudi-file output_fastjet_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+)
+set_tests_properties("compare_FastJet" PROPERTIES
+  FIXTURES_REQUIRED "GaudiFastJet;MarlinFastJet"
+  FIXTURES_SETUP GaudiMarlinFastJetComparison
+)
+
+# The Valencia plugin with the parameters that the CLD reconstruction uses for jet clustering,
+# see CLDConfig/HighLevelReco/JetClusteringOrRenaming.py
+set(valencia_config --algorithm ValenciaPlugin --algorithm-params 1.2 1.0 0.7 --clustering-mode ExclusiveNJets --clustering-params 2)
+
+add_test(NAME "run_ValenciaFastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runFastJet.py --IOSvc.Input output_ttbar_REC.edm4hep.root --IOSvc.Output output_valencia_ttbar.root ${valencia_config}
+)
+set_tests_properties("run_ValenciaFastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP GaudiValenciaFastJet
+)
+
+add_test(NAME "run_MarlinValenciaFastJet_ttbar"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/FastJet/runMarlinFastJet.py --inputfile output_ttbar_REC.edm4hep.root --outputfile output_marlin_valencia_ttbar.root ${valencia_config}
+)
+set_tests_properties("run_MarlinValenciaFastJet_ttbar" PROPERTIES
+  FIXTURES_REQUIRED "WrapperTTbar"
+  FIXTURES_SETUP MarlinValenciaFastJet
+)
+
+add_test(NAME "compare_ValenciaFastJet"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/FastJet/compareJets.py" --marlin-file output_marlin_valencia_ttbar.root --gaudi-file output_valencia_ttbar.root --marlin-jets JetOut --gaudi-jets JetOut
+)
+set_tests_properties("compare_ValenciaFastJet" PROPERTIES
+  FIXTURES_REQUIRED "GaudiValenciaFastJet;MarlinValenciaFastJet"
+  FIXTURES_SETUP GaudiMarlinValenciaFastJetComparison
+)
 
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
@@ -154,6 +221,8 @@ $ENV{GAUDI_PLUGIN_PATH}:\
 $ENV{LD_LIBRARY_PATH};\
 \
 PYTHONPATH=\
+${PROJECT_SOURCE_DIR}/python:\
+${CMAKE_CURRENT_SOURCE_DIR}:\
 ${PROJECT_BINARY_DIR}/${PROJECT_NAME}/genConfDir:\
 ${CMAKE_CURRENT_BINARY_DIR}/genConfDir:\
 $ENV{PYTHONPATH};\
