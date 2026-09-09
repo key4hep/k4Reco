@@ -186,8 +186,9 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
         windowT -= oldPos.r() / (TMath::C() / 1e6);
       }
       if (windowT < timeWindow_min || windowT > timeWindow_max) {
-        debug() << "hit at T: " << hit.getTime() << " smeared to: " << windowT
-                << " is outside the time window: hit dropped" << endmsg;
+        debug() << "hit at R: " << oldPos.r() << " mm, T: " << hit.getTime() << " ns, smeared to: " << hitT
+                << " ns, time used for the window cut: " << windowT << " ns is outside the time window ["
+                << timeWindow_min << ", " << timeWindow_max << "] ns: hit dropped" << endmsg;
         ++nDismissedHits;
         continue;
       }

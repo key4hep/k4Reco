@@ -107,7 +107,8 @@ private:
       "Correct the stored hit time for the propagation time-of-flight: radial distance/c (default: false)"};
   Gaudi::Property<bool> m_correctTimeWindowForPropagation{
       this, "CorrectTimeWindowForPropagation", true,
-      "Correct the hit time for the propagation time-of-flight when applying the time window cut (default: true)"};
+      "Correct the hit time for the propagation time-of-flight when applying the time window cut. "
+      "The stored hit time is not affected (default: true)"};
   Gaudi::Property<std::vector<float>> m_timeWindowMin{
       this, "TimeWindowMin", {-1e9}, "Minimum time (ns) of SimTrackerHit to be digitized"};
   Gaudi::Property<std::vector<float>> m_timeWindowMax{
