@@ -30,10 +30,7 @@ in the Muon Collider reconstruction. They were originally Marlin processors:
 | `CaloHitSelector` | `CaloHitSelector`         | [MyBIBUtils](https://github.com/madbaron/MyBIBUtils) |
 
 All of them are functional `k4FWCore::MultiTransformer`s. Selected hits are written
-to **subset** collections that reference the original hits, accompanied by a
-freshly built reco-to-sim link collection. The simulated hit of a given
-reconstructed hit is resolved through the input link collection rather than by
-relying on positional alignment between the hit and relation collections.
+to **subset** collections that reference the original hits.
 
 ## FilterConeHits
 
@@ -42,14 +39,7 @@ generator-level MC particle. For each selected MC particle a helix is built from
 its production vertex, momentum and charge in the detector field (taken from the
 `GeoSvc`). A hit is kept when its angular distance to the helix is below
 `DeltaRCut` and/or its 3D distance to the helix is below `Dist3DCut`.
-
-The helix math lives in the self-contained, header-only `TrackHelix` (see
-`include/TrackHelix.h`); it reproduces the point-to-helix distance and
-cylinder-crossing operations of MarlinUtil's `HelixClass` so the package carries
-no dependency on MarlinUtil or any other Marlin-era package.
-
-Each instance handles a single tracker subdetector — configure one instance per
-collection (vertex/inner/outer × barrel/endcap), as in the original steering.
+The helix math lives in the self-contained, header-only `TrackHelix`.
 
 | Property | Default | Description |
 |---|---|---|
@@ -72,9 +62,6 @@ window `[PolarAngleLowerLimit, PolarAngleUpperLimit]` (given in degrees). Unlike
 `FilterConeHits` this selection is purely geometric and needs neither the MC
 particles nor the detector field, so no `GeoSvc` is required.
 
-Each instance handles a single tracker collection — configure one instance per
-collection, as in the original steering.
-
 | Property | Default | Description |
 |---|---|---|
 | `TrackerHitInputCollections` | `VBTrackerHits` | input reco tracker hits |
@@ -96,12 +83,6 @@ copied into every output whose interval contains its layer, so overlapping
 intervals duplicate the hit, as in the original processor. The number of output
 collections is arbitrary and follows the length of `OutputCollections`, which
 must match `StartLayers` and `EndLayers`.
-
-Two differences from the Marlin processor: it targets `edm4hep::TrackerHitPlane`
-collections (the original dispatched on the LCIO hit type at run time), and it
-always writes every configured output collection (the `KeepEmptyCollections`
-switch has no equivalent in the functional data flow, where the output handles
-are fixed).
 
 | Property | Default | Description |
 |---|---|---|
