@@ -32,6 +32,11 @@ set(sources
   GaudiLumiCalClusterer/src/LCCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
+  BIBUtils/src/CaloConer.cpp
+  BIBUtils/src/CaloHitSelector.cpp
+  BIBUtils/src/FilterConeHits.cpp
+  BIBUtils/src/SplitCollectionByLayer.cc
+  BIBUtils/src/SplitCollectionByPolarAngle.cc
 )
 
 set(libs
@@ -45,6 +50,7 @@ set(libs
         ROOT::Core
         ROOT::MathCore
         ROOT::Tree
+        ROOT::Hist
         ${FASTJET_LIBRARIES}
 )
 
@@ -116,6 +122,7 @@ gaudi_add_module(k4RecoPlugins
 # Common include directories
 set(k4RecoPlugins_public_includes
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/BIBUtils/include>
 )
 
 target_include_directories(k4RecoPlugins PUBLIC ${k4RecoPlugins_public_includes})
