@@ -35,16 +35,6 @@
 #include <string>
 #include <tuple>
 
-#include "GAUDI_VERSION.h"
-
-#if GAUDI_MAJOR_VERSION < 39
-namespace Gaudi::Accumulators {
-template <unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
-using StaticRootHistogram =
-    Gaudi::Accumulators::RootHistogramingCounterBase<ND, Atomicity, Arithmetic, naming::histogramString>;
-}
-#endif
-
 /** === SplitCollectionByPolarAngle ===
  *  Selects the tracker hits whose polar angle theta = acos(z/r) lies inside the
  *  configurable window [PolarAngleLowerLimit, PolarAngleUpperLimit] (expressed in

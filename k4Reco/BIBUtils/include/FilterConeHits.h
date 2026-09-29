@@ -38,16 +38,6 @@
 #include <tuple>
 #include <vector>
 
-#include "GAUDI_VERSION.h"
-
-#if GAUDI_MAJOR_VERSION < 39
-namespace Gaudi::Accumulators {
-template <unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
-using StaticRootHistogram =
-    Gaudi::Accumulators::RootHistogramingCounterBase<ND, Atomicity, Arithmetic, naming::histogramString>;
-}
-#endif
-
 /** === FilterConeHits ===
  *  Selects the tracker hits that lie inside a cone opened around the trajectory
  *  of a generator-level MC particle, together with the corresponding simulated
