@@ -31,7 +31,7 @@ SplitCollectionByLayer::SplitCollectionByLayer(const std::string& name, ISvcLoca
                   KeyValues("OutputCollections", {"VBTrackerHitsInner", "VBTrackerHitsOuter"})) {}
 
 StatusCode SplitCollectionByLayer::initialize() {
-  SmartIF<IGeoSvc> geoSvc = serviceLocator()->service(m_geoSvcName);
+  const auto geoSvc = serviceLocator()->service<IGeoSvc>(m_geoSvcName);
   if (!geoSvc) {
     error() << "Unable to retrieve the GeoSvc" << endmsg;
     return StatusCode::FAILURE;

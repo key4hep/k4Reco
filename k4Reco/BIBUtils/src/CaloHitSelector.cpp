@@ -40,7 +40,7 @@ CaloHitSelector::CaloHitSelector(const std::string& name, ISvcLocator* svcLoc)
                         KeyValue("GoodRelationCollection", "EcalBarrelRelationsSimSel")}) {}
 
 StatusCode CaloHitSelector::initialize() {
-  SmartIF<IGeoSvc> geoSvc = serviceLocator()->service("GeoSvc");
+  const auto geoSvc = serviceLocator()->service<IGeoSvc>("GeoSvc");
   if (!geoSvc) {
     error() << "Unable to retrieve the GeoSvc" << endmsg;
     return StatusCode::FAILURE;
