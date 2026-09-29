@@ -18,10 +18,11 @@
  */
 #include "FilterConeHits.h"
 
-#include "BIBUtilsHelpers.h"
 #include "TrackHelix.h"
 
 #include <edm4hep/SimTrackerHit.h>
+
+#include <podio/ObjectID.h>
 
 #include "DD4hep/DD4hepUnits.h"
 #include "DD4hep/Detector.h"
@@ -31,7 +32,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-using k4reco::bibutils::objectKey;
 using k4reco::bibutils::TrackHelix;
 
 FilterConeHits::FilterConeHits(const std::string& name, ISvcLocator* svcLoc)
@@ -84,15 +84,15 @@ FilterConeHits::operator()(const edm4hep::MCParticleCollection& mcParticles,
   edm4hep::TrackerHitSimTrackerHitLinkCollection outLinks;
 
   // Map each reconstructed hit to its simulated hit through the input links.
-  std::unordered_map<std::uint64_t, edm4hep::SimTrackerHit> hitToSim;
+  std::unordered_map<podio::ObjectID, edm4hep::SimTrackerHit> hitToSim;
   hitToSim.reserve(trackerHitLinks.size());
   for (const auto& link : trackerHitLinks) {
-    hitToSim.emplace(objectKey(link.getFrom().getObjectID()), link.getTo());
+    hitToSim.emplace(link.getFrom().getObjectID(), link.getTo());
   }
 
   // Track which hits have already been accepted so a hit close to two particles
   // is not written out twice.
-  std::unordered_set<std::uint64_t> acceptedHits;
+  std::unordered_set<podio::ObjectID> acceptedHits;
 
   for (const auto& part : mcParticles) {
     const int genStatus = part.getGeneratorStatus();
@@ -114,7 +114,7 @@ FilterConeHits::operator()(const edm4hep::MCParticleCollection& mcParticles,
     const double intersectionTime = helix.getPointOnCircle(m_trackerOuterRadius, vertex);
 
     for (const auto& hit : trackerHits) {
-      const std::uint64_t key = objectKey(hit.getObjectID());
+      const auto key = hit.getObjectID();
       if (acceptedHits.count(key)) {
         continue;
       }

@@ -19,22 +19,9 @@
 #ifndef K4RECO_BIBUTILSHELPERS_H
 #define K4RECO_BIBUTILSHELPERS_H 1
 
-#include <podio/ObjectID.h>
-
 #include <cmath>
-#include <cstdint>
 
 namespace k4reco::bibutils {
-
-/// Pack a podio::ObjectID (collectionID, index) into a single 64-bit key so it
-/// can be used in unordered associative containers. This lets the BIB-cleaning
-/// algorithms map a reconstructed hit to its simulated hit via the input link
-/// collection, instead of relying on positional alignment between the hit and
-/// relation collections as the original Marlin processors did.
-inline std::uint64_t objectKey(const podio::ObjectID& id) {
-  return (static_cast<std::uint64_t>(static_cast<std::uint32_t>(id.collectionID)) << 32) |
-         static_cast<std::uint32_t>(id.index);
-}
 
 /// Angle (in radians, in [0, pi]) between two 3-vectors. Reproduces the value
 /// returned by TVector3::Angle used in the original Marlin processors without

@@ -18,16 +18,13 @@
  */
 #include "SplitCollectionByPolarAngle.h"
 
-#include "BIBUtilsHelpers.h"
-
 #include <edm4hep/SimTrackerHit.h>
+
+#include <podio/ObjectID.h>
 
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <unordered_map>
-
-using k4reco::bibutils::objectKey;
 
 SplitCollectionByPolarAngle::SplitCollectionByPolarAngle(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -55,10 +52,10 @@ SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection
   edm4hep::TrackerHitSimTrackerHitLinkCollection outLinks;
 
   // Map each reconstructed hit to its simulated hit through the input links.
-  std::unordered_map<std::uint64_t, edm4hep::SimTrackerHit> hitToSim;
+  std::unordered_map<podio::ObjectID, edm4hep::SimTrackerHit> hitToSim;
   hitToSim.reserve(trackerHitLinks.size());
   for (const auto& link : trackerHitLinks) {
-    hitToSim.emplace(objectKey(link.getFrom().getObjectID()), link.getTo());
+    hitToSim.emplace(link.getFrom().getObjectID(), link.getTo());
   }
 
   std::size_t nKept = 0;
@@ -82,7 +79,7 @@ SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection
       ++(*m_histograms[hTheta])[hitTheta];
     }
 
-    const auto simIt = hitToSim.find(objectKey(hit.getObjectID()));
+    const auto simIt = hitToSim.find(hit.getObjectID());
     if (simIt == hitToSim.end()) {
       continue;
     }

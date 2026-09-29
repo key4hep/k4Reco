@@ -22,10 +22,11 @@
 
 #include <edm4hep/SimCalorimeterHit.h>
 
+#include <podio/ObjectID.h>
+
 #include <unordered_map>
 
 using k4reco::bibutils::angleBetween;
-using k4reco::bibutils::objectKey;
 
 CaloConer::CaloConer(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -44,10 +45,10 @@ CaloConer::operator()(const edm4hep::MCParticleCollection& mcParticles,
   edm4hep::CaloHitSimCaloHitLinkCollection outLinks;
 
   // Map each reconstructed hit to its simulated hit through the input links.
-  std::unordered_map<std::uint64_t, edm4hep::SimCalorimeterHit> hitToSim;
+  std::unordered_map<podio::ObjectID, edm4hep::SimCalorimeterHit> hitToSim;
   hitToSim.reserve(caloLinks.size());
   for (const auto& link : caloLinks) {
-    hitToSim.emplace(objectKey(link.getFrom().getObjectID()), link.getTo());
+    hitToSim.emplace(link.getFrom().getObjectID(), link.getTo());
   }
 
   std::size_t nAccepted = 0;
@@ -73,7 +74,7 @@ CaloConer::operator()(const edm4hep::MCParticleCollection& mcParticles,
     }
 
     outHits.push_back(hit);
-    const auto simIt = hitToSim.find(objectKey(hit.getObjectID()));
+    const auto simIt = hitToSim.find(hit.getObjectID());
     if (simIt != hitToSim.end()) {
       auto link = outLinks.create();
       link.setFrom(hit);
