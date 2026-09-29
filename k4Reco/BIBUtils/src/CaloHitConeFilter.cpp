@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "CaloHitsConeFilter.h"
+#include "CaloHitConeFilter.h"
 
 #include <edm4hep/SimCalorimeterHit.h>
 #include <edm4hep/utils/vector_utils.h>
@@ -25,7 +25,7 @@
 
 #include <unordered_map>
 
-CaloHitsConeFilter::CaloHitsConeFilter(const std::string& name, ISvcLocator* svcLoc)
+CaloHitConeFilter::CaloHitConeFilter(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {KeyValue("MCParticleCollectionName", "MCParticle"),
                         KeyValue("CaloHitCollectionName", "EcalBarrelCollectionRec"),
@@ -34,9 +34,9 @@ CaloHitsConeFilter::CaloHitsConeFilter(const std::string& name, ISvcLocator* svc
                         KeyValue("GoodRelationCollection", "EcalBarrelRelationsSimConed")}) {}
 
 std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::CaloHitSimCaloHitLinkCollection>
-CaloHitsConeFilter::operator()(const edm4hep::MCParticleCollection& mcParticles,
-                               const edm4hep::CalorimeterHitCollection& caloHits,
-                               const edm4hep::CaloHitSimCaloHitLinkCollection& caloLinks) const {
+CaloHitConeFilter::operator()(const edm4hep::MCParticleCollection& mcParticles,
+                              const edm4hep::CalorimeterHitCollection& caloHits,
+                              const edm4hep::CaloHitSimCaloHitLinkCollection& caloLinks) const {
   edm4hep::CalorimeterHitCollection outHits;
   outHits.setSubsetCollection();
   edm4hep::CaloHitSimCaloHitLinkCollection outLinks;
@@ -87,4 +87,4 @@ CaloHitsConeFilter::operator()(const edm4hep::MCParticleCollection& mcParticles,
   return std::make_tuple(std::move(outHits), std::move(outLinks));
 }
 
-DECLARE_COMPONENT(CaloHitsConeFilter)
+DECLARE_COMPONENT(CaloHitConeFilter)

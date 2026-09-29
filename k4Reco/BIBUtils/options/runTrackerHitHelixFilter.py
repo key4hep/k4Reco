@@ -19,7 +19,7 @@
 from Gaudi.Configuration import INFO
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
-from Configurables import TrackerHitsHelixFilter
+from Configurables import TrackerHitHelixFilter
 from Configurables import GeoSvc
 from Configurables import Gaudi__Histograming__Sink__Root as RootHistoSink
 import os
@@ -36,7 +36,7 @@ geoservice.EnableGeant4Geo = False
 # One instance per tracker subdetector. The simulated hits are taken from the
 # input reco-to-sim relations, so only the reco hit and relation collections
 # are needed as inputs.
-helixFilter = TrackerHitsHelixFilter("VXDBarrelHelixFilter")
+helixFilter = TrackerHitHelixFilter("VXDBarrelHelixFilter")
 helixFilter.MCParticleCollection = "MCParticle"
 helixFilter.TrackerHitInputCollections = "VBTrackerHits"
 helixFilter.TrackerHitInputRelations = "VBTrackerHitsRelations"
@@ -52,7 +52,7 @@ iosvc.Input = "digi_output.edm4hep.root"
 iosvc.Output = "coned_output.edm4hep.root"
 
 root_hist_svc = RootHistoSink("RootHistoSink")
-root_hist_svc.FileName = "trackerhitshelixfilter_hist.root"
+root_hist_svc.FileName = "trackerhithelixfilter_hist.root"
 
 ApplicationMgr(
     TopAlg=[helixFilter],

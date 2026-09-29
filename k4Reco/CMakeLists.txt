@@ -32,9 +32,9 @@ set(sources
   GaudiLumiCalClusterer/src/LCCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
-  BIBUtils/src/CaloHitsConeFilter.cpp
+  BIBUtils/src/CaloHitConeFilter.cpp
   BIBUtils/src/CaloHitSelector.cpp
-  BIBUtils/src/TrackerHitsHelixFilter.cpp
+  BIBUtils/src/TrackerHitHelixFilter.cpp
   BIBUtils/src/SplitCollectionByLayer.cc
   BIBUtils/src/SplitCollectionByPolarAngle.cc
 )

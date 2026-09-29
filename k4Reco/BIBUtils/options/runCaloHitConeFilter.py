@@ -19,11 +19,11 @@
 from Gaudi.Configuration import INFO
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
-from Configurables import CaloHitsConeFilter
+from Configurables import CaloHitConeFilter
 
 # One instance per calorimeter region. The reco hit and relation collections are
 # the outputs of the realistic calo reconstruction.
-coneFilter = CaloHitsConeFilter("MyEcalBarrelConeFilter")
+coneFilter = CaloHitConeFilter("MyEcalBarrelConeFilter")
 coneFilter.MCParticleCollectionName = "MCParticle"
 coneFilter.CaloHitCollectionName = "EcalBarrelCollectionRec"
 coneFilter.CaloRelationCollectionName = "EcalBarrelRelationsSimRec"

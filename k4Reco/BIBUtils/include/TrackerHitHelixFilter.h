@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef K4RECO_TRACKERHITSHELIXFILTER_H
-#define K4RECO_TRACKERHITSHELIXFILTER_H 1
+#ifndef K4RECO_TRACKERHITHELIXFILTER_H
+#define K4RECO_TRACKERHITHELIXFILTER_H 1
 
 #include "Gaudi/Accumulators/RootHistogram.h"
 #include "Gaudi/Property.h"
@@ -38,7 +38,7 @@
 #include <tuple>
 #include <vector>
 
-/** === TrackerHitsHelixFilter ===
+/** === TrackerHitHelixFilter ===
  *  Selects the tracker hits that lie inside a cone opened around the trajectory
  *  of a generator-level MC particle, together with the corresponding simulated
  *  hits and reco-to-sim links. For each charged MC particle (whose generator
@@ -57,12 +57,12 @@
  *
  *  @author M. Casarsa, INFN Trieste (original Marlin processor)
  */
-struct TrackerHitsHelixFilter final
+struct TrackerHitHelixFilter final
     : k4FWCore::MultiTransformer<std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::SimTrackerHitCollection,
                                             edm4hep::TrackerHitSimTrackerHitLinkCollection>(
           const edm4hep::MCParticleCollection&, const edm4hep::TrackerHitPlaneCollection&,
           const edm4hep::TrackerHitSimTrackerHitLinkCollection&)> {
-  TrackerHitsHelixFilter(const std::string& name, ISvcLocator* svcLoc);
+  TrackerHitHelixFilter(const std::string& name, ISvcLocator* svcLoc);
 
   StatusCode initialize() override;
 
