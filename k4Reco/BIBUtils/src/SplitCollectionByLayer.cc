@@ -18,9 +18,11 @@
  */
 #include "SplitCollectionByLayer.h"
 
-#include <DDSegmentation/BitFieldCoder.h>
+#include <k4Interface/IGeoSvc.h>
 
 #include <cstddef>
+#include <exception>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,9 +31,21 @@ SplitCollectionByLayer::SplitCollectionByLayer(const std::string& name, ISvcLoca
                   KeyValues("OutputCollections", {"VBTrackerHitsInner", "VBTrackerHitsOuter"})) {}
 
 StatusCode SplitCollectionByLayer::initialize() {
-  m_geoSvc = serviceLocator()->service(m_geoSvcName);
-  if (!m_geoSvc) {
+  SmartIF<IGeoSvc> geoSvc = serviceLocator()->service(m_geoSvcName);
+  if (!geoSvc) {
     error() << "Unable to retrieve the GeoSvc" << endmsg;
+    return StatusCode::FAILURE;
+  }
+
+  // The cellID encoding is fixed by the geometry, so the decoder and the index
+  // of the layer field are set up once here rather than for every event.
+  try {
+    const std::string encoderString = geoSvc->constantAsString(m_encodingStringVariable.value());
+    m_bitFieldCoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(encoderString);
+    m_layerIndex = m_bitFieldCoder->index("layer");
+  } catch (const std::exception& e) {
+    error() << "Could not set up the cellID decoder from " << m_encodingStringVariable.value() << ": " << e.what()
+            << endmsg;
     return StatusCode::FAILURE;
   }
 
@@ -60,9 +74,6 @@ StatusCode SplitCollectionByLayer::initialize() {
 
 std::vector<edm4hep::TrackerHitPlaneCollection>
 SplitCollectionByLayer::operator()(const edm4hep::TrackerHitPlaneCollection& trackerHits) const {
-  const std::string encoderString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
-  const dd4hep::DDSegmentation::BitFieldCoder bitFieldCoder(encoderString);
-
   const std::size_t nOutputs = m_startLayers.size();
   std::vector<edm4hep::TrackerHitPlaneCollection> outColls(nOutputs);
   for (auto& coll : outColls) {
@@ -70,7 +81,7 @@ SplitCollectionByLayer::operator()(const edm4hep::TrackerHitPlaneCollection& tra
   }
 
   for (const auto& hit : trackerHits) {
-    const int layer = bitFieldCoder.get(hit.getCellID(), "layer");
+    const int layer = m_bitFieldCoder->get(hit.getCellID(), m_layerIndex);
     for (std::size_t i = 0; i < nOutputs; ++i) {
       if (layer >= m_startLayers[i] && layer <= m_endLayers[i]) {
         outColls[i].push_back(hit);

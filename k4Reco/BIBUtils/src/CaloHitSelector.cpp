@@ -23,12 +23,13 @@
 
 #include <podio/ObjectID.h>
 
-#include <DDSegmentation/BitFieldCoder.h>
+#include <k4Interface/IGeoSvc.h>
 
 #include <TFile.h>
 #include <TH2D.h>
 #include <TMath.h>
 
+#include <exception>
 #include <unordered_map>
 
 CaloHitSelector::CaloHitSelector(const std::string& name, ISvcLocator* svcLoc)
@@ -39,9 +40,21 @@ CaloHitSelector::CaloHitSelector(const std::string& name, ISvcLocator* svcLoc)
                         KeyValue("GoodRelationCollection", "EcalBarrelRelationsSimSel")}) {}
 
 StatusCode CaloHitSelector::initialize() {
-  m_geoSvc = serviceLocator()->service("GeoSvc");
-  if (!m_geoSvc) {
+  SmartIF<IGeoSvc> geoSvc = serviceLocator()->service("GeoSvc");
+  if (!geoSvc) {
     error() << "Unable to retrieve the GeoSvc" << endmsg;
+    return StatusCode::FAILURE;
+  }
+
+  // The cellID encoding is fixed by the geometry, so the decoder and the index
+  // of the layer field are set up once here rather than for every event.
+  try {
+    const std::string encoderString = geoSvc->constantAsString(m_encodingStringVariable.value());
+    m_bitFieldCoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(encoderString);
+    m_layerIndex = m_bitFieldCoder->index("layer");
+  } catch (const std::exception& e) {
+    error() << "Could not set up the cellID decoder from " << m_encodingStringVariable.value() << ": " << e.what()
+            << endmsg;
     return StatusCode::FAILURE;
   }
 
@@ -79,9 +92,6 @@ CaloHitSelector::operator()(const edm4hep::CalorimeterHitCollection& caloHits,
   outHits.setSubsetCollection();
   edm4hep::CaloHitSimCaloHitLinkCollection outLinks;
 
-  const std::string encoderString = m_geoSvc->constantAsString(m_encodingStringVariable.value());
-  const dd4hep::DDSegmentation::BitFieldCoder bitFieldCoder(encoderString);
-
   // Map each reconstructed hit to its simulated hit through the input links.
   std::unordered_map<podio::ObjectID, edm4hep::SimCalorimeterHit> hitToSim;
   hitToSim.reserve(caloLinks.size());
@@ -91,7 +101,7 @@ CaloHitSelector::operator()(const edm4hep::CalorimeterHitCollection& caloHits,
 
   std::size_t nAccepted = 0;
   for (const auto& hit : caloHits) {
-    const unsigned int layer = bitFieldCoder.get(hit.getCellID(), "layer");
+    const unsigned int layer = m_bitFieldCoder->get(hit.getCellID(), m_layerIndex);
 
     // Polar angle, symmetrized around pi/2 to match the threshold maps.
     double hitTheta = edm4hep::utils::anglePolar(hit.getPosition());

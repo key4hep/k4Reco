@@ -25,10 +25,12 @@
 #include <edm4hep/CalorimeterHitCollection.h>
 
 #include <k4FWCore/Transformer.h>
-#include <k4Interface/IGeoSvc.h>
+
+#include <DDSegmentation/BitFieldCoder.h>
 
 #include <GaudiKernel/StatusCode.h>
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <tuple>
@@ -79,7 +81,8 @@ private:
       this, "EncodingStringParameterName", "GlobalCalorimeterReadoutID",
       "Name of the DD4hep constant holding the cellID encoding string for calorimeters"};
 
-  SmartIF<IGeoSvc> m_geoSvc;
+  std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_bitFieldCoder;
+  std::size_t m_layerIndex{0};
 
   std::unique_ptr<TH2D> m_thresholdMap;
   std::unique_ptr<TH2D> m_stddevMap;
