@@ -18,15 +18,12 @@
  */
 #include "CaloConer.h"
 
-#include "BIBUtilsHelpers.h"
-
 #include <edm4hep/SimCalorimeterHit.h>
+#include <edm4hep/utils/vector_utils.h>
 
 #include <podio/ObjectID.h>
 
 #include <unordered_map>
-
-using k4reco::bibutils::angleBetween;
 
 CaloConer::CaloConer(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -53,7 +50,8 @@ CaloConer::operator()(const edm4hep::MCParticleCollection& mcParticles,
 
   std::size_t nAccepted = 0;
   for (const auto& hit : caloHits) {
-    const auto& pos = hit.getPosition();
+    const auto& hitPos = hit.getPosition();
+    const edm4hep::Vector3d pos{hitPos.x, hitPos.y, hitPos.z};
 
     bool save = false;
     for (const auto& part : mcParticles) {
@@ -62,7 +60,7 @@ CaloConer::operator()(const edm4hep::MCParticleCollection& mcParticles,
         continue;
       }
       const auto& mom = part.getMomentum();
-      const double deltaR = angleBetween(mom.x, mom.y, mom.z, pos.x, pos.y, pos.z);
+      const double deltaR = edm4hep::utils::angleBetween(mom, pos);
       if (deltaR < m_coneSize) {
         save = true;
         break;

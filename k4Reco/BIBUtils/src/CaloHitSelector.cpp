@@ -19,6 +19,7 @@
 #include "CaloHitSelector.h"
 
 #include <edm4hep/SimCalorimeterHit.h>
+#include <edm4hep/utils/vector_utils.h>
 
 #include <podio/ObjectID.h>
 
@@ -28,7 +29,6 @@
 #include <TH2D.h>
 #include <TMath.h>
 
-#include <cmath>
 #include <unordered_map>
 
 CaloHitSelector::CaloHitSelector(const std::string& name, ISvcLocator* svcLoc)
@@ -93,10 +93,8 @@ CaloHitSelector::operator()(const edm4hep::CalorimeterHitCollection& caloHits,
   for (const auto& hit : caloHits) {
     const unsigned int layer = bitFieldCoder.get(hit.getCellID(), "layer");
 
-    const auto& pos = hit.getPosition();
-
     // Polar angle, symmetrized around pi/2 to match the threshold maps.
-    double hitTheta = std::atan2(std::sqrt(pos.x * pos.x + pos.y * pos.y), static_cast<double>(pos.z));
+    double hitTheta = edm4hep::utils::anglePolar(hit.getPosition());
     if (hitTheta > TMath::Pi() / 2.) {
       hitTheta = TMath::Pi() - hitTheta;
     }

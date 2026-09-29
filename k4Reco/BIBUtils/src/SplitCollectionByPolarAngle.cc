@@ -19,6 +19,7 @@
 #include "SplitCollectionByPolarAngle.h"
 
 #include <edm4hep/SimTrackerHit.h>
+#include <edm4hep/utils/vector_utils.h>
 
 #include <podio/ObjectID.h>
 
@@ -61,14 +62,8 @@ SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection
   std::size_t nKept = 0;
 
   for (const auto& hit : trackerHits) {
-    const auto& pos = hit.getPosition();
-
-    // Polar angle theta = acos(z / r) of the hit, in radians.
-    const double posMod = std::sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-    if (posMod == 0.) {
-      continue;
-    }
-    const double hitTheta = std::acos(pos.z / posMod);
+    // Polar angle of the hit, in radians.
+    const double hitTheta = edm4hep::utils::anglePolar(hit.getPosition());
     const double hitThetaDeg = hitTheta * 180. / M_PI;
 
     if (hitThetaDeg < m_thetaMin || hitThetaDeg > m_thetaMax) {
