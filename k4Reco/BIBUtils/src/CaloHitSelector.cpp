@@ -31,6 +31,7 @@
 
 #include <exception>
 #include <unordered_map>
+#include <utility>
 
 CaloHitSelector::CaloHitSelector(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -58,23 +59,30 @@ StatusCode CaloHitSelector::initialize() {
     return StatusCode::FAILURE;
   }
 
-  // Load the threshold maps if a file was provided. They are detached from the
-  // file (SetDirectory(nullptr)) so they survive after it is closed.
+  // Load the threshold maps if a file was provided. Each map is detached from
+  // the file (SetDirectory(nullptr)) as soon as it is read, so that it is owned
+  // only by its unique_ptr and survives the file being closed. The maps are then
+  // stored as const: operator() only reads them, which keeps it thread-safe.
   if (!m_thFile.value().empty()) {
     std::unique_ptr<TFile> thFile(TFile::Open(m_thFile.value().c_str(), "READ"));
     if (!thFile || thFile->IsZombie()) {
       error() << "Could not open the thresholds file: " << m_thFile.value() << endmsg;
       return StatusCode::FAILURE;
     }
-    m_thresholdMap.reset(dynamic_cast<TH2D*>(thFile->Get("th_2dmode_sym")));
-    m_stddevMap.reset(dynamic_cast<TH2D*>(thFile->Get("stddev_sym")));
-    if (!m_thresholdMap || !m_stddevMap) {
+    std::unique_ptr<TH2D> thresholdMap(dynamic_cast<TH2D*>(thFile->Get("th_2dmode_sym")));
+    std::unique_ptr<TH2D> stddevMap(dynamic_cast<TH2D*>(thFile->Get("stddev_sym")));
+    for (auto* map : {thresholdMap.get(), stddevMap.get()}) {
+      if (map) {
+        map->SetDirectory(nullptr);
+      }
+    }
+    if (!thresholdMap || !stddevMap) {
       error() << "Could not find the histograms th_2dmode_sym / stddev_sym in " << m_thFile.value() << endmsg;
       return StatusCode::FAILURE;
     }
-    m_thresholdMap->SetDirectory(nullptr);
-    m_stddevMap->SetDirectory(nullptr);
     thFile->Close();
+    m_thresholdMap = std::move(thresholdMap);
+    m_stddevMap = std::move(stddevMap);
   }
 
   if (!m_thresholdMap && m_flatThreshold <= 0.) {
@@ -112,8 +120,9 @@ CaloHitSelector::operator()(const edm4hep::CalorimeterHitCollection& caloHits,
     double modeThreshold = 0.;
     double stddev = 0.;
     if (m_thresholdMap) {
-      const int binx = m_thresholdMap->GetXaxis()->FindBin(hitTheta);
-      const int biny = m_thresholdMap->GetYaxis()->FindBin(layer);
+      // FindFixBin (unlike FindBin) never extends the axis, so the lookup is const.
+      const int binx = m_thresholdMap->GetXaxis()->FindFixBin(hitTheta);
+      const int biny = m_thresholdMap->GetYaxis()->FindFixBin(layer);
       modeThreshold = m_thresholdMap->GetBinContent(binx, biny);
       stddev = m_stddevMap->GetBinContent(binx, biny);
     }

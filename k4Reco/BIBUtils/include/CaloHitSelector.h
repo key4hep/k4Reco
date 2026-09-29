@@ -84,8 +84,8 @@ private:
   std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_bitFieldCoder;
   std::size_t m_layerIndex{0};
 
-  std::unique_ptr<TH2D> m_thresholdMap;
-  std::unique_ptr<TH2D> m_stddevMap;
+  std::unique_ptr<const TH2D> m_thresholdMap;
+  std::unique_ptr<const TH2D> m_stddevMap;
 };
 
 #endif
