@@ -34,7 +34,7 @@ set(sources
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
   BIBUtils/src/CaloHitsConeFilter.cpp
   BIBUtils/src/CaloHitSelector.cpp
-  BIBUtils/src/FilterConeHits.cpp
+  BIBUtils/src/TrackerHitsHelixFilter.cpp
   BIBUtils/src/SplitCollectionByLayer.cc
   BIBUtils/src/SplitCollectionByPolarAngle.cc
 )

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "FilterConeHits.h"
+#include "TrackerHitsHelixFilter.h"
 
 #include "TrackHelix.h"
 
@@ -34,7 +34,7 @@
 
 using k4reco::bibutils::TrackHelix;
 
-FilterConeHits::FilterConeHits(const std::string& name, ISvcLocator* svcLoc)
+TrackerHitsHelixFilter::TrackerHitsHelixFilter(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
                        {KeyValue("MCParticleCollection", "MCParticle"),
                         KeyValue("TrackerHitInputCollections", "VBTrackerHits"),
@@ -43,7 +43,7 @@ FilterConeHits::FilterConeHits(const std::string& name, ISvcLocator* svcLoc)
                         KeyValue("TrackerSimHitOutputCollections", "VertexBarrelCollectionConed"),
                         KeyValue("TrackerHitOutputRelations", "VBTrackerHitsRelationsConed")}) {}
 
-StatusCode FilterConeHits::initialize() {
+StatusCode TrackerHitsHelixFilter::initialize() {
   m_geoSvc = serviceLocator()->service(m_geoSvcName);
   if (!m_geoSvc) {
     error() << "Unable to retrieve the GeoSvc" << endmsg;
@@ -74,9 +74,9 @@ StatusCode FilterConeHits::initialize() {
 
 std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::SimTrackerHitCollection,
            edm4hep::TrackerHitSimTrackerHitLinkCollection>
-FilterConeHits::operator()(const edm4hep::MCParticleCollection& mcParticles,
-                           const edm4hep::TrackerHitPlaneCollection& trackerHits,
-                           const edm4hep::TrackerHitSimTrackerHitLinkCollection& trackerHitLinks) const {
+TrackerHitsHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticles,
+                                   const edm4hep::TrackerHitPlaneCollection& trackerHits,
+                                   const edm4hep::TrackerHitSimTrackerHitLinkCollection& trackerHitLinks) const {
   edm4hep::TrackerHitPlaneCollection outHits;
   outHits.setSubsetCollection();
   edm4hep::SimTrackerHitCollection outSimHits;
@@ -186,4 +186,4 @@ FilterConeHits::operator()(const edm4hep::MCParticleCollection& mcParticles,
   return std::make_tuple(std::move(outHits), std::move(outSimHits), std::move(outLinks));
 }
 
-DECLARE_COMPONENT(FilterConeHits)
+DECLARE_COMPONENT(TrackerHitsHelixFilter)

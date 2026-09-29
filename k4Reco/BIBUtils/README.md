@@ -23,7 +23,7 @@ in the Muon Collider reconstruction. They were originally Marlin processors:
 
 | Gaudi algorithm   | Original Marlin processor | Original package |
 |-------------------|---------------------------|------------------|
-| `FilterConeHits`  | `FilterConeHits`          | [MarlinTrkProcessors](https://github.com/MuonColliderSoft/MarlinTrkProcessors) |
+| `TrackerHitsHelixFilter` | `FilterConeHits`   | [MarlinTrkProcessors](https://github.com/MuonColliderSoft/MarlinTrkProcessors) |
 | `SplitCollectionByPolarAngle` | `SplitCollectionByPolarAngle` | [MarlinTrkProcessors](https://github.com/MuonColliderSoft/MarlinTrkProcessors) |
 | `SplitCollectionByLayer` | `SplitCollectionByLayer` | [MarlinTrkProcessors](https://github.com/MuonColliderSoft/MarlinTrkProcessors) |
 | `CaloHitsConeFilter` | `CaloConer`            | [MyBIBUtils](https://github.com/madbaron/MyBIBUtils) |
@@ -32,7 +32,7 @@ in the Muon Collider reconstruction. They were originally Marlin processors:
 All of them are functional `k4FWCore::MultiTransformer`s. Selected hits are written
 to **subset** collections that reference the original hits.
 
-## FilterConeHits
+## TrackerHitsHelixFilter
 
 Keeps the tracker hits that lie inside a cone around the trajectory of a
 generator-level MC particle. For each selected charged MC particle a helix is
@@ -60,7 +60,7 @@ The helix math lives in the self-contained, header-only `TrackHelix`.
 
 Keeps the tracker hits whose polar angle `theta = acos(z/r)` lies inside the
 window `[PolarAngleLowerLimit, PolarAngleUpperLimit]` (given in degrees). Unlike
-`FilterConeHits` this selection is purely geometric and needs neither the MC
+`TrackerHitsHelixFilter` this selection is purely geometric and needs neither the MC
 particles nor the detector field, so no `GeoSvc` is required.
 
 | Property | Default | Description |

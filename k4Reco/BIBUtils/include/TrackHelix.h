@@ -24,7 +24,7 @@
 namespace k4reco::bibutils {
 
 /**
- * Minimal, self-contained helix used by FilterConeHits, so the package does not
+ * Minimal, self-contained helix used by TrackerHitsHelixFilter, so the package does not
  * depend on MarlinUtil. It reproduces exactly the two operations the cone filter
  * needs from MarlinUtil's HelixClass (iLCSoft, BSD-3-Clause):
  *   - the distance from a space point to the helix (getDistanceToPoint), and

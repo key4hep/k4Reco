@@ -19,7 +19,7 @@
 from Gaudi.Configuration import INFO
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
-from Configurables import FilterConeHits
+from Configurables import TrackerHitsHelixFilter
 from Configurables import GeoSvc
 from Configurables import Gaudi__Histograming__Sink__Root as RootHistoSink
 import os
@@ -36,26 +36,26 @@ geoservice.EnableGeant4Geo = False
 # One instance per tracker subdetector. The simulated hits are taken from the
 # input reco-to-sim relations, so only the reco hit and relation collections
 # are needed as inputs.
-coner = FilterConeHits("VXDBarrelConer")
-coner.MCParticleCollection = "MCParticle"
-coner.TrackerHitInputCollections = "VBTrackerHits"
-coner.TrackerHitInputRelations = "VBTrackerHitsRelations"
-coner.TrackerHitOutputCollections = "VBTrackerHitsConed"
-coner.TrackerSimHitOutputCollections = "VertexBarrelCollectionConed"
-coner.TrackerHitOutputRelations = "VBTrackerHitsRelationsConed"
-coner.Dist3DCut = 30.0
-coner.DeltaRCut = -1.0
-coner.FillHistograms = False
+helixFilter = TrackerHitsHelixFilter("VXDBarrelHelixFilter")
+helixFilter.MCParticleCollection = "MCParticle"
+helixFilter.TrackerHitInputCollections = "VBTrackerHits"
+helixFilter.TrackerHitInputRelations = "VBTrackerHitsRelations"
+helixFilter.TrackerHitOutputCollections = "VBTrackerHitsConed"
+helixFilter.TrackerSimHitOutputCollections = "VertexBarrelCollectionConed"
+helixFilter.TrackerHitOutputRelations = "VBTrackerHitsRelationsConed"
+helixFilter.Dist3DCut = 30.0
+helixFilter.DeltaRCut = -1.0
+helixFilter.FillHistograms = False
 
 iosvc = IOSvc()
 iosvc.Input = "digi_output.edm4hep.root"
 iosvc.Output = "coned_output.edm4hep.root"
 
 root_hist_svc = RootHistoSink("RootHistoSink")
-root_hist_svc.FileName = "filterconehits_hist.root"
+root_hist_svc.FileName = "trackerhitshelixfilter_hist.root"
 
 ApplicationMgr(
-    TopAlg=[coner],
+    TopAlg=[helixFilter],
     EvtSel="NONE",
     EvtMax=-1,
     ExtSvc=[EventDataSvc("EventDataSvc"), root_hist_svc],
