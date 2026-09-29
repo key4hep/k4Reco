@@ -26,7 +26,7 @@ in the Muon Collider reconstruction. They were originally Marlin processors:
 | `FilterConeHits`  | `FilterConeHits`          | [MarlinTrkProcessors](https://github.com/MuonColliderSoft/MarlinTrkProcessors) |
 | `SplitCollectionByPolarAngle` | `SplitCollectionByPolarAngle` | [MarlinTrkProcessors](https://github.com/MuonColliderSoft/MarlinTrkProcessors) |
 | `SplitCollectionByLayer` | `SplitCollectionByLayer` | [MarlinTrkProcessors](https://github.com/MuonColliderSoft/MarlinTrkProcessors) |
-| `CaloConer`       | `CaloConer`               | [MyBIBUtils](https://github.com/madbaron/MyBIBUtils) |
+| `CaloHitsConeFilter` | `CaloConer`            | [MyBIBUtils](https://github.com/madbaron/MyBIBUtils) |
 | `CaloHitSelector` | `CaloHitSelector`         | [MyBIBUtils](https://github.com/madbaron/MyBIBUtils) |
 
 All of them are functional `k4FWCore::MultiTransformer`s. Selected hits are written
@@ -94,7 +94,7 @@ must match `StartLayers` and `EndLayers`.
 | `EncodingStringParameterName` | `GlobalTrackerReadoutID` | DD4hep constant with the tracker cellID encoding |
 | `GeoSvcName` | `GeoSvc` | name of the GeoSvc instance |
 
-## CaloConer
+## CaloHitsConeFilter
 
 Keeps the calorimeter hits within a fixed angular cone (`ConeWidth`, in radians)
 around the direction of any generator-level (`generatorStatus == 1`) MC particle.

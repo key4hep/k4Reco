@@ -16,8 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef K4RECO_CALOCONER_H
-#define K4RECO_CALOCONER_H 1
+#ifndef K4RECO_CALOHITSCONEFILTER_H
+#define K4RECO_CALOHITSCONEFILTER_H 1
 
 #include "Gaudi/Property.h"
 
@@ -30,7 +30,7 @@
 #include <string>
 #include <tuple>
 
-/** === CaloConer ===
+/** === CaloHitsConeFilter ===
  *  Keeps only the calorimeter hits that fall within a fixed angular cone
  *  (ConeWidth, in radians) around the direction of any generator-level
  *  (generatorStatus == 1) MC particle. The selected hits are written to a
@@ -42,11 +42,12 @@
  *
  *  @author F. Meloni, DESY (original Marlin processor)
  */
-struct CaloConer final : k4FWCore::MultiTransformer<
-                             std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::CaloHitSimCaloHitLinkCollection>(
-                                 const edm4hep::MCParticleCollection&, const edm4hep::CalorimeterHitCollection&,
-                                 const edm4hep::CaloHitSimCaloHitLinkCollection&)> {
-  CaloConer(const std::string& name, ISvcLocator* svcLoc);
+struct CaloHitsConeFilter final
+    : k4FWCore::MultiTransformer<
+          std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::CaloHitSimCaloHitLinkCollection>(
+              const edm4hep::MCParticleCollection&, const edm4hep::CalorimeterHitCollection&,
+              const edm4hep::CaloHitSimCaloHitLinkCollection&)> {
+  CaloHitsConeFilter(const std::string& name, ISvcLocator* svcLoc);
 
   std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::CaloHitSimCaloHitLinkCollection>
   operator()(const edm4hep::MCParticleCollection& mcParticles, const edm4hep::CalorimeterHitCollection& caloHits,

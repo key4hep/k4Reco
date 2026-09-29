@@ -32,7 +32,7 @@ set(sources
   GaudiLumiCalClusterer/src/LCCluster.cpp
   GaudiLumiCalClusterer/src/SuperTrueClusterWeights.cpp
   GaudiLumiCalClusterer/src/ProjectionInfo.cpp
-  BIBUtils/src/CaloConer.cpp
+  BIBUtils/src/CaloHitsConeFilter.cpp
   BIBUtils/src/CaloHitSelector.cpp
   BIBUtils/src/FilterConeHits.cpp
   BIBUtils/src/SplitCollectionByLayer.cc

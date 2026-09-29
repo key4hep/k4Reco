@@ -19,24 +19,24 @@
 from Gaudi.Configuration import INFO
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
-from Configurables import CaloConer
+from Configurables import CaloHitsConeFilter
 
 # One instance per calorimeter region. The reco hit and relation collections are
 # the outputs of the realistic calo reconstruction.
-coner = CaloConer("MyEcalBarrelConer")
-coner.MCParticleCollectionName = "MCParticle"
-coner.CaloHitCollectionName = "EcalBarrelCollectionRec"
-coner.CaloRelationCollectionName = "EcalBarrelRelationsSimRec"
-coner.GoodHitCollection = "EcalBarrelCollectionConed"
-coner.GoodRelationCollection = "EcalBarrelRelationsSimConed"
-coner.ConeWidth = 0.6
+coneFilter = CaloHitsConeFilter("MyEcalBarrelConeFilter")
+coneFilter.MCParticleCollectionName = "MCParticle"
+coneFilter.CaloHitCollectionName = "EcalBarrelCollectionRec"
+coneFilter.CaloRelationCollectionName = "EcalBarrelRelationsSimRec"
+coneFilter.GoodHitCollection = "EcalBarrelCollectionConed"
+coneFilter.GoodRelationCollection = "EcalBarrelRelationsSimConed"
+coneFilter.ConeWidth = 0.6
 
 iosvc = IOSvc()
 iosvc.Input = "digi_output.edm4hep.root"
 iosvc.Output = "coned_output.edm4hep.root"
 
 ApplicationMgr(
-    TopAlg=[coner],
+    TopAlg=[coneFilter],
     EvtSel="NONE",
     EvtMax=-1,
     ExtSvc=[EventDataSvc("EventDataSvc")],
