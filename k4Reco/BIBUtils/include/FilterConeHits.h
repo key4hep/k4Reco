@@ -41,9 +41,10 @@
 /** === FilterConeHits ===
  *  Selects the tracker hits that lie inside a cone opened around the trajectory
  *  of a generator-level MC particle, together with the corresponding simulated
- *  hits and reco-to-sim links. For each MC particle (whose generator status is
- *  in ConeAroundStatus) a helix is built from its production vertex, momentum
- *  and charge in the detector magnetic field. A hit is kept when its angular
+ *  hits and reco-to-sim links. For each charged MC particle (whose generator
+ *  status is in ConeAroundStatus) a helix is built from its production vertex,
+ *  momentum and charge in the detector magnetic field; neutral particles are
+ *  skipped, as they have no helix to follow. A hit is kept when its angular
  *  distance to the helix is below DeltaRCut and/or its 3D distance to the helix
  *  is below Dist3DCut. The outputs are subset collections of the accepted reco
  *  and sim hits plus a freshly built link collection.

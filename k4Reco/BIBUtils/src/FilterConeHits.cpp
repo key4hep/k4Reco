@@ -99,6 +99,10 @@ FilterConeHits::operator()(const edm4hep::MCParticleCollection& mcParticles,
     if (std::find(m_coneAroundStatus.begin(), m_coneAroundStatus.end(), genStatus) == m_coneAroundStatus.end()) {
       continue;
     }
+    // Neutral particles are not relevant for tracking.
+    if (part.getCharge() == 0.f) {
+      continue;
+    }
 
     const auto& mom = part.getMomentum();
     const auto& vtx = part.getVertex();

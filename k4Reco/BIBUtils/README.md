@@ -35,10 +35,11 @@ to **subset** collections that reference the original hits.
 ## FilterConeHits
 
 Keeps the tracker hits that lie inside a cone around the trajectory of a
-generator-level MC particle. For each selected MC particle a helix is built from
-its production vertex, momentum and charge in the detector field (taken from the
-`GeoSvc`). A hit is kept when its angular distance to the helix is below
-`DeltaRCut` and/or its 3D distance to the helix is below `Dist3DCut`.
+generator-level MC particle. For each selected charged MC particle a helix is
+built from its production vertex, momentum and charge in the detector field
+(taken from the `GeoSvc`); neutral particles are skipped. A hit is kept when its
+angular distance to the helix is below `DeltaRCut` and/or its 3D distance to the
+helix is below `Dist3DCut`.
 The helix math lives in the self-contained, header-only `TrackHelix`.
 
 | Property | Default | Description |

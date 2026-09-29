@@ -30,6 +30,7 @@
 #include <TMath.h>
 
 #include <exception>
+#include <initializer_list>
 #include <unordered_map>
 #include <utility>
 
