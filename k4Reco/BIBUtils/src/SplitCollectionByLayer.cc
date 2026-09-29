@@ -49,13 +49,11 @@ StatusCode SplitCollectionByLayer::initialize() {
     return StatusCode::FAILURE;
   }
 
-  // One [start, end] layer interval must be given per output collection. The
-  // number of output collections itself is enforced by the framework at the
-  // first event, when the size of the returned vector is matched against the
-  // OutputCollections list.
-  if (m_startLayers.empty() || m_startLayers.size() != m_endLayers.size()) {
-    error() << "StartLayers (" << m_startLayers.size() << ") and EndLayers (" << m_endLayers.size()
-            << ") must be non-empty and have one entry per output collection" << endmsg;
+  // One [start, end] layer interval must be given per output collection.
+  const std::size_t nOutputs = outputLocations("OutputCollections").size();
+  if (nOutputs == 0 || m_startLayers.size() != nOutputs || m_endLayers.size() != nOutputs) {
+    error() << "OutputCollections (" << nOutputs << "), StartLayers (" << m_startLayers.size() << ") and EndLayers ("
+            << m_endLayers.size() << ") must be non-empty and have the same length" << endmsg;
     return StatusCode::FAILURE;
   }
 
