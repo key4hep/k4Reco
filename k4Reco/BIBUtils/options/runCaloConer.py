@@ -24,11 +24,11 @@ from Configurables import CaloConer
 # One instance per calorimeter region. The reco hit and relation collections are
 # the outputs of the realistic calo reconstruction.
 coner = CaloConer("MyEcalBarrelConer")
-coner.MCParticleCollectionName = ["MCParticle"]
-coner.CaloHitCollectionName = ["EcalBarrelCollectionRec"]
-coner.CaloRelationCollectionName = ["EcalBarrelRelationsSimRec"]
-coner.GoodHitCollection = ["EcalBarrelCollectionConed"]
-coner.GoodRelationCollection = ["EcalBarrelRelationsSimConed"]
+coner.MCParticleCollectionName = "MCParticle"
+coner.CaloHitCollectionName = "EcalBarrelCollectionRec"
+coner.CaloRelationCollectionName = "EcalBarrelRelationsSimRec"
+coner.GoodHitCollection = "EcalBarrelCollectionConed"
+coner.GoodRelationCollection = "EcalBarrelRelationsSimConed"
 coner.ConeWidth = 0.6
 
 iosvc = IOSvc()

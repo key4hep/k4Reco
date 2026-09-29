@@ -33,10 +33,10 @@
 
 CaloHitSelector::CaloHitSelector(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
-                       {KeyValues("CaloHitCollectionName", {"EcalBarrelCollectionRec"}),
-                        KeyValues("CaloRelationCollectionName", {"EcalBarrelRelationsSimRec"})},
-                       {KeyValues("GoodHitCollection", {"EcalBarrelCollectionSel"}),
-                        KeyValues("GoodRelationCollection", {"EcalBarrelRelationsSimSel"})}) {}
+                       {KeyValue("CaloHitCollectionName", "EcalBarrelCollectionRec"),
+                        KeyValue("CaloRelationCollectionName", "EcalBarrelRelationsSimRec")},
+                       {KeyValue("GoodHitCollection", "EcalBarrelCollectionSel"),
+                        KeyValue("GoodRelationCollection", "EcalBarrelRelationsSimSel")}) {}
 
 StatusCode CaloHitSelector::initialize() {
   m_geoSvc = serviceLocator()->service("GeoSvc");

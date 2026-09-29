@@ -28,16 +28,16 @@ geoservice = GeoSvc("GeoSvc")
 geoservice.detectors = [
     os.environ["MUONCOLLIDER_GEO"]
     if "MUONCOLLIDER_GEO" in os.environ
-    else os.environ["K4GEO"] + "/MuColl/MuColl_v1/MuColl_v1.xml"
+    else os.environ["K4GEO"] + "/MuColl/MuColl/compact/MuColl_v1/MuColl_v1.xml"
 ]
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
 
 selector = CaloHitSelector("MyEcalBarrelSelector")
-selector.CaloHitCollectionName = ["EcalBarrelCollectionConed"]
-selector.CaloRelationCollectionName = ["EcalBarrelRelationsSimConed"]
-selector.GoodHitCollection = ["EcalBarrelCollectionSel"]
-selector.GoodRelationCollection = ["EcalBarrelRelationsSimSel"]
+selector.CaloHitCollectionName = "EcalBarrelCollectionConed"
+selector.CaloRelationCollectionName = "EcalBarrelRelationsSimConed"
+selector.GoodHitCollection = "EcalBarrelCollectionSel"
+selector.GoodRelationCollection = "EcalBarrelRelationsSimSel"
 # Path to the ROOT file holding the per-(theta, layer) threshold maps
 # (th_2dmode_sym and stddev_sym). Alternatively set FlatThreshold > 0.
 selector.ThresholdsFilePath = ""

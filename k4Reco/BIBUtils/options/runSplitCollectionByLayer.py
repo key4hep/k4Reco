@@ -27,7 +27,7 @@ geoservice = GeoSvc("GeoSvc")
 geoservice.detectors = [
     os.environ["MUONCOLLIDER_GEO"]
     if "MUONCOLLIDER_GEO" in os.environ
-    else os.environ["K4GEO"] + "/MuColl/MuColl_v1/MuColl_v1.xml"
+    else os.environ["K4GEO"] + "/MuColl/MuColl/compact/MuColl_v1/MuColl_v1.xml"
 ]
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
@@ -37,7 +37,7 @@ geoservice.EnableGeant4Geo = False
 # output collection i collects the hits whose layer is in [StartLayers[i],
 # EndLayers[i]].
 splitter = SplitCollectionByLayer("VBTrackerHitsByLayer")
-splitter.InputCollection = ["VBTrackerHits"]
+splitter.InputCollection = "VBTrackerHits"
 splitter.OutputCollections = ["VBTrackerHitsInner", "VBTrackerHitsOuter"]
 splitter.StartLayers = [0, 4]
 splitter.EndLayers = [3, 7]

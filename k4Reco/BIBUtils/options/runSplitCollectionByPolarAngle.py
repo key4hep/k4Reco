@@ -20,18 +20,17 @@ from Gaudi.Configuration import INFO
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
 from Configurables import SplitCollectionByPolarAngle
-from Configurables import RootHistSvc
 from Configurables import Gaudi__Histograming__Sink__Root as RootHistoSink
 
 # One instance per tracker collection. The simulated hits are taken from the
 # input reco-to-sim relations, so only the reco hit and relation collections
 # are needed as inputs.
 splitter = SplitCollectionByPolarAngle("VXDBarrelSplitter")
-splitter.TrackerHitInputCollections = ["VBTrackerHits"]
-splitter.TrackerHitInputRelations = ["VBTrackerHitsRelations"]
-splitter.TrackerHitOutputCollections = ["VBTrackerHitsSplit"]
-splitter.TrackerSimHitOutputCollections = ["VertexBarrelCollectionSplit"]
-splitter.TrackerHitOutputRelations = ["VBTrackerHitsRelationsSplit"]
+splitter.TrackerHitInputCollections = "VBTrackerHits"
+splitter.TrackerHitInputRelations = "VBTrackerHitsRelations"
+splitter.TrackerHitOutputCollections = "VBTrackerHitsSplit"
+splitter.TrackerSimHitOutputCollections = "VertexBarrelCollectionSplit"
+splitter.TrackerHitOutputRelations = "VBTrackerHitsRelationsSplit"
 splitter.PolarAngleLowerLimit = 50.0
 splitter.PolarAngleUpperLimit = 130.0
 splitter.FillHistograms = False
@@ -40,7 +39,6 @@ iosvc = IOSvc()
 iosvc.Input = "digi_output.edm4hep.root"
 iosvc.Output = "split_output.edm4hep.root"
 
-hps = RootHistSvc("HistogramPersistencySvc")
 root_hist_svc = RootHistoSink("RootHistoSink")
 root_hist_svc.FileName = "splitcollectionbypolarangle_hist.root"
 

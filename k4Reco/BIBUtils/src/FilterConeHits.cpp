@@ -36,12 +36,12 @@ using k4reco::bibutils::TrackHelix;
 
 FilterConeHits::FilterConeHits(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
-                       {KeyValues("MCParticleCollection", {"MCParticle"}),
-                        KeyValues("TrackerHitInputCollections", {"VBTrackerHits"}),
-                        KeyValues("TrackerHitInputRelations", {"VBTrackerHitsRelations"})},
-                       {KeyValues("TrackerHitOutputCollections", {"VBTrackerHitsConed"}),
-                        KeyValues("TrackerSimHitOutputCollections", {"VertexBarrelCollectionConed"}),
-                        KeyValues("TrackerHitOutputRelations", {"VBTrackerHitsRelationsConed"})}) {}
+                       {KeyValue("MCParticleCollection", "MCParticle"),
+                        KeyValue("TrackerHitInputCollections", "VBTrackerHits"),
+                        KeyValue("TrackerHitInputRelations", "VBTrackerHitsRelations")},
+                       {KeyValue("TrackerHitOutputCollections", "VBTrackerHitsConed"),
+                        KeyValue("TrackerSimHitOutputCollections", "VertexBarrelCollectionConed"),
+                        KeyValue("TrackerHitOutputRelations", "VBTrackerHitsRelationsConed")}) {}
 
 StatusCode FilterConeHits::initialize() {
   m_geoSvc = serviceLocator()->service(m_geoSvcName);

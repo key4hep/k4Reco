@@ -21,7 +21,6 @@ from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc
 from Configurables import FilterConeHits
 from Configurables import GeoSvc
-from Configurables import RootHistSvc
 from Configurables import Gaudi__Histograming__Sink__Root as RootHistoSink
 import os
 
@@ -29,7 +28,7 @@ geoservice = GeoSvc("GeoSvc")
 geoservice.detectors = [
     os.environ["MUONCOLLIDER_GEO"]
     if "MUONCOLLIDER_GEO" in os.environ
-    else os.environ["K4GEO"] + "/MuColl/MuColl_v1/MuColl_v1.xml"
+    else os.environ["K4GEO"] + "/MuColl/MuColl/compact/MuColl_v1/MuColl_v1.xml"
 ]
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
@@ -38,12 +37,12 @@ geoservice.EnableGeant4Geo = False
 # input reco-to-sim relations, so only the reco hit and relation collections
 # are needed as inputs.
 coner = FilterConeHits("VXDBarrelConer")
-coner.MCParticleCollection = ["MCParticle"]
-coner.TrackerHitInputCollections = ["VBTrackerHits"]
-coner.TrackerHitInputRelations = ["VBTrackerHitsRelations"]
-coner.TrackerHitOutputCollections = ["VBTrackerHitsConed"]
-coner.TrackerSimHitOutputCollections = ["VertexBarrelCollectionConed"]
-coner.TrackerHitOutputRelations = ["VBTrackerHitsRelationsConed"]
+coner.MCParticleCollection = "MCParticle"
+coner.TrackerHitInputCollections = "VBTrackerHits"
+coner.TrackerHitInputRelations = "VBTrackerHitsRelations"
+coner.TrackerHitOutputCollections = "VBTrackerHitsConed"
+coner.TrackerSimHitOutputCollections = "VertexBarrelCollectionConed"
+coner.TrackerHitOutputRelations = "VBTrackerHitsRelationsConed"
 coner.Dist3DCut = 30.0
 coner.DeltaRCut = -1.0
 coner.FillHistograms = False
@@ -52,7 +51,6 @@ iosvc = IOSvc()
 iosvc.Input = "digi_output.edm4hep.root"
 iosvc.Output = "coned_output.edm4hep.root"
 
-hps = RootHistSvc("HistogramPersistencySvc")
 root_hist_svc = RootHistoSink("RootHistoSink")
 root_hist_svc.FileName = "filterconehits_hist.root"
 

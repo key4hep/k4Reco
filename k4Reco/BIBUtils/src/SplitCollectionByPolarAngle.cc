@@ -29,11 +29,11 @@
 
 SplitCollectionByPolarAngle::SplitCollectionByPolarAngle(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
-                       {KeyValues("TrackerHitInputCollections", {"VBTrackerHits"}),
-                        KeyValues("TrackerHitInputRelations", {"VBTrackerHitsRelations"})},
-                       {KeyValues("TrackerHitOutputCollections", {"VBTrackerHitsSplit"}),
-                        KeyValues("TrackerSimHitOutputCollections", {"VertexBarrelCollectionSplit"}),
-                        KeyValues("TrackerHitOutputRelations", {"VBTrackerHitsRelationsSplit"})}) {}
+                       {KeyValue("TrackerHitInputCollections", "VBTrackerHits"),
+                        KeyValue("TrackerHitInputRelations", "VBTrackerHitsRelations")},
+                       {KeyValue("TrackerHitOutputCollections", "VBTrackerHitsSplit"),
+                        KeyValue("TrackerSimHitOutputCollections", "VertexBarrelCollectionSplit"),
+                        KeyValue("TrackerHitOutputRelations", "VBTrackerHitsRelationsSplit")}) {}
 
 StatusCode SplitCollectionByPolarAngle::initialize() {
   m_histograms[hTheta].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{

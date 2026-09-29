@@ -27,11 +27,11 @@
 
 CaloConer::CaloConer(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
-                       {KeyValues("MCParticleCollectionName", {"MCParticle"}),
-                        KeyValues("CaloHitCollectionName", {"EcalBarrelCollectionRec"}),
-                        KeyValues("CaloRelationCollectionName", {"EcalBarrelRelationsSimRec"})},
-                       {KeyValues("GoodHitCollection", {"EcalBarrelCollectionConed"}),
-                        KeyValues("GoodRelationCollection", {"EcalBarrelRelationsSimConed"})}) {}
+                       {KeyValue("MCParticleCollectionName", "MCParticle"),
+                        KeyValue("CaloHitCollectionName", "EcalBarrelCollectionRec"),
+                        KeyValue("CaloRelationCollectionName", "EcalBarrelRelationsSimRec")},
+                       {KeyValue("GoodHitCollection", "EcalBarrelCollectionConed"),
+                        KeyValue("GoodRelationCollection", "EcalBarrelRelationsSimConed")}) {}
 
 std::tuple<edm4hep::CalorimeterHitCollection, edm4hep::CaloHitSimCaloHitLinkCollection>
 CaloConer::operator()(const edm4hep::MCParticleCollection& mcParticles,

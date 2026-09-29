@@ -25,7 +25,7 @@
 #include <vector>
 
 SplitCollectionByLayer::SplitCollectionByLayer(const std::string& name, ISvcLocator* svcLoc)
-    : Transformer(name, svcLoc, KeyValues("InputCollection", {"VBTrackerHits"}),
+    : Transformer(name, svcLoc, KeyValue("InputCollection", "VBTrackerHits"),
                   KeyValues("OutputCollections", {"VBTrackerHitsInner", "VBTrackerHitsOuter"})) {}
 
 StatusCode SplitCollectionByLayer::initialize() {
