@@ -22,12 +22,15 @@
 #include "GaudiDDKalTest.h"
 
 #include <edm4hep/TrackState.h>
+#include <edm4hep/TrackerHit.h>
 #include <edm4hep/TrackerHitPlane.h>
 
 #include <TMatrixD.h>
 
 #include <cmath>
+#include <map>
 #include <memory>
+#include <vector>
 
 class DDVMeasLayer;
 class DDVTrackHit;
@@ -37,6 +40,10 @@ class TKalTrackSite;
 
 namespace Gaudi {
 class Algorithm;
+}
+
+namespace EVENT {
+class TrackerHit;
 }
 
 class TObjArray;
@@ -201,6 +208,11 @@ public:
       phi -= M_PI;
     return phi;
   }
+
+  // the LCIO hits created from the EDM4hep hits in addHit. DDVTrackHit only keeps a bare pointer to
+  // them, so they have to stay alive for as long as the DDVTrackHits in m_kalhits do. Declared first
+  // so that they are destructed last
+  std::vector<std::unique_ptr<EVENT::TrackerHit>> m_lcio_hits{};
 
   std::unique_ptr<TKalTrack> m_kaltrack{}; // unique ptr to be able to forward declare
   TObjArray* m_kalhits = nullptr;

@@ -18,6 +18,7 @@
  */
 #include "GaudiDDKalTestTrack.h"
 
+#include <IMPL/TrackerHitImpl.h>
 #include <IMPL/TrackerHitPlaneImpl.h>
 
 #include <kaltest/TKalDetCradle.h>
@@ -36,6 +37,7 @@
 #pragma GCC diagnostic pop
 
 #include <edm4hep/TrackerHit.h>
+#include <edm4hep/TrackerHit3D.h>
 #include <edm4hep/TrackerHitPlane.h>
 
 #include <Gaudi/Algorithm.h>
@@ -97,6 +99,47 @@ GaudiDDKalTestTrack::GaudiDDKalTestTrack(
 
 GaudiDDKalTestTrack::~GaudiDDKalTestTrack() = default;
 
+namespace {
+/** The measurement layers of DDKalTest still work on LCIO hits, so one has to be created on the fly
+ *  from the EDM4hep hit. Which fields are actually used depends on the measurement layer:
+ *  DDPlanarMeasLayer needs a hit that dynamic_casts to EVENT::TrackerHitPlane and reads dU / dV,
+ *  DDCylinderMeasLayer takes any EVENT::TrackerHit and reads the covariance matrix.
+ *  Returns a nullptr for hit types that cannot be mapped onto an LCIO hit.
+ */
+std::unique_ptr<EVENT::TrackerHit> createLCIOHit(const edm4hep::TrackerHit& trkhit) {
+  const auto setCommonFields = [&trkhit](auto& lcioHit) {
+    // Only set what is needed
+    const double pos[3] = {trkhit.getPosition()[0], trkhit.getPosition()[1], trkhit.getPosition()[2]};
+    lcioHit.setPosition(pos);
+    const auto cellID = trkhit.getCellID();
+    lcioHit.setCellID0(static_cast<int>(cellID & 0xffffffff));
+    lcioHit.setCellID1(static_cast<int>(cellID >> 32));
+  };
+
+  if (trkhit.isA<edm4hep::TrackerHitPlane>()) {
+    const auto planeHit = trkhit.as<edm4hep::TrackerHitPlane>();
+    auto lcioHit = std::make_unique<IMPL::TrackerHitPlaneImpl>();
+    setCommonFields(*lcioHit);
+    lcioHit->setU(planeHit.getU()[0], planeHit.getU()[1]);
+    lcioHit->setV(planeHit.getV()[0], planeHit.getV()[1]);
+    lcioHit->setdU(planeHit.getDu());
+    lcioHit->setdV(planeHit.getDv());
+    return lcioHit;
+  }
+
+  if (trkhit.isA<edm4hep::TrackerHit3D>()) {
+    const auto hit3D = trkhit.as<edm4hep::TrackerHit3D>();
+    auto lcioHit = std::make_unique<IMPL::TrackerHitImpl>();
+    setCommonFields(*lcioHit);
+    lcioHit->setCovMatrix(hit3D.getCovMatrix().data());
+    return lcioHit;
+  }
+
+  // e.g. edm4hep::SenseWireHit, for which DDKalTest has no measurement layer
+  return nullptr;
+}
+} // namespace
+
 int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHit* trkhit) {
   return this->addHit(trkhit, m_ktest->findMeasLayer(*trkhit));
 }
@@ -105,38 +148,27 @@ int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHit* trkhit, const DDVMeas
   m_thisAlg->debug() << "GaudiDDKalTestTrack::addHit: trkhit = " << trkhit->id() << " addr: " << trkhit
                      << " ml = " << ml << endmsg;
 
-  if (trkhit && ml) {
-    // TODO: a LCIO hit has to be created because it's needed downstream
-    if (!trkhit->isA<edm4hep::TrackerHitPlane>()) {
-      throw std::runtime_error(
-          "GaudiDDKalTestTrack::addHit - trkhit is not a TrackerHitPlane, this is not implemented yet");
-    }
-    auto hit = IMPL::TrackerHitPlaneImpl();
-    double pos[3] = {trkhit->getPosition()[0], trkhit->getPosition()[1], trkhit->getPosition()[2]};
-    hit.setPosition(pos);
-    hit.setCellID0(trkhit->getCellID());
-    hit.setdU(trkhit->as<edm4hep::TrackerHitPlane>().getDu());
-    hit.setdV(trkhit->as<edm4hep::TrackerHitPlane>().getDv());
-
-    // Not needed
-    // hit.setCovMatrix(lcioCov);
-    // static_cast<IMPL::TrackerHitImpl*>(static_cast<EVENT::TrackerHit*>(hit))->setCovMatrix(lcioCov);
-    // hit.setQuality(trkhit->getQuality());
-    // hit.setType(trkhit->getType());
-    // hit.setEDep(trkhit->getEDep());
-    // hit.setEDepError(trkhit->getEDepError());
-    // float u[2] = {trkhit->getU()[0], trkhit->getU()[1]};
-    // hit.setU(u);
-    // float v[2] = {trkhit->getV()[0], trkhit->getV()[1]};
-    // hit.setV(v);
-    // hit.setTime(trkhit->getTime());
-
-    auto* kalhit = ml->ConvertLCIOTrkHit(&hit);
-    return this->addHit(trkhit, kalhit, ml);
-  } else {
-    m_thisAlg->warning() << " GaudiDDKalTestTrack::addHit - bad inputs " << trkhit << " ml : " << ml << endmsg;
+  if (!ml) {
+    m_thisAlg->warning() << "GaudiDDKalTestTrack::addHit - invalid measurement layer, ml = " << ml
+                         << " for trkhit = " << trkhit->id() << endmsg;
     return 1;
   }
+
+  auto lcioHit = createLCIOHit(*trkhit);
+  if (!lcioHit) {
+    m_thisAlg->warning() << "GaudiDDKalTestTrack::addHit - cannot create an LCIO hit for trkhit = " << trkhit->id()
+                         << ", only TrackerHit3D and TrackerHitPlane can be converted for DDKalTest" << endmsg;
+    return 1;
+  }
+
+  auto* kalhit = ml->ConvertLCIOTrkHit(lcioHit.get());
+  const int status = this->addHit(trkhit, kalhit, ml);
+  if (status == 0) {
+    // DDVTrackHit only stores a bare pointer to the LCIO hit, so it has to outlive this call
+    m_lcio_hits.push_back(std::move(lcioHit));
+  }
+
+  return status;
 }
 
 int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHit* trkhit, DDVTrackHit* kalhit, const DDVMeasLayer* ml) {
