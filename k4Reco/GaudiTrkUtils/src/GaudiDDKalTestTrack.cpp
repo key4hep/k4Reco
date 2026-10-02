@@ -107,19 +107,13 @@ namespace {
  *  Returns a nullptr for hit types that cannot be mapped onto an LCIO hit.
  */
 std::unique_ptr<EVENT::TrackerHit> createLCIOHit(const edm4hep::TrackerHit& trkhit) {
-  // The two LCIO hit classes are unrelated types that happen to offer the same setters for the
-  // fields that are common to both of them
   const auto setCommonFields = [&trkhit](auto& lcioHit) {
+    // Only set what is needed
     const double pos[3] = {trkhit.getPosition()[0], trkhit.getPosition()[1], trkhit.getPosition()[2]};
     lcioHit.setPosition(pos);
     const auto cellID = trkhit.getCellID();
     lcioHit.setCellID0(static_cast<int>(cellID & 0xffffffff));
     lcioHit.setCellID1(static_cast<int>(cellID >> 32));
-    lcioHit.setType(trkhit.getType());
-    lcioHit.setQuality(trkhit.getQuality());
-    lcioHit.setTime(trkhit.getTime());
-    lcioHit.setEDep(trkhit.getEDep());
-    lcioHit.setEDepError(trkhit.getEDepError());
   };
 
   if (trkhit.isA<edm4hep::TrackerHitPlane>()) {
