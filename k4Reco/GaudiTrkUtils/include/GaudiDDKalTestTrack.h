@@ -22,6 +22,7 @@
 #include "GaudiDDKalTest.h"
 
 #include <edm4hep/TrackState.h>
+#include <edm4hep/TrackerHit.h>
 #include <edm4hep/TrackerHitPlane.h>
 
 #include <TMatrixD.h>

@@ -154,6 +154,12 @@ int GaudiDDKalTestTrack::addHit(const edm4hep::TrackerHit* trkhit, const DDVMeas
   m_thisAlg->debug() << "GaudiDDKalTestTrack::addHit: trkhit = " << trkhit->id() << " addr: " << trkhit
                      << " ml = " << ml << endmsg;
 
+  if (!ml) {
+    m_thisAlg->warning() << "GaudiDDKalTestTrack::addHit - invalid measurement layer, ml = " << ml
+                         << " for trkhit = " << trkhit->id() << endmsg;
+    return 1;
+  }
+
   auto lcioHit = createLCIOHit(*trkhit);
   if (!lcioHit) {
     m_thisAlg->warning() << "GaudiDDKalTestTrack::addHit - cannot create an LCIO hit for trkhit = " << trkhit->id()
