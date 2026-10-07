@@ -385,7 +385,7 @@ edm4hep::TrackCollection ConformalTracking::operator()(
   // Create the conformal hit collections for each tracker hit collection (and save the link)
   for (size_t iColl = 0; iColl < trackerHits.size(); iColl++) {
     const auto& collection = trackerHits[iColl];
-    info() << "Processing collection " << inputLocations("TrackerHitCollectionNames")[iColl] << "with size "
+    info() << "Processing collection " << inputLocations("TrackerHitCollectionNames")[iColl] << " with size "
            << collection->size() << endmsg;
     // Loop over tracker hits and make conformal hit collection
     SharedKDClusters tempClusters;
@@ -663,7 +663,7 @@ edm4hep::TrackCollection ConformalTracking::operator()(
     debug() << " Track hits before fit = " << trackHits.size() << endmsg;
 
     GaudiTrkUtils trkUtils(static_cast<const Gaudi::Algorithm*>(this), m_ddkaltest, m_geoSvc,
-                           m_encodingStringVariable.value());
+                           m_encodingStringVariable.value(), m_ecalBarrelFaceID.value(), m_ecalEndcapFaceID.value());
 
     // Try to fit
     int fitError = trkUtils.createFinalisedLCIOTrack(marlinTrk, trackHits, track, conformalTrack->m_kalmanFitForward,
