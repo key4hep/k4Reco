@@ -115,7 +115,7 @@ void GaudiDDKalTest::init() {
   // also add the ECals identified by their type flags, which may neither be named "ecal*" nor have a
   // "calorimeter" sensitive type (e.g. EMEC_turbine in ALLEGRO), to get their calorimeter face surfaces
   for (const auto& det : lcdd.detectors(dd4hep::DetType::CALORIMETER | dd4hep::DetType::ELECTROMAGNETIC, 0)) {
-    if (std::find(detectors.begin(), detectors.end(), det) == detectors.end()) {
+    if (std::ranges::find(detectors, det) == detectors.end()) {
       detectors.push_back(det);
     }
   }
