@@ -19,6 +19,7 @@
 #include "GaudiDDKalTest.h"
 
 #include <DD4hep/DetElement.h>
+#include <DD4hep/DetType.h>
 #include <DD4hep/Detector.h>
 #include <DDRec/Material.h>
 #include <DDRec/SurfaceManager.h>
@@ -38,6 +39,7 @@
 
 #include <TVector3.h>
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <stdexcept>
@@ -106,6 +108,14 @@ void GaudiDDKalTest::init() {
     std::string name = det.name();
     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
     if (name.find("ecal") != std::string::npos) {
+      detectors.push_back(det);
+    }
+  }
+
+  // also add the ECals identified by their type flags, which may neither be named "ecal*" nor have a
+  // "calorimeter" sensitive type (e.g. EMEC_turbine in ALLEGRO), to get their calorimeter face surfaces
+  for (const auto& det : lcdd.detectors(dd4hep::DetType::CALORIMETER | dd4hep::DetType::ELECTROMAGNETIC, 0)) {
+    if (std::ranges::find(detectors, det) == detectors.end()) {
       detectors.push_back(det);
     }
   }

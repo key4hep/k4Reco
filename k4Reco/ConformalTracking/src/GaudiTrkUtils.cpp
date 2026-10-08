@@ -38,6 +38,7 @@
 #include <DD4hep/BitFieldCoder.h>
 
 #include <bitset>
+#include <cmath>
 #include <memory>
 #include <vector>
 
@@ -498,8 +499,9 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   } else {
     m_thisAlg->debug() << "  >>>>>>>>>>> MarlinTrk::finaliseLCIOTrack:  could not get TrackState at Calo Face "
                        << endmsg;
-    // FIXME: ignore track state at Calo face for debugging new tracking ...
-    //  THIS IS ALSO PART OF THE PREVIOUS TODO
+    // a missing track state at the calorimeter face (e.g. for tracks not reaching the calorimeter)
+    // is not a fit failure: keep the track, just without the AtCalorimeter track state
+    return_error = 0;
   }
 
   // This branch is never taken in the original MarlinTrkUtils code
@@ -560,17 +562,15 @@ int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, ed
 
   // ================== need to get the correct ID(s) for the calorimeter face  ============================
 
-  // TODO: ILDDet specific,
-  // unsigned ecal_barrel_face_ID = lcio::ILDDetID::ECAL;
-  // unsigned ecal_barrel_face_ID = 20;
-  // unsigned ecal_endcap_face_ID = lcio::ILDDetID::ECAL_ENDCAP;
-  unsigned ecal_endcap_face_ID = 29;
+  // configurable, defaults are ILDDet specific (lcio::ILDDetID::ECAL = 20, lcio::ILDDetID::ECAL_ENDCAP = 29)
+  unsigned ecal_barrel_face_ID = m_ecalBarrelFaceID;
+  unsigned ecal_endcap_face_ID = m_ecalEndcapFaceID;
 
   //=========================================================================================================
 
   // subdet was in the original, corresponds to index 0
   // encoder[lcio::LCTrackerCellID::side()]   = lcio::ILDDetID::barrel;
-  encoder.set(cellID, 0, 20);
+  encoder.set(cellID, 0, ecal_barrel_face_ID);
   encoder.set(cellID, "side", 0);
   encoder.set(cellID, "layer", 0);
 
@@ -597,6 +597,7 @@ int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, ed
       marlintrk.propagateToLayer(encoder.lowWord(cellID), trkhit, tsEndcap, chi2, ndf, detElementID, 1);
 
   // // check which is the right intersection / closer to the trkhit
+  bool atBarrel = false;
   if (return_error_barrel == no_intersection) {
     // if barrel fails just return ts at the Endcap if exists
     return_error = return_error_endcap;
@@ -605,6 +606,7 @@ int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, ed
     // if barrel succeeded and endcap fails return ts at the barrel
     return_error = return_error_barrel;
     trkStateCalo = tsBarrel;
+    atBarrel = true;
   } else {
     // this means both barrel and endcap have intersections. Return closest to the tracker hit
     edm4hep::Vector3d hitPos(trkhit->getPosition());
@@ -616,6 +618,7 @@ int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, ed
     if (dToBarrel < dToendcap) {
       return_error = return_error_barrel;
       trkStateCalo = tsBarrel;
+      atBarrel = true;
     } else {
       return_error = return_error_endcap;
       trkStateCalo = tsEndcap;
@@ -633,6 +636,11 @@ int GaudiTrkUtils::createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, ed
     m_thisAlg->info()
         << "  >>>>>>>>>>> createTrackStateAtCaloFace :  could not get TrackState at Calo Face: return_error = "
         << return_error << endmsg;
+  } else {
+    const auto& pos = trkStateCalo.referencePoint;
+    m_thisAlg->debug() << "  >>>>>>>>>>> createTrackStateAtCaloFace :  TrackState at Calo Face ("
+                       << (atBarrel ? "barrel" : "endcap") << "): r = " << std::hypot(pos[0], pos[1])
+                       << " mm, z = " << pos[2] << " mm" << endmsg;
   }
 
   return return_error;

@@ -135,6 +135,13 @@ private:
       this, "EncodingStringParameterName", "GlobalTrackerReadoutID",
       "The name of the DD4hep constant that contains the Encoding string for tracking detectors"};
 
+  Gaudi::Property<unsigned> m_ecalBarrelFaceID{
+      this, "ECalBarrelFaceSystemID", 20,
+      "System ID of the ECal barrel face surface used to extrapolate tracks to the calorimeter"};
+  Gaudi::Property<unsigned> m_ecalEndcapFaceID{
+      this, "ECalEndcapFaceSystemID", 29,
+      "System ID of the ECal endcap face surface used to extrapolate tracks to the calorimeter"};
+
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
 
   Gaudi::Property<std::vector<std::vector<std::string>>> m_stepCollections{
