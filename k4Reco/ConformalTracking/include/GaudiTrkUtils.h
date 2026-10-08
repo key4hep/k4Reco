@@ -49,9 +49,10 @@ class GaudiTrkUtils {
 public:
   GaudiTrkUtils() = delete;
   GaudiTrkUtils(const Gaudi::Algorithm* thisAlg, const GaudiDDKalTest& ddKalTest, SmartIF<IGeoSvc> geoSvc,
-                const std::string encodingStringVariable)
-      : m_thisAlg(thisAlg), m_ddkaltest(ddKalTest), m_geoSvc(geoSvc), m_encodingStringVariable(encodingStringVariable) {
-  }
+                const std::string encodingStringVariable, unsigned ecalBarrelFaceID = 20,
+                unsigned ecalEndcapFaceID = 29)
+      : m_thisAlg(thisAlg), m_ddkaltest(ddKalTest), m_geoSvc(geoSvc), m_encodingStringVariable(encodingStringVariable),
+        m_ecalBarrelFaceID(ecalBarrelFaceID), m_ecalEndcapFaceID(ecalEndcapFaceID) {}
 
   GaudiTrkUtils(const GaudiTrkUtils&) = delete;
   GaudiTrkUtils& operator=(const GaudiTrkUtils&) = delete;
@@ -88,6 +89,9 @@ private:
   const GaudiDDKalTest& m_ddkaltest;
   SmartIF<IGeoSvc> m_geoSvc;
   const std::string m_encodingStringVariable;
+  // system IDs of the calorimeter face surfaces (defaults are the CLD/ILD values)
+  const unsigned m_ecalBarrelFaceID;
+  const unsigned m_ecalEndcapFaceID;
 };
 
 #endif // K4RECO_GAUDITRKUTILS_H
