@@ -38,8 +38,8 @@
 #include <vector>
 
 /** === TrackerHitHelixFilter ===
- *  Selects the tracker hits that lie inside a cone opened around the trajectory
- *  of a generator-level MC particle, together with the corresponding simulated
+ *  Selects the tracker hits that lie inside a cone or road opened around the 
+ *  trajectory of a MC particle, together with the corresponding simulated
  *  hits and reco-to-sim links. For each charged MC particle (whose generator
  *  status is in ConeAroundStatus) a helix is built from its production vertex,
  *  momentum and charge in the detector magnetic field; neutral particles are
@@ -71,10 +71,11 @@ struct TrackerHitHelixFilter final
              const edm4hep::TrackerHitSimTrackerHitLinkCollection& trackerHitLinks) const override;
 
 private:
-  Gaudi::Property<double> m_deltaRCut{this, "DeltaRCut", -1.,
-                                      "Maximum angular distance between the hits and the particle trajectory [rad]"};
-  Gaudi::Property<double> m_dist3DCut{this, "Dist3DCut", -1.,
-                                      "Maximum 3D distance between the hits and the extrapolated helix [mm]"};
+  Gaudi::Property<double> m_deltaRCut{
+      this, "DeltaRCut", -1.,
+      "Maximum angular distance between the hits and the particle trajectory [rad]; disabled if <= 0"};
+  Gaudi::Property<double> m_dist3DCut{
+      this, "Dist3DCut", -1., "Maximum 3D distance between the hits and the extrapolated helix [mm]; disabled if <= 0"};
   Gaudi::Property<std::vector<int>> m_coneAroundStatus{
       this, "ConeAroundStatus", {1}, "List of MC particle generator statuses to build cones around"};
   Gaudi::Property<bool> m_fillHistos{this, "FillHistograms", false, "Flag to fill the diagnostic histograms"};

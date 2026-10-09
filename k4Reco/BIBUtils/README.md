@@ -29,8 +29,13 @@ in the Muon Collider reconstruction. They were originally Marlin processors:
 | `CaloHitConeFilter` | `CaloConer`            | [MyBIBUtils](https://github.com/madbaron/MyBIBUtils) |
 | `CaloHitSelector` | `CaloHitSelector`         | [MyBIBUtils](https://github.com/madbaron/MyBIBUtils) |
 
-All of them are functional `k4FWCore::MultiTransformer`s. Selected hits are written
-to **subset** collections that reference the original hits.
+All of them are functional k4FWCore algorithms. Selected hits are written to
+**subset** collections that reference the original hits; where the input comes
+with reco→sim links, every link of a kept hit is copied to the output links with
+its original weight.
+
+The properties of each algorithm, with their descriptions, are listed by
+`k4run <steering file> --help`; runnable example steering files are in `options/`.
 
 ## TrackerHitHelixFilter
 
@@ -39,40 +44,18 @@ generator-level MC particle. For each selected charged MC particle a helix is
 built from its production vertex, momentum and charge in the detector field
 (taken from the `GeoSvc`); neutral particles are skipped. A hit is kept when its
 angular distance to the helix is below `DeltaRCut` and/or its 3D distance to the
-helix is below `Dist3DCut`.
+helix is below `Dist3DCut` (a cut set to a value ≤ 0 is disabled).
 The helix math lives in the self-contained, header-only `TrackHelix`.
-
-| Property | Default | Description |
-|---|---|---|
-| `MCParticleCollection` | `MCParticle` | input MC particles |
-| `TrackerHitInputCollections` | `VBTrackerHits` | input reco tracker hits |
-| `TrackerHitInputRelations` | `VBTrackerHitsRelations` | input reco→sim links |
-| `TrackerHitOutputCollections` | `VBTrackerHitsConed` | output reco hits (subset) |
-| `TrackerSimHitOutputCollections` | `VertexBarrelCollectionConed` | output sim hits (subset) |
-| `TrackerHitOutputRelations` | `VBTrackerHitsRelationsConed` | output reco→sim links |
-| `DeltaRCut` | `-1` | max angular distance to the helix [rad] (disabled if ≤ 0) |
-| `Dist3DCut` | `-1` | max 3D distance to the helix [mm] (disabled if ≤ 0) |
-| `ConeAroundStatus` | `[1]` | MC generator statuses to cone around |
-| `FillHistograms` | `false` | fill diagnostic histograms |
-| `TrackerOuterRadius` | `1500` | tracker barrel outer radius used to clip the helix [mm] |
+The kept hits, their simulated hits and their reco→sim links are written to
+three output collections.
 
 ## SplitCollectionByPolarAngle
 
 Keeps the tracker hits whose polar angle `theta = acos(z/r)` lies inside the
 window `[PolarAngleLowerLimit, PolarAngleUpperLimit]` (given in degrees). Unlike
 `TrackerHitHelixFilter` this selection is purely geometric and needs neither the MC
-particles nor the detector field, so no `GeoSvc` is required.
-
-| Property | Default | Description |
-|---|---|---|
-| `TrackerHitInputCollections` | `VBTrackerHits` | input reco tracker hits |
-| `TrackerHitInputRelations` | `VBTrackerHitsRelations` | input reco→sim links |
-| `TrackerHitOutputCollections` | `VBTrackerHitsSplit` | output reco hits (subset) |
-| `TrackerSimHitOutputCollections` | `VertexBarrelCollectionSplit` | output sim hits (subset) |
-| `TrackerHitOutputRelations` | `VBTrackerHitsRelationsSplit` | output reco→sim links |
-| `PolarAngleLowerLimit` | `50` | lower limit on the hit polar angle [deg] |
-| `PolarAngleUpperLimit` | `130` | upper limit on the hit polar angle [deg] |
-| `FillHistograms` | `false` | fill diagnostic histograms |
+particles nor the detector field, so no `GeoSvc` is required. The outputs are the
+same three collections as for `TrackerHitHelixFilter`.
 
 ## SplitCollectionByLayer
 
@@ -85,49 +68,18 @@ intervals duplicate the hit, as in the original processor. The number of output
 collections is arbitrary and follows the length of `OutputCollections`, which
 must match `StartLayers` and `EndLayers`.
 
-| Property | Default | Description |
-|---|---|---|
-| `InputCollection` | `VBTrackerHits` | input reco tracker hits |
-| `OutputCollections` | `[VBTrackerHitsInner, VBTrackerHitsOuter]` | output reco hits, one subset collection per entry |
-| `StartLayers` | `[]` | first layer (inclusive) routed to each output collection |
-| `EndLayers` | `[]` | last layer (inclusive) routed to each output collection |
-| `EncodingStringParameterName` | `GlobalTrackerReadoutID` | DD4hep constant with the tracker cellID encoding |
-| `GeoSvcName` | `GeoSvc` | name of the GeoSvc instance |
-
 ## CaloHitConeFilter
 
 Keeps the calorimeter hits within a fixed angular cone (`ConeWidth`, in radians)
 around the direction of any generator-level (`generatorStatus == 1`) MC particle.
-
-| Property | Default | Description |
-|---|---|---|
-| `MCParticleCollectionName` | `MCParticle` | input MC particles |
-| `CaloHitCollectionName` | `EcalBarrelCollectionRec` | input reco calo hits |
-| `CaloRelationCollectionName` | `EcalBarrelRelationsSimRec` | input reco→sim links |
-| `GoodHitCollection` | `EcalBarrelCollectionConed` | output reco hits (subset) |
-| `GoodRelationCollection` | `EcalBarrelRelationsSimConed` | output reco→sim links |
-| `ConeWidth` | `0.2` | half-opening angle of the cone [rad] |
 
 ## CaloHitSelector
 
 Applies a per-cell energy threshold and a time-window selection to calorimeter
 hits. The threshold is read as a function of polar angle and layer from two ROOT
 histograms (`th_2dmode_sym`, `stddev_sym`) in `ThresholdsFilePath`:
-`threshold = mode + Nsigma * stddev`. A constant `FlatThreshold` (GeV) can be
-used instead. Surviving hits must fall inside `[TimeWindowMin, TimeWindowMax]`
-after a time-of-flight correction. The `GeoSvc` is used to decode the layer from
-the cellID.
-
-| Property | Default | Description |
-|---|---|---|
-| `CaloHitCollectionName` | `EcalBarrelCollectionRec` | input reco calo hits |
-| `CaloRelationCollectionName` | `EcalBarrelRelationsSimRec` | input reco→sim links |
-| `GoodHitCollection` | `EcalBarrelCollectionSel` | output reco hits (subset) |
-| `GoodRelationCollection` | `EcalBarrelRelationsSimSel` | output reco→sim links |
-| `ThresholdsFilePath` | `""` | ROOT file with the threshold maps |
-| `Nsigma` | `3` | number of BIB-energy sigmas above the modal threshold |
-| `FlatThreshold` | `0` | constant threshold [GeV]; overrides the maps if > 0 |
-| `TimeWindowMin` / `TimeWindowMax` | `-0.5` / `10` | TOF-corrected time window [ns] |
-| `DoBIBsubtraction` | `false` | subtract the modal BIB energy from each cell |
-
-See `options/` for runnable example steering files.
+`threshold = mode + Nsigma * stddev`. A positive `FlatThreshold` (GeV) is used
+instead, and overrides the maps; one of the two must be provided. Surviving hits
+must have a time inside `[TimeWindowMin, TimeWindowMax]`; the hit time is used as
+stored, since the digitiser already corrects it for the time of flight. The
+`GeoSvc` is used to decode the layer from the cellID.
