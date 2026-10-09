@@ -258,6 +258,34 @@ set_tests_properties("check_SplitCollectionByLayerReversedInterval" PROPERTIES
   FIXTURES_REQUIRED BIBUtilsGeoInput
   PASS_REGULAR_EXPRESSION "has StartLayer 5 > EndLayer 3")
 
+# Run the example steering files in BIBUtils/options unchanged, except for their
+# input (the synthetic event of the geometry tests) and output, to check that they
+# configure and run. ARGN points their input collections to the synthetic ones.
+function(add_bibutils_example_test example)
+  add_test(NAME "run_BIBUtilsExample_${example}"
+    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/options/run${example}.py
+            --IOSvc.Input bibutils_geo_input.edm4hep.root
+            --IOSvc.Output bibutils_example_${example}.edm4hep.root
+            ${ARGN}
+  )
+  set_tests_properties("run_BIBUtilsExample_${example}" PROPERTIES FIXTURES_REQUIRED BIBUtilsGeoInput)
+endfunction()
+
+add_bibutils_example_test(CaloHitConeFilter
+  --MyEcalBarrelConeFilter.CaloHitCollectionName CaloHits
+  --MyEcalBarrelConeFilter.CaloRelationCollectionName CaloHitLinks)
+add_bibutils_example_test(CaloHitSelector
+  --MyEcalBarrelSelector.CaloHitCollectionName CaloHits
+  --MyEcalBarrelSelector.CaloRelationCollectionName CaloHitLinks)
+add_bibutils_example_test(SplitCollectionByLayer
+  --VBTrackerHitsByLayer.InputCollection LayerTrackerHits)
+add_bibutils_example_test(SplitCollectionByPolarAngle
+  --VXDBarrelSplitter.TrackerHitInputCollections TrackerHits
+  --VXDBarrelSplitter.TrackerHitInputRelations TrackerHitLinks)
+add_bibutils_example_test(TrackerHitHelixFilter
+  --VXDBarrelHelixFilter.TrackerHitInputCollections TrackerHits
+  --VXDBarrelHelixFilter.TrackerHitInputRelations TrackerHitLinks)
+
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(test_environment "\
