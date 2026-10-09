@@ -76,7 +76,8 @@ public:
     if (std::fabs(m_mom[2]) > 1.0e-20) {
       time = (zOnHelix - m_ref[2]) / m_mom[2];
     } else {
-      time = m_charge * m_radius * dPhi / m_pxy;
+      // Same convention as above: moving forward along the helix means dPhi = -charge * arcLength / radius.
+      time = -m_charge * m_radius * dPhi / m_pxy;
     }
 
     distance[0] = distXY;
