@@ -55,14 +55,17 @@ compactConstants = {constant.get("name"): constant.get("value") for constant in 
 ROOT.gSystem.Load("libDDCore")
 
 
-def layerEncoder(encodingName):
-    """Returns a function giving a cellID with only the layer field set."""
+def cellIDEncoder(encodingName):
+    """Returns a function encoding the given field values (e.g. layer=3) into a cellID."""
     coder = ROOT.dd4hep.DDSegmentation.BitFieldCoder(compactConstants[encodingName])
-    offset = coder[coder.index("layer")].offset()
 
-    def encode(layer):
-        cellID = layer << offset
-        assert coder.get(cellID, "layer") == layer
+    def encode(**fields):
+        cellID = 0
+        for name, value in fields.items():
+            field = coder[coder.index(name)]
+            cellID |= (value & ((1 << field.width()) - 1)) << field.offset()
+        for name, value in fields.items():
+            assert coder.get(cellID, name) == value, f"{name} = {value} not encoded correctly"
         return cellID
 
     return encode
@@ -130,7 +133,7 @@ caloHitDefs = [
     (16, 3, 70.0, 0.055, 0.0, [(1016, 1.0)]),  # Flat kept, Map dropped
 ]
 
-encodeCaloLayer = layerEncoder("GlobalCalorimeterReadoutID")
+encodeCaloCellID = cellIDEncoder("GlobalCalorimeterReadoutID")
 caloRadius = 2000.0  # [mm], only the polar angle matters
 
 simCaloHits = edm4hep.SimCalorimeterHitCollection()
@@ -148,7 +151,7 @@ for hitType, layer, thetaDeg, energy, time, links in caloHitDefs:
     theta = math.radians(thetaDeg)
     hit = caloHits.create()
     hit.setType(hitType)
-    hit.setCellID(encodeCaloLayer(layer))
+    hit.setCellID(encodeCaloCellID(layer=layer))
     hit.setPosition(edm4hep.Vector3f(caloRadius * math.sin(theta), 0.0, caloRadius * math.cos(theta)))
     hit.setEnergy(energy)
     hit.setTime(time)
@@ -295,6 +298,22 @@ for hitType, pos, links in trackerHitDefs:
         link.setTo(simTrackerByID[simID])
         link.setWeight(weight)
 
+# ---------------------------------------------------------------------------
+# SplitCollectionByLayer
+#
+# One hit per layer 0-9 (type 200 + layer), with the other cellID fields set too,
+# including the signed side field next to the layer, so that only a decoder reading
+# exactly the layer bits routes them correctly. The splitter instance (see
+# runGeoAlgorithms.py) has outputs for the layer intervals [0, 3], [2, 5] and [7, 7].
+# ---------------------------------------------------------------------------
+
+encodeTrackerCellID = cellIDEncoder("GlobalTrackerReadoutID")
+layerHits = edm4hep.TrackerHitPlaneCollection()
+for layer in range(10):
+    hit = layerHits.create()
+    hit.setType(200 + layer)
+    hit.setCellID(encodeTrackerCellID(system=3, side=-1, layer=layer, module=5, sensor=2))
+
 frame = Frame()
 frame.put(simCaloHits, "SimCaloHits")
 frame.put(caloHits, "CaloHits")
@@ -303,6 +322,7 @@ frame.put(mcParticles, "MCParticle")
 frame.put(simTrackerHits, "SimTrackerHits")
 frame.put(trackerHits, "TrackerHits")
 frame.put(trackerLinks, "TrackerHitLinks")
+frame.put(layerHits, "LayerTrackerHits")
 
 # The file is closed by podio when the interpreter exits.
 writer = root_io.Writer(args.output)

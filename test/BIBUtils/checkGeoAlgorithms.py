@@ -61,6 +61,13 @@ expectedTrackerHits = {
     "DeltaR": [101, 102, 103, 104],
 }
 
+# Hits of SplitCollectionByLayer have type 200 + layer; overlapping intervals duplicate hits.
+expectedLayerHits = {
+    "LayerHits0to3": [200, 201, 202, 203],
+    "LayerHits2to5": [202, 203, 204, 205],
+    "LayerHits7": [207],
+}
+
 checks = {}
 for label, kept in expectedCaloHits.items():
     checks[f"CaloHits{label} hits"] = (kept, hitTypes(outputFrame.get(f"CaloHits{label}")))
@@ -77,6 +84,8 @@ for label, kept in expectedTrackerHits.items():
         sorted({simID for _, simID, _ in keptLinks}),
         sorted(simHit.getCellID() for simHit in outputFrame.get(f"SimTrackerHits{label}")),
     )
+for name, kept in expectedLayerHits.items():
+    checks[f"{name} hits"] = (kept, hitTypes(outputFrame.get(name)))
 
 failed = False
 for label, (want, got) in checks.items():

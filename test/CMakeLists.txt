@@ -240,6 +240,24 @@ add_test(NAME "check_BIBUtilsGeoAlgorithms"
 )
 set_tests_properties("check_BIBUtilsGeoAlgorithms" PROPERTIES FIXTURES_REQUIRED BIBUtilsGeoOutput)
 
+# Invalid SplitCollectionByLayer configurations must be rejected in initialize()
+# with the corresponding message (any other failure does not count as a pass).
+add_test(NAME "check_SplitCollectionByLayerLengthMismatch"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runSplitByLayerConfig.py
+          --SplitCollectionByLayerConfig.StartLayers 0 1
+)
+set_tests_properties("check_SplitCollectionByLayerLengthMismatch" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsGeoInput
+  PASS_REGULAR_EXPRESSION "must be non-empty and have the same length")
+
+add_test(NAME "check_SplitCollectionByLayerReversedInterval"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runSplitByLayerConfig.py
+          --SplitCollectionByLayerConfig.StartLayers 5
+)
+set_tests_properties("check_SplitCollectionByLayerReversedInterval" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsGeoInput
+  PASS_REGULAR_EXPRESSION "has StartLayer 5 > EndLayer 3")
+
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(test_environment "\

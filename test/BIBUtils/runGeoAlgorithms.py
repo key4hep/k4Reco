@@ -25,7 +25,7 @@ import os
 from Gaudi.Configuration import INFO
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc, GeoSvc
-from Configurables import CaloHitSelector, TrackerHitHelixFilter
+from Configurables import CaloHitSelector, SplitCollectionByLayer, TrackerHitHelixFilter
 
 geoservice = GeoSvc("GeoSvc")
 geoservice.detectors = [os.environ["K4GEO"] + "/MuColl/MAIA/compact/MAIA_v0/MAIA_v0.xml"]
@@ -68,6 +68,13 @@ algorithms = [
     caloHitSelector("BIBSub", Nsigma=0, DoBIBsubtraction=True),
     trackerHitHelixFilter("Dist3D", Dist3DCut=30.0, DeltaRCut=-1.0),
     trackerHitHelixFilter("DeltaR", Dist3DCut=-1.0, DeltaRCut=0.05),
+    SplitCollectionByLayer(
+        "SplitCollectionByLayer",
+        InputCollection="LayerTrackerHits",
+        OutputCollections=["LayerHits0to3", "LayerHits2to5", "LayerHits7"],
+        StartLayers=[0, 2, 7],
+        EndLayers=[3, 5, 7],
+    ),
 ]
 
 iosvc = IOSvc()
