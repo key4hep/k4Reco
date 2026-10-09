@@ -50,8 +50,8 @@ StatusCode CaloHitSelector::initialize() {
   // of the layer field are set up once here rather than for every event.
   try {
     const std::string encoderString = geoSvc->constantAsString(m_encodingStringVariable.value());
-    m_bitFieldCoder = std::make_unique<dd4hep::DDSegmentation::BitFieldCoder>(encoderString);
-    m_layerIndex = m_bitFieldCoder->index("layer");
+    m_bitFieldCoder = dd4hep::DDSegmentation::BitFieldCoder(encoderString);
+    m_layerIndex = m_bitFieldCoder.index("layer");
   } catch (const std::exception& e) {
     error() << "Could not set up the cellID decoder from " << m_encodingStringVariable.value() << ": " << e.what()
             << endmsg;
@@ -103,7 +103,7 @@ CaloHitSelector::operator()(const edm4hep::CalorimeterHitCollection& caloHits,
 
   std::size_t nAccepted = 0;
   for (const auto& hit : caloHits) {
-    const unsigned int layer = m_bitFieldCoder->get(hit.getCellID(), m_layerIndex);
+    const unsigned int layer = m_bitFieldCoder.get(hit.getCellID(), m_layerIndex);
 
     // Polar angle, symmetrized around pi/2 to match the threshold maps.
     double hitTheta = edm4hep::utils::anglePolar(hit.getPosition());

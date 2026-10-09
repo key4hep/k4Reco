@@ -30,7 +30,6 @@
 #include <GaudiKernel/StatusCode.h>
 
 #include <cstddef>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -71,7 +70,7 @@ private:
       "The name of the DD4hep constant that contains the cellID encoding string for tracking detectors"};
   Gaudi::Property<std::string> m_geoSvcName{this, "GeoSvcName", "GeoSvc", "The name of the GeoSvc instance"};
 
-  std::unique_ptr<dd4hep::DDSegmentation::BitFieldCoder> m_bitFieldCoder;
+  dd4hep::DDSegmentation::BitFieldCoder m_bitFieldCoder;
   std::size_t m_layerIndex{0};
 };
 
