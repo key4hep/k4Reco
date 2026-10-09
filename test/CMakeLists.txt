@@ -223,6 +223,23 @@ add_test(NAME "check_BIBUtilsLinkPreservation"
 )
 set_tests_properties("check_BIBUtilsLinkPreservation" PROPERTIES FIXTURES_REQUIRED BIBUtilsLinkOutput)
 
+add_test(NAME "make_BIBUtilsGeoInput"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/makeGeoTestInput.py"
+)
+set_tests_properties("make_BIBUtilsGeoInput" PROPERTIES FIXTURES_SETUP BIBUtilsGeoInput)
+
+add_test(NAME "run_BIBUtilsGeoAlgorithms"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runGeoAlgorithms.py
+)
+set_tests_properties("run_BIBUtilsGeoAlgorithms" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsGeoInput
+  FIXTURES_SETUP BIBUtilsGeoOutput)
+
+add_test(NAME "check_BIBUtilsGeoAlgorithms"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/checkGeoAlgorithms.py"
+)
+set_tests_properties("check_BIBUtilsGeoAlgorithms" PROPERTIES FIXTURES_REQUIRED BIBUtilsGeoOutput)
+
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(test_environment "\
