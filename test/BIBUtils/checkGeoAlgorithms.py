@@ -56,12 +56,26 @@ expectedCaloHits = {
     "BIBSub": [11, 12, 15],
 }
 
+expectedTrackerHits = {
+    "Dist3D": [101, 102, 103, 105],
+    "DeltaR": [101, 102, 103, 104],
+}
+
 checks = {}
 for label, kept in expectedCaloHits.items():
     checks[f"CaloHits{label} hits"] = (kept, hitTypes(outputFrame.get(f"CaloHits{label}")))
     checks[f"CaloHitLinks{label} links"] = (
         expectedLinks(inputFrame.get("CaloHitLinks"), kept),
         links(outputFrame.get(f"CaloHitLinks{label}")),
+    )
+for label, kept in expectedTrackerHits.items():
+    keptLinks = expectedLinks(inputFrame.get("TrackerHitLinks"), kept)
+    checks[f"TrackerHits{label} hits"] = (kept, hitTypes(outputFrame.get(f"TrackerHits{label}")))
+    checks[f"TrackerHitLinks{label} links"] = (keptLinks, links(outputFrame.get(f"TrackerHitLinks{label}")))
+    # Each linked sim hit is written once, even when it is linked to several kept hits.
+    checks[f"SimTrackerHits{label} sim hits"] = (
+        sorted({simID for _, simID, _ in keptLinks}),
+        sorted(simHit.getCellID() for simHit in outputFrame.get(f"SimTrackerHits{label}")),
     )
 
 failed = False

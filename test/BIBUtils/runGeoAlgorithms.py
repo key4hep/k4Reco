@@ -25,7 +25,7 @@ import os
 from Gaudi.Configuration import INFO
 from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc, GeoSvc
-from Configurables import CaloHitSelector
+from Configurables import CaloHitSelector, TrackerHitHelixFilter
 
 geoservice = GeoSvc("GeoSvc")
 geoservice.detectors = [os.environ["K4GEO"] + "/MuColl/MAIA/compact/MAIA_v0/MAIA_v0.xml"]
@@ -47,10 +47,27 @@ def caloHitSelector(label, **properties):
     return selector
 
 
+def trackerHitHelixFilter(label, **properties):
+    helixFilter = TrackerHitHelixFilter(f"TrackerHitHelixFilter{label}")
+    helixFilter.MCParticleCollection = "MCParticle"
+    helixFilter.TrackerHitInputCollections = "TrackerHits"
+    helixFilter.TrackerHitInputRelations = "TrackerHitLinks"
+    helixFilter.TrackerHitOutputCollections = f"TrackerHits{label}"
+    helixFilter.TrackerSimHitOutputCollections = f"SimTrackerHits{label}"
+    helixFilter.TrackerHitOutputRelations = f"TrackerHitLinks{label}"
+    helixFilter.ConeAroundStatus = [1]
+    helixFilter.TrackerOuterRadius = 1500.0
+    for name, value in properties.items():
+        setattr(helixFilter, name, value)
+    return helixFilter
+
+
 algorithms = [
     caloHitSelector("Map", Nsigma=2),
     caloHitSelector("Flat", Nsigma=2, FlatThreshold=0.05),
     caloHitSelector("BIBSub", Nsigma=0, DoBIBsubtraction=True),
+    trackerHitHelixFilter("Dist3D", Dist3DCut=30.0, DeltaRCut=-1.0),
+    trackerHitHelixFilter("DeltaR", Dist3DCut=-1.0, DeltaRCut=0.05),
 ]
 
 iosvc = IOSvc()
