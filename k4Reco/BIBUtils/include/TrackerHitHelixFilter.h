@@ -38,7 +38,7 @@
 #include <vector>
 
 /** === TrackerHitHelixFilter ===
- *  Selects the tracker hits that lie inside a cone or road opened around the 
+ *  Selects the tracker hits that lie inside a cone or road opened around the
  *  trajectory of a MC particle, together with the corresponding simulated
  *  hits and reco-to-sim links. For each charged MC particle (whose generator
  *  status is in ConeAroundStatus) a helix is built from its production vertex,
