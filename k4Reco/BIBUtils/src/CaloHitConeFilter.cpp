@@ -18,12 +18,9 @@
  */
 #include "CaloHitConeFilter.h"
 
-#include <edm4hep/SimCalorimeterHit.h>
+#include "LinkUtils.h"
+
 #include <edm4hep/utils/vector_utils.h>
-
-#include <podio/ObjectID.h>
-
-#include <unordered_map>
 
 CaloHitConeFilter::CaloHitConeFilter(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -41,12 +38,7 @@ CaloHitConeFilter::operator()(const edm4hep::MCParticleCollection& mcParticles,
   outHits.setSubsetCollection();
   edm4hep::CaloHitSimCaloHitLinkCollection outLinks;
 
-  // Map each reconstructed hit to its simulated hit through the input links.
-  std::unordered_map<podio::ObjectID, edm4hep::SimCalorimeterHit> hitToSim;
-  hitToSim.reserve(caloLinks.size());
-  for (const auto& link : caloLinks) {
-    hitToSim.emplace(link.getFrom().getObjectID(), link.getTo());
-  }
+  const auto linksByHit = k4reco::bibutils::linksByFrom(caloLinks);
 
   std::size_t nAccepted = 0;
   for (const auto& hit : caloHits) {
@@ -72,12 +64,8 @@ CaloHitConeFilter::operator()(const edm4hep::MCParticleCollection& mcParticles,
     }
 
     outHits.push_back(hit);
-    const auto simIt = hitToSim.find(hit.getObjectID());
-    if (simIt != hitToSim.end()) {
-      auto link = outLinks.create();
-      link.setFrom(hit);
-      link.setTo(simIt->second);
-      link.setWeight(1.0);
+    if (const auto linksIt = linksByHit.find(hit.getObjectID()); linksIt != linksByHit.end()) {
+      k4reco::bibutils::copyLinks(linksIt->second, outLinks);
     }
     ++nAccepted;
   }
