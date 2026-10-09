@@ -202,6 +202,10 @@ set_tests_properties("compare_ValenciaFastJet" PROPERTIES
   FIXTURES_SETUP GaudiMarlinValenciaFastJetComparison
 )
 
+add_executable(testTrackHelix BIBUtils/testTrackHelix.cpp)
+target_include_directories(testTrackHelix PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
+add_test(NAME "test_TrackHelix" COMMAND testTrackHelix)
+
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(test_environment "\
