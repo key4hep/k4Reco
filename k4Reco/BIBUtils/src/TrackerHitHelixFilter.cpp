@@ -18,9 +18,8 @@
  */
 #include "TrackerHitHelixFilter.h"
 
+#include "LinkUtils.h"
 #include "TrackHelix.h"
-
-#include <edm4hep/SimTrackerHit.h>
 
 #include <podio/ObjectID.h>
 
@@ -29,7 +28,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <unordered_map>
 #include <unordered_set>
 
 using k4reco::bibutils::TrackHelix;
@@ -83,12 +81,9 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
   outSimHits.setSubsetCollection();
   edm4hep::TrackerHitSimTrackerHitLinkCollection outLinks;
 
-  // Map each reconstructed hit to its simulated hit through the input links.
-  std::unordered_map<podio::ObjectID, edm4hep::SimTrackerHit> hitToSim;
-  hitToSim.reserve(trackerHitLinks.size());
-  for (const auto& link : trackerHitLinks) {
-    hitToSim.emplace(link.getFrom().getObjectID(), link.getTo());
-  }
+  const auto linksByHit = k4reco::bibutils::linksByFrom(trackerHitLinks);
+  // A sim hit can be linked to more than one accepted hit, but is written out once.
+  std::unordered_set<podio::ObjectID> writtenSimHits;
 
   // Track which hits have already been accepted so a hit close to two particles
   // is not written out twice.
@@ -166,17 +161,13 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
         continue;
       }
 
-      const auto simIt = hitToSim.find(key);
-      if (simIt == hitToSim.end()) {
+      const auto linksIt = linksByHit.find(key);
+      if (linksIt == linksByHit.end()) {
         continue;
       }
 
       outHits.push_back(hit);
-      outSimHits.push_back(simIt->second);
-      auto link = outLinks.create();
-      link.setFrom(hit);
-      link.setTo(simIt->second);
-      link.setWeight(1.0);
+      k4reco::bibutils::copyLinks(linksIt->second, outLinks, outSimHits, writtenSimHits);
       acceptedHits.insert(key);
     }
   }

@@ -22,6 +22,7 @@
 #include <podio/ObjectID.h>
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace k4reco::bibutils {
@@ -43,6 +44,20 @@ template <typename LinkCollT>
 void copyLinks(const std::vector<typename LinkCollT::value_type>& links, LinkCollT& outLinks) {
   for (const auto& link : links) {
     outLinks.push_back(link.clone());
+  }
+}
+
+/// As above, and also appends the target of each link to the subset collection outTo,
+/// once per target: seenTo records the targets already written.
+template <typename LinkCollT, typename ToCollT>
+void copyLinks(const std::vector<typename LinkCollT::value_type>& links, LinkCollT& outLinks, ToCollT& outTo,
+               std::unordered_set<podio::ObjectID>& seenTo) {
+  for (const auto& link : links) {
+    outLinks.push_back(link.clone());
+    const auto to = link.getTo();
+    if (seenTo.insert(to.getObjectID()).second) {
+      outTo.push_back(to);
+    }
   }
 }
 
