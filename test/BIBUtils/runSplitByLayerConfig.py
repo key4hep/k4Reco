@@ -27,10 +27,8 @@ from k4FWCore import ApplicationMgr, IOSvc
 from Configurables import EventDataSvc, GeoSvc
 from Configurables import SplitCollectionByLayer
 
-# Only the tracker cellID encoding is needed, so an empty world providing it is
-# loaded instead of a full detector.
 geoservice = GeoSvc("GeoSvc")
-geoservice.detectors = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "minimalTrackerGeometry.xml")]
+geoservice.detectors = [os.environ["K4GEO"] + "/MuColl/MAIA/compact/MAIA_v0/MAIA_v0.xml"]
 geoservice.OutputLevel = INFO
 geoservice.EnableGeant4Geo = False
 

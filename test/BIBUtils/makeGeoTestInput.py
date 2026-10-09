@@ -23,10 +23,9 @@
 # whose cellIDs and helices use the encodings and field of the geometry, and a
 # small CaloHitSelector threshold-map file. Hits are identified by their type field.
 import argparse
+import array
 import math
 import os
-import re
-import xml.etree.ElementTree as ET
 
 import ROOT
 import edm4hep
@@ -47,17 +46,18 @@ parser.add_argument("--output", default="bibutils_geo_input.edm4hep.root", help=
 parser.add_argument("--thresholds", default="bibutils_thresholds.root", help="Output threshold-map file")
 args = parser.parse_args()
 
-# The constants are read directly from the compact file: building the full
-# geometry with DD4hep only to read them would take tens of seconds.
-compactRoot = ET.parse(args.compact).getroot()
-compactConstants = {constant.get("name"): constant.get("value") for constant in compactRoot.iter("constant")}
 
+# The geometry is built with DD4hep, so that the encodings and the field are read
+# exactly as the algorithms read them through the GeoSvc.
 ROOT.gSystem.Load("libDDCore")
+ROOT.gInterpreter.Declare('#include "DD4hep/DD4hepUnits.h"\n')
+detector = ROOT.dd4hep.Detector.getInstance()
+detector.fromCompact(args.compact)
 
 
 def cellIDEncoder(encodingName):
     """Returns a function encoding the given field values (e.g. layer=3) into a cellID."""
-    coder = ROOT.dd4hep.DDSegmentation.BitFieldCoder(compactConstants[encodingName])
+    coder = ROOT.dd4hep.DDSegmentation.BitFieldCoder(str(detector.constantAsString(encodingName)))
 
     def encode(**fields):
         cellID = 0
@@ -173,10 +173,9 @@ for hitType, layer, thetaDeg, energy, time, links in caloHitDefs:
 # ---------------------------------------------------------------------------
 
 # Field at the origin, which is what the algorithm takes from the geometry.
-solenoid = next(field for field in compactRoot.iter("field") if field.get("type") == "solenoid")
-fieldMatch = re.fullmatch(r"\s*([-+0-9.eE]+)\s*\*\s*tesla\s*", solenoid.get("inner_field"))
-assert fieldMatch, f"Unexpected format of the solenoid field: {solenoid.get('inner_field')}"
-bField = float(fieldMatch.group(1))  # [T], along +z
+fieldAtOrigin = array.array("d", [0.0, 0.0, 0.0])
+detector.field().magneticField(ROOT.dd4hep.Position(0.0, 0.0, 0.0), fieldAtOrigin)
+bField = fieldAtOrigin[2] / ROOT.dd4hep.tesla  # [T], along +z
 
 # Speed of light in GeV / (T mm): dp/ds = charge * kC * (p_hat x B) with p in GeV, s in mm.
 kC = 0.299792458e-3
