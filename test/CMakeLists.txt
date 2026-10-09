@@ -202,6 +202,90 @@ set_tests_properties("compare_ValenciaFastJet" PROPERTIES
   FIXTURES_SETUP GaudiMarlinValenciaFastJetComparison
 )
 
+add_executable(testTrackHelix BIBUtils/testTrackHelix.cpp)
+target_include_directories(testTrackHelix PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
+add_test(NAME "test_TrackHelix" COMMAND testTrackHelix)
+
+add_test(NAME "make_BIBUtilsLinkInput"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/makeLinkTestInput.py"
+)
+set_tests_properties("make_BIBUtilsLinkInput" PROPERTIES FIXTURES_SETUP BIBUtilsLinkInput)
+
+add_test(NAME "run_BIBUtilsLinkPreservation"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runLinkPreservation.py
+)
+set_tests_properties("run_BIBUtilsLinkPreservation" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsLinkInput
+  FIXTURES_SETUP BIBUtilsLinkOutput)
+
+add_test(NAME "check_BIBUtilsLinkPreservation"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/checkLinkPreservation.py"
+)
+set_tests_properties("check_BIBUtilsLinkPreservation" PROPERTIES FIXTURES_REQUIRED BIBUtilsLinkOutput)
+
+add_test(NAME "make_BIBUtilsGeoInput"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/makeGeoTestInput.py"
+)
+set_tests_properties("make_BIBUtilsGeoInput" PROPERTIES FIXTURES_SETUP BIBUtilsGeoInput)
+
+add_test(NAME "run_BIBUtilsGeoAlgorithms"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runGeoAlgorithms.py
+)
+set_tests_properties("run_BIBUtilsGeoAlgorithms" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsGeoInput
+  FIXTURES_SETUP BIBUtilsGeoOutput)
+
+add_test(NAME "check_BIBUtilsGeoAlgorithms"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/checkGeoAlgorithms.py"
+)
+set_tests_properties("check_BIBUtilsGeoAlgorithms" PROPERTIES FIXTURES_REQUIRED BIBUtilsGeoOutput)
+
+# Invalid SplitCollectionByLayer configurations must be rejected in initialize()
+# with the corresponding message (any other failure does not count as a pass).
+add_test(NAME "check_SplitCollectionByLayerLengthMismatch"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runSplitByLayerConfig.py
+          --SplitCollectionByLayerConfig.StartLayers 0 1
+)
+set_tests_properties("check_SplitCollectionByLayerLengthMismatch" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsGeoInput
+  PASS_REGULAR_EXPRESSION "must be non-empty and have the same length")
+
+add_test(NAME "check_SplitCollectionByLayerReversedInterval"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runSplitByLayerConfig.py
+          --SplitCollectionByLayerConfig.StartLayers 5
+)
+set_tests_properties("check_SplitCollectionByLayerReversedInterval" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsGeoInput
+  PASS_REGULAR_EXPRESSION "has StartLayer 5 > EndLayer 3")
+
+# Run the example steering files in BIBUtils/options unchanged, except for their
+# input (the synthetic event of the geometry tests) and output, to check that they
+# configure and run. ARGN points their input collections to the synthetic ones.
+function(add_bibutils_example_test example)
+  add_test(NAME "run_BIBUtilsExample_${example}"
+    COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/options/run${example}.py
+            --IOSvc.Input bibutils_geo_input.edm4hep.root
+            --IOSvc.Output bibutils_example_${example}.edm4hep.root
+            ${ARGN}
+  )
+  set_tests_properties("run_BIBUtilsExample_${example}" PROPERTIES FIXTURES_REQUIRED BIBUtilsGeoInput)
+endfunction()
+
+add_bibutils_example_test(CaloHitConeFilter
+  --MyEcalBarrelConeFilter.CaloHitCollectionName CaloHits
+  --MyEcalBarrelConeFilter.CaloRelationCollectionName CaloHitLinks)
+add_bibutils_example_test(CaloHitSelector
+  --MyEcalBarrelSelector.CaloHitCollectionName CaloHits
+  --MyEcalBarrelSelector.CaloRelationCollectionName CaloHitLinks)
+add_bibutils_example_test(SplitCollectionByLayer
+  --VBTrackerHitsByLayer.InputCollection LayerTrackerHits)
+add_bibutils_example_test(SplitCollectionByPolarAngle
+  --VXDBarrelSplitter.TrackerHitInputCollections TrackerHits
+  --VXDBarrelSplitter.TrackerHitInputRelations TrackerHitLinks)
+add_bibutils_example_test(TrackerHitHelixFilter
+  --VXDBarrelHelixFilter.TrackerHitInputCollections TrackerHits
+  --VXDBarrelHelixFilter.TrackerHitInputRelations TrackerHitLinks)
+
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(test_environment "\
