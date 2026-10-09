@@ -66,6 +66,16 @@ public:
     if (std::fabs(m_tanLambda * m_radius) > 1.0e-20) {
       const double xCircles = (phi0 - phi - m_charge * (xPoint[2] - m_ref[2]) / (m_tanLambda * m_radius)) / kTwoPi;
       nCircles = nearestInteger(xCircles);
+    } else {
+      // Without a z component the turns cannot be told apart, so take the first
+      // crossing ahead of the reference point instead of the raw atan2 difference,
+      // which flips sign whenever the arc crosses the -pi/pi boundary.
+      const double rawDPhi = phi - phi0;
+      if (m_charge > 0. && rawDPhi > 0.) {
+        nCircles = -1;
+      } else if (m_charge < 0. && rawDPhi < 0.) {
+        nCircles = 1;
+      }
     }
 
     const double dPhi = kTwoPi * static_cast<double>(nCircles) + phi - phi0;
