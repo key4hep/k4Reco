@@ -19,7 +19,7 @@
 #ifndef K4RECO_TRACKERHITHELIXFILTER_H
 #define K4RECO_TRACKERHITHELIXFILTER_H 1
 
-#include "Gaudi/Accumulators/RootHistogram.h"
+#include "Gaudi/Accumulators/StaticRootHistogram.h"
 #include "Gaudi/Property.h"
 
 #include <edm4hep/MCParticleCollection.h>
@@ -33,7 +33,6 @@
 #include <GaudiKernel/StatusCode.h>
 
 #include <array>
-#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -86,8 +85,17 @@ private:
   SmartIF<IGeoSvc> m_geoSvc;
   double m_bField{0.}; ///< Bz at the origin [Tesla]
 
+  // Diagnostic histograms; their entries follow the order of the enum.
+  // mutable: filling is thread-safe, but operator[] is non-const.
   enum { hDistXY = 0, hDistZ, hDist3D, hAngle, hTime, hPathLength, hSize };
-  std::array<std::unique_ptr<Gaudi::Accumulators::StaticRootHistogram<1>>, hSize> m_histograms;
+  mutable std::array<Gaudi::Accumulators::StaticRootHistogram<1>, hSize> m_histograms{{
+      {this, "distXY", "hit-to-helix XY distance;d_{XY} [mm]", {1000, 0., 1000.}},
+      {this, "distZ", "hit-to-helix Z distance;d_{Z} [mm]", {1000, 0., 1000.}},
+      {this, "dist3D", "hit-to-helix 3D distance;d_{3D} [mm]", {1000, 0., 1000.}},
+      {this, "angle", "angle between hit and particle;angle [rad]", {1000, 0., 1.}},
+      {this, "time", "time at the point of closest approach;T [mm/GeV]", {1000, 0., 2000.}},
+      {this, "pathLength", "pathlength at the point of closest approach;L [mm]", {1000, 0., 12000.}},
+  }};
 };
 
 #endif

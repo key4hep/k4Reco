@@ -36,13 +36,6 @@ SplitCollectionByPolarAngle::SplitCollectionByPolarAngle(const std::string& name
                         KeyValue("TrackerSimHitOutputCollections", "VertexBarrelCollectionSplit"),
                         KeyValue("TrackerHitOutputRelations", "VBTrackerHitsRelationsSplit")}) {}
 
-StatusCode SplitCollectionByPolarAngle::initialize() {
-  m_histograms[hTheta].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
-      this, "theta", "polar angle of the hit;#theta [rad]", {1000, 0., M_PI}});
-
-  return StatusCode::SUCCESS;
-}
-
 std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::SimTrackerHitCollection,
            edm4hep::TrackerHitSimTrackerHitLinkCollection>
 SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection& trackerHits,
@@ -69,7 +62,7 @@ SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection
     }
 
     if (m_fillHistos) {
-      ++(*m_histograms[hTheta])[hitTheta];
+      ++m_histograms[hTheta][hitTheta];
     }
 
     const auto linksIt = linksByHit.find(hit.getObjectID());

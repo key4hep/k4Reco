@@ -19,7 +19,7 @@
 #ifndef K4RECO_SPLITCOLLECTIONBYPOLARANGLE_H
 #define K4RECO_SPLITCOLLECTIONBYPOLARANGLE_H 1
 
-#include "Gaudi/Accumulators/RootHistogram.h"
+#include "Gaudi/Accumulators/StaticRootHistogram.h"
 #include "Gaudi/Property.h"
 
 #include <edm4hep/SimTrackerHitCollection.h>
@@ -28,10 +28,8 @@
 
 #include <k4FWCore/Transformer.h>
 
-#include <GaudiKernel/StatusCode.h>
-
 #include <array>
-#include <memory>
+#include <cmath>
 #include <string>
 #include <tuple>
 
@@ -56,8 +54,6 @@ struct SplitCollectionByPolarAngle final
           const edm4hep::TrackerHitPlaneCollection&, const edm4hep::TrackerHitSimTrackerHitLinkCollection&)> {
   SplitCollectionByPolarAngle(const std::string& name, ISvcLocator* svcLoc);
 
-  StatusCode initialize() override;
-
   std::tuple<edm4hep::TrackerHitPlaneCollection, edm4hep::SimTrackerHitCollection,
              edm4hep::TrackerHitSimTrackerHitLinkCollection>
   operator()(const edm4hep::TrackerHitPlaneCollection& trackerHits,
@@ -70,8 +66,12 @@ private:
                                      "Upper limit on the hit polar angle in degrees"};
   Gaudi::Property<bool> m_fillHistos{this, "FillHistograms", false, "Flag to fill the diagnostic histograms"};
 
+  // Diagnostic histograms; their entries follow the order of the enum.
+  // mutable: filling is thread-safe, but operator[] is non-const.
   enum { hTheta = 0, hSize };
-  std::array<std::unique_ptr<Gaudi::Accumulators::StaticRootHistogram<1>>, hSize> m_histograms;
+  mutable std::array<Gaudi::Accumulators::StaticRootHistogram<1>, hSize> m_histograms{{
+      {this, "theta", "polar angle of the hit;#theta [rad]", {1000, 0., M_PI}},
+  }};
 };
 
 #endif

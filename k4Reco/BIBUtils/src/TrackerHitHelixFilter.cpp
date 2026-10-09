@@ -54,19 +54,6 @@ StatusCode TrackerHitHelixFilter::initialize() {
   m_bField = bfield[2] / dd4hep::tesla;
   info() << "Magnetic field at the origin: Bz = " << m_bField << " T" << endmsg;
 
-  m_histograms[hDistXY].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
-      this, "distXY", "hit-to-helix XY distance;d_{XY} [mm]", {1000, 0., 1000.}});
-  m_histograms[hDistZ].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
-      this, "distZ", "hit-to-helix Z distance;d_{Z} [mm]", {1000, 0., 1000.}});
-  m_histograms[hDist3D].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
-      this, "dist3D", "hit-to-helix 3D distance;d_{3D} [mm]", {1000, 0., 1000.}});
-  m_histograms[hAngle].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
-      this, "angle", "angle between hit and particle;angle [rad]", {1000, 0., 1.}});
-  m_histograms[hTime].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
-      this, "time", "time at the point of closest approach;T [mm/GeV]", {1000, 0., 2000.}});
-  m_histograms[hPathLength].reset(new Gaudi::Accumulators::StaticRootHistogram<1>{
-      this, "pathLength", "pathlength at the point of closest approach;L [mm]", {1000, 0., 12000.}});
-
   return StatusCode::SUCCESS;
 }
 
@@ -142,12 +129,12 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
       const double hitAngle = std::atan2(hitDistance[2], pathLength);
 
       if (m_fillHistos) {
-        ++(*m_histograms[hDistXY])[hitDistance[0]];
-        ++(*m_histograms[hDistZ])[hitDistance[1]];
-        ++(*m_histograms[hDist3D])[hitDistance[2]];
-        ++(*m_histograms[hAngle])[hitAngle];
-        ++(*m_histograms[hTime])[timeAtPCA];
-        ++(*m_histograms[hPathLength])[pathLength];
+        ++m_histograms[hDistXY][hitDistance[0]];
+        ++m_histograms[hDistZ][hitDistance[1]];
+        ++m_histograms[hDist3D][hitDistance[2]];
+        ++m_histograms[hAngle][hitAngle];
+        ++m_histograms[hTime][timeAtPCA];
+        ++m_histograms[hPathLength][pathLength];
       }
 
       bool save = false;
