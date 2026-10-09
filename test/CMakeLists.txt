@@ -206,6 +206,23 @@ add_executable(testTrackHelix BIBUtils/testTrackHelix.cpp)
 target_include_directories(testTrackHelix PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
 add_test(NAME "test_TrackHelix" COMMAND testTrackHelix)
 
+add_test(NAME "make_BIBUtilsLinkInput"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/makeLinkTestInput.py"
+)
+set_tests_properties("make_BIBUtilsLinkInput" PROPERTIES FIXTURES_SETUP BIBUtilsLinkInput)
+
+add_test(NAME "run_BIBUtilsLinkPreservation"
+  COMMAND k4run ${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/runLinkPreservation.py
+)
+set_tests_properties("run_BIBUtilsLinkPreservation" PROPERTIES
+  FIXTURES_REQUIRED BIBUtilsLinkInput
+  FIXTURES_SETUP BIBUtilsLinkOutput)
+
+add_test(NAME "check_BIBUtilsLinkPreservation"
+  COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/checkLinkPreservation.py"
+)
+set_tests_properties("check_BIBUtilsLinkPreservation" PROPERTIES FIXTURES_REQUIRED BIBUtilsLinkOutput)
+
 get_filename_component(CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(test_environment "\
