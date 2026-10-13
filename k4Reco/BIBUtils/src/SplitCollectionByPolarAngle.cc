@@ -22,6 +22,7 @@
 
 #include <edm4hep/utils/vector_utils.h>
 
+#include <podio/LinkNavigator.h>
 #include <podio/ObjectID.h>
 
 #include <cmath>
@@ -46,7 +47,7 @@ SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection
   outSimHits.setSubsetCollection();
   edm4hep::TrackerHitSimTrackerHitLinkCollection outLinks;
 
-  const auto linksByHit = k4reco::bibutils::linksByFrom(trackerHitLinks);
+  const podio::LinkNavigator linkNavigator(trackerHitLinks);
   // A sim hit can be linked to more than one accepted hit, but is written out once.
   std::unordered_set<podio::ObjectID> writtenSimHits;
 
@@ -65,13 +66,13 @@ SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection
       ++m_histograms[hTheta][hitTheta];
     }
 
-    const auto linksIt = linksByHit.find(hit.getObjectID());
-    if (linksIt == linksByHit.end()) {
+    const auto linkedSimHits = linkNavigator.getLinkedTo(hit);
+    if (linkedSimHits.empty()) {
       continue;
     }
 
     outHits.push_back(hit);
-    k4reco::bibutils::copyLinks(linksIt->second, outLinks, outSimHits, writtenSimHits);
+    k4reco::bibutils::copyLinks(hit, linkedSimHits, outLinks, outSimHits, writtenSimHits);
     ++nKept;
   }
 

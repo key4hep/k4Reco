@@ -21,40 +21,29 @@
 
 #include <podio/ObjectID.h>
 
-#include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 namespace k4reco::bibutils {
 
-/// Groups the links of a reco -> sim link collection by their reco ("from") object,
-/// keeping all of them, since a reco hit can be linked to several sim hits.
+/// Links an accepted object to each of its targets, as returned by podio::LinkNavigator::getLinkedTo,
+/// keeping their weights.
 template <typename LinkCollT>
-std::unordered_map<podio::ObjectID, std::vector<typename LinkCollT::value_type>> linksByFrom(const LinkCollT& links) {
-  std::unordered_map<podio::ObjectID, std::vector<typename LinkCollT::value_type>> byFrom;
-  byFrom.reserve(links.size());
-  for (const auto& link : links) {
-    byFrom[link.getFrom().getObjectID()].push_back(link);
-  }
-  return byFrom;
-}
-
-/// Copies the links of an accepted object into outLinks, keeping their targets and weights.
-template <typename LinkCollT>
-void copyLinks(const std::vector<typename LinkCollT::value_type>& links, LinkCollT& outLinks) {
-  for (const auto& link : links) {
-    outLinks.push_back(link.clone());
+void copyLinks(const typename LinkCollT::from_type& from, const auto& linkedTo, LinkCollT& outLinks) {
+  for (const auto& [to, weight] : linkedTo) {
+    auto link = outLinks.create();
+    link.setFrom(from);
+    link.setTo(to);
+    link.setWeight(weight);
   }
 }
 
-/// As above, and also appends the target of each link to the subset collection outTo,
+/// As above, and also appends each target to the subset collection outTo,
 /// once per target: seenTo records the targets already written.
 template <typename LinkCollT, typename ToCollT>
-void copyLinks(const std::vector<typename LinkCollT::value_type>& links, LinkCollT& outLinks, ToCollT& outTo,
+void copyLinks(const typename LinkCollT::from_type& from, const auto& linkedTo, LinkCollT& outLinks, ToCollT& outTo,
                std::unordered_set<podio::ObjectID>& seenTo) {
-  for (const auto& link : links) {
-    outLinks.push_back(link.clone());
-    const auto to = link.getTo();
+  copyLinks(from, linkedTo, outLinks);
+  for (const auto& [to, weight] : linkedTo) {
     if (seenTo.insert(to.getObjectID()).second) {
       outTo.push_back(to);
     }

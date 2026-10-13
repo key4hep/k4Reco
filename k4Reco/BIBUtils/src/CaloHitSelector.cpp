@@ -22,6 +22,8 @@
 
 #include <edm4hep/utils/vector_utils.h>
 
+#include <podio/LinkNavigator.h>
+
 #include <k4Interface/IGeoSvc.h>
 
 #include <TFile.h>
@@ -99,7 +101,7 @@ CaloHitSelector::operator()(const edm4hep::CalorimeterHitCollection& caloHits,
   outHits.setSubsetCollection();
   edm4hep::CaloHitSimCaloHitLinkCollection outLinks;
 
-  const auto linksByHit = k4reco::bibutils::linksByFrom(caloLinks);
+  const podio::LinkNavigator linkNavigator(caloLinks);
 
   std::size_t nAccepted = 0;
   for (const auto& hit : caloHits) {
@@ -148,9 +150,7 @@ CaloHitSelector::operator()(const edm4hep::CalorimeterHitCollection& caloHits,
     }
 
     outHits.push_back(hit);
-    if (const auto linksIt = linksByHit.find(hit.getObjectID()); linksIt != linksByHit.end()) {
-      k4reco::bibutils::copyLinks(linksIt->second, outLinks);
-    }
+    k4reco::bibutils::copyLinks(hit, linkNavigator.getLinkedTo(hit), outLinks);
     ++nAccepted;
   }
 

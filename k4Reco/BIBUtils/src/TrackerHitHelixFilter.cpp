@@ -21,6 +21,7 @@
 #include "LinkUtils.h"
 #include "TrackHelix.h"
 
+#include <podio/LinkNavigator.h>
 #include <podio/ObjectID.h>
 
 #include "DD4hep/DD4hepUnits.h"
@@ -68,7 +69,7 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
   outSimHits.setSubsetCollection();
   edm4hep::TrackerHitSimTrackerHitLinkCollection outLinks;
 
-  const auto linksByHit = k4reco::bibutils::linksByFrom(trackerHitLinks);
+  const podio::LinkNavigator linkNavigator(trackerHitLinks);
   // A sim hit can be linked to more than one accepted hit, but is written out once.
   std::unordered_set<podio::ObjectID> writtenSimHits;
 
@@ -148,13 +149,13 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
         continue;
       }
 
-      const auto linksIt = linksByHit.find(key);
-      if (linksIt == linksByHit.end()) {
+      const auto linkedSimHits = linkNavigator.getLinkedTo(hit);
+      if (linkedSimHits.empty()) {
         continue;
       }
 
       outHits.push_back(hit);
-      k4reco::bibutils::copyLinks(linksIt->second, outLinks, outSimHits, writtenSimHits);
+      k4reco::bibutils::copyLinks(hit, linkedSimHits, outLinks, outSimHits, writtenSimHits);
       acceptedHits.insert(key);
     }
   }
