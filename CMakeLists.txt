@@ -30,12 +30,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 option(BUILD_TRACKING "Build conformal tracking" ON)
 
-find_package(podio 1.2.99 REQUIRED)
+find_package(podio 1.8 REQUIRED)
 find_package(EDM4HEP REQUIRED)
 find_package(DD4hep REQUIRED)
 find_package(Gaudi REQUIRED)
 find_package(k4FWCore 1.4 REQUIRED)
-find_package(ROOT REQUIRED COMPONENTS RIO Tree)
+find_package(ROOT REQUIRED COMPONENTS RIO Tree Hist)
 find_package(k4SimGeant4 REQUIRED)
 
 find_package(FastJet REQUIRED)
