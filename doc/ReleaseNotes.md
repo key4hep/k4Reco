@@ -1,3 +1,34 @@
+# v00.05.00
+
+* 2026-10-14 Federico Meloni ([PR#71](https://github.com/Key4hep/k4Reco/pull/71))
+  - Add BIBUtils: Gaudi-native ports of the Muon Collider beam-induced-background cleaning processors (TrackerHitHelixFilter (formerly FilterConeHits), SplitCollectionByPolarAngle, SplitCollectionByLayer, CaloHitConeFilter (formerly CaloConer), CaloHitSelector), with README and example steering files.
+  - Require the ROOT Hist component (used for the CaloHitSelector threshold maps).
+
+* 2026-10-08 Giovanni Marchiori ([PR#72](https://github.com/Key4hep/k4Reco/pull/72))
+  - Make the systemID of the barrel and ecal calorimeters configurable
+  - also install the electromagnetic calorimeters identified by their type flags
+  - do not fail the track fit when the track state at the calorimeter face is not found
+
+* 2026-10-02 Thomas Madlener ([PR#70](https://github.com/Key4hep/k4Reco/pull/70))
+  - Add the conversion of `TrackerHit3D` in the KalTest machinery to make sure that this works the same as it did in the Marlin version
+
+* 2026-09-10 Jackson Burzynski ([PR#65](https://github.com/Key4hep/k4Reco/pull/65))
+  - Added a `CorrectTimeWindowForPropagation` property (default: `true`) to
+    `DDPlanarDigi`, which applies the propagation time-of-flight correction to the
+    hit time only when evaluating the time window cut. `CorrectTimesForPropagation`
+    (default: `false`, unchanged) now only corrects the stored hit times. This
+    allows cutting on TOF-corrected times while keeping absolute hit times in the
+    output, as needed for time-aware (4D) tracking. Configurations that set
+    `CorrectTimesForPropagation=True` behave exactly as before; configurations
+    that used a time window without it now cut on TOF-corrected instead of raw
+    times.
+
+* 2026-09-04 Thomas Madlener ([PR#66](https://github.com/Key4hep/k4Reco/pull/66))
+  - Update github actions for pre-commit and add dependabot config
+
+* 2026-09-04 samf25 ([PR#51](https://github.com/Key4hep/k4Reco/pull/51))
+  - Upstream the FastJet Gaudi algorithm from the MuonCollider fork (with quite some refactoring and some testing against its Marlin pendant).
+
 # v00.04.00
 
 * 2026-08-07 David ([PR#64](https://github.com/key4hep/k4Reco/pull/64))
