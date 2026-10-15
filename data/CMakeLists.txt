@@ -28,9 +28,9 @@ set(ExternalData_NO_SYMLINKS ON)
 
 set(data_files
   # MAIA ECAL threshold maps
-  MAIA_ECAL_Thresholds_3TeV.root MAIA_ECAL_Thresholds_10TeV.root
+  MAIA_ECAL_Thresholds_10TeV.root
   # MAIA HCAL threshold maps
-  MAIA_HCAL_Thresholds_3TeV.root MAIA_HCAL_Thresholds_10TeV.root
+  MAIA_HCAL_Thresholds_10TeV.root
 )
 
 set(data_args)
