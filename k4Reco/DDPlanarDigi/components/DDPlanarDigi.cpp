@@ -18,6 +18,7 @@
  */
 #include "DDPlanarDigi.h"
 
+#include "edm4hep/EDM4hepVersion.h"
 #include "edm4hep/EventHeaderCollection.h"
 #include "edm4hep/SimTrackerHit.h"
 #include "edm4hep/TrackerHitPlaneCollection.h"
@@ -163,9 +164,10 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
 
     // Smear time of the hit and apply the time window cut if needed
     double hitT = hit.getTime();
+    float resT = 0;
 
     if (m_resTLayer.size() && m_resTLayer[0] > 0) {
-      float resT = m_resTLayer.size() > 1 ? m_resTLayer[layer] : m_resTLayer[0];
+      resT = m_resTLayer.size() > 1 ? m_resTLayer[layer] : m_resTLayer[0];
 
       double tSmear = resT > 0 ? rng_engine.Gaus(0, resT) : 0;
       ++(*m_histograms[hT])[resT > 0 ? tSmear / resT : 0];
@@ -283,6 +285,9 @@ DDPlanarDigi::operator()(const edm4hep::SimTrackerHitCollection& simTrackerHits,
 
     trkHit.setPosition(newPos.const_array());
     trkHit.setTime(hitT);
+#if EDM4HEP_BUILD_VERSION >= EDM4HEP_VERSION(1, 2, 0)
+    trkHit.setTimeError(resT);
+#endif
     trkHit.setEDep(hit.getEDep());
 
     float u_direction[2];
