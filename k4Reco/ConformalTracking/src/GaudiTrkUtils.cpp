@@ -37,6 +37,7 @@
 
 #include <DD4hep/BitFieldCoder.h>
 
+#include <algorithm>
 #include <bitset>
 #include <cmath>
 #include <memory>
@@ -535,10 +536,16 @@ void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNum
     offset = 1;
   }
 
-  // this assumes that there is no tracker with an index larger than the ecal ...
+  // the original code assumed that there is no tracker with an index larger than the ecal (ILD: 20), which is not
+  // true for other detectors (e.g. ALLEGRO), so make room for the largest subdetector index, without shrinking the
+  // vector since this function is called twice per track (hits_in_fit = false, then true)
 
   // subdetectorHitNumbers.resize(2 * lcio::ILDDetID::ECAL);
-  subdetectorHitNumbers.resize(2 * 20);
+  const int64_t maxDetIndex = hitNumbers.empty() ? 0 : hitNumbers.rbegin()->first;
+  const size_t minSize = 2 * std::max<int64_t>(20, maxDetIndex);
+  if (subdetectorHitNumbers.size() < minSize) {
+    subdetectorHitNumbers.resize(minSize);
+  }
 
   // for (std::map<int, int>::iterator it = hitNumbers.begin(); it != hitNumbers.end(); ++it) {
   for (const auto& [detIndex, hitNumber] : hitNumbers) {
