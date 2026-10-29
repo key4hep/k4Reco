@@ -57,9 +57,9 @@ private:
   Gaudi::Property<bool> m_beamspotConstraint{this, "BeamspotConstraint", true, "Beamspot Constraint"};
   Gaudi::Property<bool> m_beamspotSmearing{this, "BeamspotSmearing", true, "Beamspot Smearing"};
   Gaudi::Property<double> m_magneticField{this, "MagneticField", 2., "Magnetic field at the interaction point [T]"};
-  Gaudi::Property<double> m_beamSizeX{this, "BeamSizeX", 38.2e-3, "Beam size along x [mm]"};
-  Gaudi::Property<double> m_beamSizeY{this, "BeamSizeY", 68.e-6, "Beam size along y [mm]"};
-  Gaudi::Property<double> m_beamSizeZ{this, "BeamSizeZ", 1.97, "Beam size along z [mm]"};
+  Gaudi::Property<double> m_beamSizeX{this, "BeamSizeX", lcfiplus::Globals::defaultBeamSizeX, "Beam size along x [mm]"};
+  Gaudi::Property<double> m_beamSizeY{this, "BeamSizeY", lcfiplus::Globals::defaultBeamSizeY, "Beam size along y [mm]"};
+  Gaudi::Property<double> m_beamSizeZ{this, "BeamSizeZ", lcfiplus::Globals::defaultBeamSizeZ, "Beam size along z [mm]"};
 };
 
 #endif // K4RECO_PRIMARYVERTEXFINDER_H

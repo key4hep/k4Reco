@@ -45,7 +45,7 @@ Globals* Globals::Instance() {
     _theInstance = new Globals;
   return _theInstance;
 }
-Globals::Globals() : _bField(0.), _beamSizeX(0.), _beamSizeY(0.), _beamSizeZ(0.) {}
+Globals::Globals() : _bField(0.) {}
 Globals::~Globals() { _theInstance = nullptr; }
 
 // // singleton operations

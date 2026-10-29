@@ -120,6 +120,11 @@ private:
 // global parameters
 class Globals {
 public:
+  // Beam sizes [mm] used when no algorithm explicitly configures them.
+  static constexpr double defaultBeamSizeX = 639e-6;
+  static constexpr double defaultBeamSizeY = 5.7e-6;
+  static constexpr double defaultBeamSizeZ = 9.13e-2;
+
   ~Globals();
   static Globals* Instance();
   void setBField(double bField) { _bField = bField; }
@@ -134,9 +139,9 @@ public:
 private:
   // value of b field to be read from DD4hep
   double _bField;
-  double _beamSizeX;
-  double _beamSizeY;
-  double _beamSizeZ;
+  double _beamSizeX = defaultBeamSizeX;
+  double _beamSizeY = defaultBeamSizeY;
+  double _beamSizeZ = defaultBeamSizeZ;
   static Globals* _theInstance;
 
   Globals();

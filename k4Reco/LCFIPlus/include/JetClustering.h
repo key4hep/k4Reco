@@ -19,6 +19,8 @@
 #ifndef K4RECO_JETCLUSTERING_H
 #define K4RECO_JETCLUSTERING_H
 
+#include "lcfiplus.h"
+
 #include <edm4hep/ReconstructedParticleCollection.h>
 #include <edm4hep/VertexCollection.h>
 
@@ -62,14 +64,10 @@ struct JetClustering final : k4FWCore::Transformer<edm4hep::ReconstructedParticl
   Gaudi::Property<double> m_muonIDMinimumProbability{this, "MuonIDMinimumProbability", .5,
                                                      "Minimum external muon probability"};
 
-  // JetClustering is the first algorithm run by CLDConfig's second
-  // LcfiplusProcessor. That processor resets the process-wide LCFIPlus
-  // globals during initialization. Keep the legacy defaults here so the
-  // native chain reproduces the same subsequent vertex-fit constraint.
   Gaudi::Property<double> m_magneticField{this, "MagneticField", 2., "Magnetic field at the interaction point [T]"};
-  Gaudi::Property<double> m_beamSizeX{this, "BeamSizeX", 639.e-6, "Beam size along x [mm]"};
-  Gaudi::Property<double> m_beamSizeY{this, "BeamSizeY", 5.7e-6, "Beam size along y [mm]"};
-  Gaudi::Property<double> m_beamSizeZ{this, "BeamSizeZ", 9.13e-2, "Beam size along z [mm]"};
+  Gaudi::Property<double> m_beamSizeX{this, "BeamSizeX", lcfiplus::Globals::defaultBeamSizeX, "Beam size along x [mm]"};
+  Gaudi::Property<double> m_beamSizeY{this, "BeamSizeY", lcfiplus::Globals::defaultBeamSizeY, "Beam size along y [mm]"};
+  Gaudi::Property<double> m_beamSizeZ{this, "BeamSizeZ", lcfiplus::Globals::defaultBeamSizeZ, "Beam size along z [mm]"};
 };
 
 #endif

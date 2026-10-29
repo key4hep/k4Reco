@@ -22,6 +22,8 @@
 #include "JetFinder.h"
 #include "VertexFitterSimple.h"
 
+#include <Gaudi/Interfaces/IOptionsSvc.h>
+
 #include <TMath.h>
 
 #include <algorithm>
@@ -104,15 +106,16 @@ JetClustering::JetClustering(const std::string& name, ISvcLocator* svcLoc)
                   {KeyValues("OutputJetCollectionName", {"VertexJets"})}) {}
 
 StatusCode JetClustering::initialize() {
-  // Match the initialization of CLDConfig's separate
-  // JetClusteringAndRefiner LcfiplusProcessor. LCFIPlus keeps these values in
-  // a process-wide singleton, so this must happen before event processing,
-  // after PrimaryVertexFinder has initialized the first processor's globals.
   auto* globals = lcfiplus::Globals::Instance();
   globals->setBField(m_magneticField);
-  globals->setBeamSizeX(m_beamSizeX);
-  globals->setBeamSizeY(m_beamSizeY);
-  globals->setBeamSizeZ(m_beamSizeZ);
+  // Beam sizes are shared by all LCFIPlus algorithms; only update explicitly configured axes.
+  const auto& options = serviceLocator()->getOptsSvc();
+  if (options.isSet(name() + ".BeamSizeX"))
+    globals->setBeamSizeX(m_beamSizeX);
+  if (options.isSet(name() + ".BeamSizeY"))
+    globals->setBeamSizeY(m_beamSizeY);
+  if (options.isSet(name() + ".BeamSizeZ"))
+    globals->setBeamSizeZ(m_beamSizeZ);
   return StatusCode::SUCCESS;
 }
 

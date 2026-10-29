@@ -21,6 +21,8 @@
 #include "EDM4hepTrackConverter.h"
 #include "VertexFinderTearDown.h"
 
+#include <Gaudi/Interfaces/IOptionsSvc.h>
+
 #include <edm4hep/ReconstructedParticleCollection.h>
 
 PrimaryVertexFinder::PrimaryVertexFinder(const std::string& name, ISvcLocator* svcLoc)
@@ -72,9 +74,14 @@ StatusCode PrimaryVertexFinder::initialize() {
   _beamspotSmearing = m_beamspotSmearing;
   auto* globals = lcfiplus::Globals::Instance();
   globals->setBField(m_magneticField);
-  globals->setBeamSizeX(m_beamSizeX);
-  globals->setBeamSizeY(m_beamSizeY);
-  globals->setBeamSizeZ(m_beamSizeZ);
+  // Beam sizes are shared by all LCFIPlus algorithms; only update explicitly configured axes.
+  const auto& options = serviceLocator()->getOptsSvc();
+  if (options.isSet(name() + ".BeamSizeX"))
+    globals->setBeamSizeX(m_beamSizeX);
+  if (options.isSet(name() + ".BeamSizeY"))
+    globals->setBeamSizeY(m_beamSizeY);
+  if (options.isSet(name() + ".BeamSizeZ"))
+    globals->setBeamSizeZ(m_beamSizeZ);
   return StatusCode::SUCCESS;
 }
 
