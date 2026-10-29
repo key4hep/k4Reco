@@ -21,7 +21,7 @@ limitations under the License.
 find_package(k4geo REQUIRED)
 
 add_test(NAME "clone_CLDConfig"
-  COMMAND bash -c "if [ ! -d CLDConfig ]; then git clone https://github.com/key4hep/CLDConfig.git --depth 1; fi && cp -r CLDConfig/CLDConfig/* . && sed -i -e '/Overlay.Overlay/d' -e '/HighLevelReco.RecoMCTruthLink/d' CLDReconstruction.py"
+  COMMAND bash -c "if [ ! -d CLDConfig ]; then git clone https://github.com/key4hep/CLDConfig.git --depth 1; fi && cp -r CLDConfig/CLDConfig/* ."
 )
 set_tests_properties("clone_CLDConfig" PROPERTIES FIXTURES_SETUP CLDConfig)
 
@@ -38,21 +38,21 @@ add_test(NAME "run_ddsim_LumiCal"
 set_tests_properties("run_ddsim_LumiCal" PROPERTIES FIXTURES_SETUP SimLumiCalOutput)
 
 add_test(NAME "run_marlin_wrapper_truth_tracking"
-  COMMAND k4run CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
+  COMMAND k4run CLDReconstruction.py --overlay Skip --inputFiles sim.edm4hep.root --trackingOnly --truthTracking --outputBasename output_truth_tracking
 )
 set_tests_properties("run_marlin_wrapper_truth_tracking" PROPERTIES
   FIXTURES_REQUIRED "CLDConfig;SimOutput"
   FIXTURES_SETUP TruthTrackingOutput)
 
 add_test(NAME "run_wrapper"
-  COMMAND k4run CLDReconstruction.py --inputFiles sim.edm4hep.root --trackingOnly
+  COMMAND k4run CLDReconstruction.py --overlay Skip --inputFiles sim.edm4hep.root --trackingOnly
 )
 set_tests_properties("run_wrapper" PROPERTIES
   FIXTURES_REQUIRED "CLDConfig;SimOutput"
   FIXTURES_SETUP WrapperOutput)
 
 add_test(NAME "run_wrapper_LumiCal"
-  COMMAND k4run CLDReconstruction.py --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
+  COMMAND k4run CLDReconstruction.py --overlay Skip --inputFiles sim_lumical.edm4hep.root --outputBasename output_lumical
 )
 set_tests_properties("run_wrapper_LumiCal" PROPERTIES
   FIXTURES_REQUIRED "CLDConfig;SimLumiCalOutput"
@@ -78,7 +78,7 @@ if(BUILD_TRACKING)
   set_tests_properties("run_ddsim_ClonesAndSplitTracksFinder" PROPERTIES FIXTURES_SETUP ClonesAndSplitTracksFinderSimOutput)
 
   add_test(NAME "run_marlin_wrapper_ClonesAndSplitTracksFinder"
-    COMMAND k4run CLDReconstruction.py --inputFiles sim_clones_and_split_tracks_finder.edm4hep.root --trackingOnly --outputBasename output_clones_and_split_tracks_finder
+    COMMAND k4run CLDReconstruction.py --overlay Skip --inputFiles sim_clones_and_split_tracks_finder.edm4hep.root --trackingOnly --outputBasename output_clones_and_split_tracks_finder
   )
   set_tests_properties("run_marlin_wrapper_ClonesAndSplitTracksFinder" PROPERTIES
     FIXTURES_REQUIRED "CLDConfig;ClonesAndSplitTracksFinderSimOutput"
@@ -143,7 +143,7 @@ set_tests_properties("run_ddsim_ttbar" PROPERTIES
 )
 
 add_test(NAME "run_wrapper_ttbar"
-  COMMAND k4run CLDReconstruction.py --inputFiles sim_ttbar.edm4hep.root --outputBasename output_ttbar
+  COMMAND k4run CLDReconstruction.py --overlay Skip --inputFiles sim_ttbar.edm4hep.root --outputBasename output_ttbar
 )
 set_tests_properties("run_wrapper_ttbar" PROPERTIES
   FIXTURES_REQUIRED "CLDConfig;SimOutputTTbar"
