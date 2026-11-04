@@ -40,9 +40,9 @@ find_package(k4SimGeant4 REQUIRED)
 
 find_package(FastJet REQUIRED)
 
-include(cmake/Key4hepConfig.cmake)
-
 include(GNUInstallDirs)
+
+include(cmake/Key4hepConfig.cmake)
 
 add_subdirectory(k4Reco)
 include(CTest)
