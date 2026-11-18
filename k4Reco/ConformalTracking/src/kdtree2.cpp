@@ -24,28 +24,34 @@
 namespace kdtree2 {
 // utility
 
-template <typename T>
-inline T squared(const T x) {
-  return x * x;
-}
+namespace {
 
-inline void swap(int& a, int& b) {
-  const int tmp(a);
-  a = b;
-  b = tmp;
-}
+  template <typename T>
+  inline T squared(const T x) {
+    return x * x;
+  }
 
-inline void swap(double& a, double& b) {
-  const double tmp(a);
-  a = b;
-  b = tmp;
-}
+  inline void swap(int& a, int& b) {
+    const int tmp(a);
+    a = b;
+    b = tmp;
+  }
+
+  inline void swap(double& a, double& b) {
+    const double tmp(a);
+    a = b;
+    b = tmp;
+  }
+
+} // namespace
 
 //
 //       KDTREERESULT implementation
 //
 
-inline bool operator<(const KDTreeResult& e1, const KDTreeResult& e2) { return (e1.dis < e2.dis); }
+// static rather than in an unnamed namespace: std::push_heap finds this via
+// argument-dependent lookup, which does not look into unnamed namespaces
+static inline bool operator<(const KDTreeResult& e1, const KDTreeResult& e2) { return (e1.dis < e2.dis); }
 
 //
 //       KDTREE2_RESULT_VECTOR implementation
@@ -574,14 +580,18 @@ void KDTreeNode::search(SearchRecord& sr) {
   }
 }
 
-inline double dis_from_bnd(double x, double amin, double amax) {
-  if (x > amax) {
-    return (x - amax);
-  } else if (x < amin)
-    return (amin - x);
-  else
-    return 0.0;
-}
+namespace {
+
+  inline double dis_from_bnd(double x, double amin, double amax) {
+    if (x > amax) {
+      return (x - amax);
+    } else if (x < amin)
+      return (amin - x);
+    else
+      return 0.0;
+  }
+
+} // namespace
 
 inline bool KDTreeNode::box_in_search_range(SearchRecord& sr) {
   //

@@ -42,6 +42,8 @@
 
 */
 
+namespace {
+
 inline bool sort_by_radius(const edm4hep::TrackerHit* hit1, const edm4hep::TrackerHit* hit2) {
   return edm4hep::utils::magnitudeTransverse(hit1->getPosition()) <
          edm4hep::utils::magnitudeTransverse(hit2->getPosition());
@@ -52,6 +54,8 @@ inline bool sort_by_z(const edm4hep::TrackerHit* hit1, const edm4hep::TrackerHit
   const double z2 = fabs(hit2->getPosition()[2]);
   return z1 < z2;
 }
+
+} // namespace
 
 template <typename T>
 std::vector<const T*> TruthTrackFinder::removeHitsSameLayer(const std::vector<const T*>& trackHits) const {

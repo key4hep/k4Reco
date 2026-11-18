@@ -59,6 +59,8 @@
 #include <iostream>
 #include <stdexcept>
 
+namespace {
+
 // Sort tracker hits from smaller to larger radius
 inline bool sort_by_radius(const edm4hep::TrackerHitPlane& hit1, const edm4hep::TrackerHitPlane& hit2) {
   return edm4hep::utils::magnitudeTransverse(hit1.getPosition()) <
@@ -74,6 +76,8 @@ inline bool sort_by_radius(const edm4hep::TrackerHit* hit1, const edm4hep::Track
 inline bool sort_by_lower_radiusKD(const SKDCluster& hit1, const SKDCluster& hit2) {
   return hit1->getR() < hit2->getR();
 }
+
+} // namespace
 
 ConformalTracking::ConformalTracking(const std::string& name, ISvcLocator* svcLoc)
     : Transformer(name, svcLoc,
@@ -917,6 +921,8 @@ StatusCode ConformalTracking::finalize() {
   return StatusCode::SUCCESS;
 }
 
+namespace {
+
 // Sort kd hits from larger to smaller radius
 inline bool sort_by_radiusKD(const SKDCluster& hit1, const SKDCluster& hit2) { return hit1->getR() > hit2->getR(); }
 
@@ -943,6 +949,8 @@ inline bool sort_by_lower_layer(const SKDCluster& hit1, const SKDCluster& hit2) 
   else
     return false;
 }
+
+} // namespace
 
 bool ConformalTracking::neighbourIsCompatible(const SKDCluster& neighbourHit, const SKDCluster& seedHit,
                                               const double slopeZRange) const {
