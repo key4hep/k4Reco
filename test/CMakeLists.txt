@@ -203,7 +203,7 @@ set_tests_properties("compare_ValenciaFastJet" PROPERTIES
 )
 
 add_executable(testTrackHelix BIBUtils/testTrackHelix.cpp)
-target_include_directories(testTrackHelix PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
+target_link_libraries(testTrackHelix PRIVATE EDM4HEP::utils)
 add_test(NAME "test_TrackHelix" COMMAND testTrackHelix)
 
 add_test(NAME "make_BIBUtilsLinkInput"
