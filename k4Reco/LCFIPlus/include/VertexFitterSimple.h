@@ -22,8 +22,10 @@
 #include "geometry.h"
 #include "lcfiplus.h"
 
+#include <algorithm>
 #include <iostream>
 #include <list>
+#include <ranges>
 #include <vector>
 
 namespace lcfiplus {
@@ -50,6 +52,18 @@ public:
         std::cout << "VertexFitterSimple: number of tracks is " << ntracks << std::endl;
 
       TVector3 initial = pointConstraint->getPos();
+      if (!pointInitialOnly && ntracks > 0) {
+        // Seed the constrained fit near the tracks in z: starting at the beam-spot centre can leave the
+        // minimizer too far from a displaced vertex to converge, causing tear-down to reject every track.
+        std::vector<double> z0s;
+        z0s.reserve(ntracks);
+        for (const Track* track : std::ranges::subrange(tracksBegin, tracksEnd)) {
+          z0s.push_back(track->getZ0());
+        }
+        const auto median = z0s.begin() + z0s.size() / 2;
+        std::ranges::nth_element(z0s, median);
+        initial.SetZ(*median);
+      }
       Point* result = new Point(PointBase::NOTUSED);
       double chi2 = -gh->PointFit(tracks, initial, result);
 
