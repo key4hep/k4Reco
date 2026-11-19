@@ -40,7 +40,6 @@
 #include <algorithm>
 #include <bitset>
 #include <cmath>
-#include <memory>
 #include <vector>
 
 // From MarlinTrkUtils
@@ -370,69 +369,44 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
   if (fit_direction == false || usingAidaTT) {
     return_error = marlintrk.propagate(point, firstHit, trkStateIP, chi2, ndf);
   } else {
-    // if we fitted forward, we start from the last_constrained hit
-    // and then add the last inner hits with a Kalman step ...
+    // The smoothed state at the last constrained hit already includes the inner hits. Refit outside-in so that
+    // those hits are not counted twice when computing the IP state.
+    GaudiDDKalTestTrack ipFit(m_thisAlg, const_cast<GaudiDDKalTest*>(&m_ddkaltest));
+    edm4hep::TrackState seed;
+    return_error = marlintrk.getTrackState(lastHit, seed, chi2, ndf);
 
-    // create a temporary IMarlinTrack
-
-    // TODO
-    auto mTrk = std::make_shared<GaudiDDKalTestTrack>(m_thisAlg, const_cast<GaudiDDKalTest*>(&m_ddkaltest),
-                                                      marlintrk.m_edm4hep_hits_to_kaltest_hits);
-    // mTrk->m_edm4hep_hits_to_kaltest_hits = ;
-
-    edm4hep::TrackState ts;
-
-    double chi2Tmp = 0;
-    int ndfTmp = 0;
-    return_error = marlintrk.getTrackState(last_constrained_hit, ts, chi2, ndf);
-
-    // m_thisAlg->debug()  << "  MarlinTrk::finaliseLCIOTrack:--  TrackState at last constrained hit : " << endmsg
-    //   			<< toString( &ts )    << endmsg ;
-
-    // need to add a dummy hit to the track
-    mTrk->addHit(last_constrained_hit);
-    mTrk->initialise(ts, fit_direction);
-
-    auto hI = hits_in_fit.rbegin();
-
-    while ((*hI).first != last_constrained_hit) {
-      // m_thisAlg->debug()  << "  MarlinTrk::finaliseLCIOTrack:--  hit in reverse_iterator : "  << endmsg
-      // 			  << toString( (*hI).first ) << endmsg ;
-      ++hI;
+    if (return_error == 0) {
+      // Add the accepted hits in their original (inside-out) order; fit() will traverse them in reverse.
+      for (const auto& hit : hits_in_fit) {
+        return_error = ipFit.addHit(hit.first);
+        if (return_error != 0) {
+          break;
+        }
+      }
     }
 
-    ++hI;
-
-    while (hI != hits_in_fit.rend()) {
-      const edm4hep::TrackerHit* h = (*hI).first;
-
-      double deltaChi;
-      double maxChi2Increment = 1e10; // ???
-
-      int addHit = mTrk->addAndFit(h, deltaChi, maxChi2Increment);
-
-      // m_thisAlg->debug() << " MarlinTrk::finaliseLCIOTrack: hit " << toString( h )
-      // 			<< "  added : " << MarlinTrk::errorCode( addHit )
-      // 			<< "  deltaChi2: " << deltaChi
-      // 			<< endmsg ;
-
-      // TODO
-      if (addHit != 0) {
-        m_thisAlg->error() << " ****  MarlinTrk::finaliseLCIOTrack:  could not add inner hit to track !!! " << endmsg;
+    if (return_error == 0) {
+      // Give the seed negligible weight in the refit.
+      constexpr float covInflation = 1.e4f;
+      for (auto& element : seed.covMatrix) {
+        element *= covInflation;
       }
-
-      ++hI;
-
-    } //------------------------------------
-
-    // m_thisAlg->debug() << "MarlinTrk::finaliseLCIOTrack: temporary kaltest track for track state at the IP: "
-    //       	    <<  mTrk->toString() << endmsg ;
-
-    // now propagate the temporary track to the IP
-    return_error = mTrk->propagate(point, firstHit, trkStateIP, chi2Tmp, ndfTmp);
-
-    // m_thisAlg->debug() << " ***  MarlinTrk::finaliseLCIOTrack: - propagated temporary track fromfirst hit to IP : "
-    // <<  toString( trkStateIP ) << endmsg ;
+      return_error = ipFit.initialise(seed, /*fitDirection=*/false);
+    }
+    if (return_error == 0) {
+      return_error = ipFit.fit();
+    }
+    if (return_error == 0) {
+      // Keep the chi2 and ndf from the original fit.
+      double chi2Tmp = 0;
+      int ndfTmp = 0;
+      return_error = ipFit.propagate(point, firstHit, trkStateIP, chi2Tmp, ndfTmp);
+    }
+    if (return_error != 0) {
+      m_thisAlg->debug() << "GaudiTrkUtils::finaliseLCIOTrack: outside-in fit for the IP state failed (" << return_error
+                         << "), using the smoothed state at the last constrained hit" << endmsg;
+      return_error = marlintrk.propagate(point, last_constrained_hit, trkStateIP, chi2, ndf);
+    }
   }
 
   // TODO
