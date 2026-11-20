@@ -23,7 +23,6 @@
 #include <edm4hep/utils/vector_utils.h>
 
 #include <podio/LinkNavigator.h>
-#include <podio/ObjectID.h>
 
 #include <cmath>
 #include <cstddef>
@@ -49,7 +48,7 @@ SplitCollectionByPolarAngle::operator()(const edm4hep::TrackerHitPlaneCollection
 
   const podio::LinkNavigator linkNavigator(trackerHitLinks);
   // A sim hit can be linked to more than one accepted hit, but is written out once.
-  std::unordered_set<podio::ObjectID> writtenSimHits;
+  std::unordered_set<edm4hep::SimTrackerHit> writtenSimHits;
 
   std::size_t nKept = 0;
 
