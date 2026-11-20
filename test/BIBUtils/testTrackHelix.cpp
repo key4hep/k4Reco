@@ -17,11 +17,10 @@
  * limitations under the License.
  */
 
-// Checks TrackHelix::getDistanceToPoint against trajectories obtained by
-// integrating the Lorentz force numerically, so that the reference does not
-// share any convention (helix centre, sense of rotation) with TrackHelix.
+// Check the residuals used by TrackerHitHelixFilter against trajectories
+// obtained by integrating the Lorentz force numerically.
 
-#include "TrackHelix.h"
+#include <edm4hep/utils/Helix.h>
 
 #include <array>
 #include <cmath>
@@ -36,7 +35,7 @@ constexpr double kBField = 3.57; // [T], along +z
 // Speed of light in GeV / (T mm): dp/ds = charge * kC * (p_hat x B) with p in GeV, s in mm, B in T.
 constexpr double kC = 0.299792458e-3;
 constexpr double kMaxArcStep = 0.5; // [mm] integration step along the trajectory
-constexpr double kTimeTolerance = 1e-6;
+constexpr double kLengthTolerance = 1e-6;
 constexpr double kDistanceTolerance = 1e-5; // [mm]
 
 int nFailures = 0;
@@ -45,8 +44,7 @@ Vec3 cross(const Vec3& a, const Vec3& b) {
   return {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
 }
 
-/// Equation of motion in the path-length parameter t of TrackHelix (dr/dt = p, so that
-/// z = z_ref + t * pz): dp/dt = charge * kC * (p x B).
+/// Equation of motion for t = transverse length / pT: dp/dt = charge * kC * (p x B), dr/dt = p.
 void derivatives(const Vec3& mom, double charge, Vec3& dPos, Vec3& dMom) {
   dPos = mom;
   dMom = cross(mom, {0., 0., kBField});
@@ -83,16 +81,17 @@ Vec3 propagate(const Vec3& startPos, const Vec3& startMom, double charge, double
 }
 
 void check(const char* label, const Vec3& ref, const Vec3& mom, double charge, double t) {
-  k4reco::bibutils::TrackHelix helix;
-  helix.initialize(ref.data(), mom.data(), charge, kBField);
+  const edm4hep::utils::Helix helix({ref[0], ref[1], ref[2]}, {mom[0], mom[1], mom[2]}, charge, kBField);
+  const auto point = propagate(ref, mom, charge, t);
+  const auto distance = helix.getDistanceToPoint({point[0], point[1], point[2]});
+  const double pt = std::hypot(mom[0], mom[1]);
+  // For planar circles Helix returns the signed projection within half a turn.
+  const double expected = pt * (mom[2] == 0. ? std::remainder(t, 2. * M_PI / (std::abs(charge) * kC * kBField)) : t);
 
-  Vec3 point = propagate(ref, mom, charge, t);
-  double distance[3] = {0., 0., 0.};
-  const double time = helix.getDistanceToPoint(point.data(), distance);
-
-  if (std::fabs(time - t) > kTimeTolerance * std::fmax(1., t) || distance[2] > kDistanceTolerance) {
-    std::printf("FAIL %s: charge=%+.0f mom=(%g, %g, %g) t=%g -> time=%g, d3D=%g\n", label, charge, mom[0], mom[1],
-                mom[2], t, time, distance[2]);
+  if (std::fabs(distance.path - expected) > kLengthTolerance * std::fmax(1., std::abs(expected)) ||
+      distance.threeDimensional > kDistanceTolerance) {
+    std::printf("FAIL %s: charge=%+.0f mom=(%g, %g, %g): expected length=%g, got %g, d3D=%g\n", label, charge, mom[0],
+                mom[1], mom[2], expected, distance.path, distance.threeDimensional);
     ++nFailures;
   }
 }
@@ -122,7 +121,10 @@ int main() {
       const Vec3 looperForward{pt * std::cos(phiMom), pt * std::sin(phiMom), 0.3};
       for (int iFrac = 1; iFrac < 20; ++iFrac) {
         const double t = 0.05 * iFrac * turnTime;
-        check("looper transverse", displaced, looperTransverse, charge, t);
+        // Exactly half a turn is ambiguous for a planar track.
+        if (iFrac != 10) {
+          check("looper transverse", displaced, looperTransverse, charge, t);
+        }
         check("looper forward", displaced, looperForward, charge, t);
         check("looper forward, later turn", displaced, looperForward, charge, t + 2. * turnTime);
       }
@@ -133,6 +135,6 @@ int main() {
     std::printf("%d check(s) failed\n", nFailures);
     return 1;
   }
-  std::printf("All TrackHelix checks passed\n");
+  std::printf("All Helix residual checks passed\n");
   return 0;
 }

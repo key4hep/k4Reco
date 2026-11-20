@@ -45,7 +45,7 @@ built from its production vertex, momentum and charge in the detector field
 (taken from the `GeoSvc`); neutral particles are skipped. A hit is kept when its
 angular distance to the helix is below `DeltaRCut` and/or its 3D distance to the
 helix is below `Dist3DCut` (a cut set to a value ≤ 0 is disabled).
-The helix math lives in the self-contained, header-only `TrackHelix`.
+The trajectory is computed by `edm4hep::utils::Helix`.
 The kept hits, their simulated hits and their reco→sim links are written to
 three output collections.
 

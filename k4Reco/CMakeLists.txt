@@ -42,6 +42,7 @@ set(sources
 set(libs
         podio::podioIO
         EDM4HEP::edm4hep
+        EDM4HEP::utils
         k4FWCore::k4FWCore
         k4FWCore::k4Interface
         Gaudi::GaudiKernel

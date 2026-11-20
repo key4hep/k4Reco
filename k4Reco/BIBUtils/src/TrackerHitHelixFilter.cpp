@@ -19,7 +19,9 @@
 #include "TrackerHitHelixFilter.h"
 
 #include "LinkUtils.h"
-#include "TrackHelix.h"
+
+#include <edm4hep/utils/Helix.h>
+#include <edm4hep/utils/vector_utils.h>
 
 #include <podio/LinkNavigator.h>
 #include <podio/ObjectID.h>
@@ -29,9 +31,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 #include <unordered_set>
-
-using k4reco::bibutils::TrackHelix;
 
 TrackerHitHelixFilter::TrackerHitHelixFilter(const std::string& name, ISvcLocator* svcLoc)
     : MultiTransformer(name, svcLoc,
@@ -89,16 +90,15 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
 
     const auto& mom = part.getMomentum();
     const auto& vtx = part.getVertex();
-    double momentum[3] = {mom.x, mom.y, mom.z};
-    double vertex[3] = {vtx.x, vtx.y, vtx.z};
-    const double partP = std::sqrt(mom.x * mom.x + mom.y * mom.y + mom.z * mom.z);
+    const double pt = std::hypot(mom.x, mom.y);
+    if (pt == 0. || !edm4hep::utils::finite(mom) || !edm4hep::utils::finite(vtx) || !std::isfinite(part.getCharge())) {
+      continue;
+    }
+    const double partP = std::hypot(pt, mom.z);
+    const edm4hep::utils::Helix helix(vtx, mom, part.getCharge(), m_bField, vtx);
 
-    TrackHelix helix;
-    helix.initialize(vertex, momentum, static_cast<double>(part.getCharge()), m_bField);
-
-    // Intersection of the helix with the tracker outer cylinder. If the particle
-    // spirals and never reaches it, getPointOnCircle returns -1e20.
-    const double intersectionTime = helix.getPointOnCircle(m_trackerOuterRadius, vertex);
+    // A curling track may never reach the tracker outer cylinder.
+    const auto intersectionLength = helix.lengthToRadius(m_trackerOuterRadius);
 
     for (const auto& hit : trackerHits) {
       const auto key = hit.getObjectID();
@@ -109,30 +109,29 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
       const auto& pos = hit.getPosition();
 
       // Skip hits in the opposite hemisphere w.r.t. the particle direction.
-      if ((pos.x * mom.x + pos.y * mom.y + pos.z * mom.z) < 0.) {
+      if (!edm4hep::utils::finite(pos) || (pos.x * mom.x + pos.y * mom.y + pos.z * mom.z) < 0.) {
         continue;
       }
 
-      double hitPosition[3] = {pos.x, pos.y, pos.z};
-      double hitDistance[3] = {0., 0., 0.};
-      const double timeAtPCA = helix.getDistanceToPoint(hitPosition, hitDistance);
-
-      // Exclude the opposite side of the helix w.r.t. the production vertex.
-      if (timeAtPCA < 0.) {
-        continue;
+      const auto hitDistance = helix.getDistanceToPoint({pos.x, pos.y, pos.z});
+      double transverseLength = hitDistance.path;
+      // For a planar circle, z cannot distinguish the turns. Keep the first forward projection.
+      if (transverseLength < 0. && helix.getTanLambda() == 0. && helix.getOmega() != 0.) {
+        transverseLength += 2. * std::numbers::pi / std::abs(helix.getOmega());
       }
-      // Avoid the helix of central trajectories re-entering the tracker.
-      if (timeAtPCA > intersectionTime && intersectionTime != -1.e20) {
+      // Reject hits before production or after the first exit from the tracker.
+      if (transverseLength < 0. || (intersectionLength && transverseLength > *intersectionLength)) {
         continue;
       }
 
+      const double timeAtPCA = transverseLength / pt;
       const double pathLength = partP * timeAtPCA;
-      const double hitAngle = std::atan2(hitDistance[2], pathLength);
+      const double hitAngle = std::atan2(hitDistance.threeDimensional, pathLength);
 
       if (m_fillHistos) {
-        ++m_histograms[hDistXY][hitDistance[0]];
-        ++m_histograms[hDistZ][hitDistance[1]];
-        ++m_histograms[hDist3D][hitDistance[2]];
+        ++m_histograms[hDistXY][hitDistance.transverse];
+        ++m_histograms[hDistZ][hitDistance.longitudinal];
+        ++m_histograms[hDist3D][hitDistance.threeDimensional];
         ++m_histograms[hAngle][hitAngle];
         ++m_histograms[hTime][timeAtPCA];
         ++m_histograms[hPathLength][pathLength];
@@ -142,7 +141,7 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
       if (m_deltaRCut > 0. && hitAngle < m_deltaRCut) {
         save = true;
       }
-      if (m_dist3DCut > 0. && hitDistance[2] < m_dist3DCut) {
+      if (m_dist3DCut > 0. && hitDistance.threeDimensional < m_dist3DCut) {
         save = true;
       }
       if (!save) {
