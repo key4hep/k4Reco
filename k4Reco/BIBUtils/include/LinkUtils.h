@@ -19,8 +19,6 @@
 #ifndef K4RECO_BIBUTILS_LINKUTILS_H
 #define K4RECO_BIBUTILS_LINKUTILS_H 1
 
-#include <podio/ObjectID.h>
-
 #include <unordered_set>
 
 namespace k4reco::bibutils {
@@ -38,13 +36,13 @@ void copyLinks(const typename LinkCollT::from_type& from, const auto& linkedTo, 
 }
 
 /// As above, and also appends each target to the subset collection outTo,
-/// once per target: seenTo records the targets already written.
+/// once per target. Distinct handles can have the same ObjectID before their collections are put in a frame.
 template <typename LinkCollT, typename ToCollT>
 void copyLinks(const typename LinkCollT::from_type& from, const auto& linkedTo, LinkCollT& outLinks, ToCollT& outTo,
-               std::unordered_set<podio::ObjectID>& seenTo) {
+               std::unordered_set<typename LinkCollT::to_type>& seenTo) {
   copyLinks(from, linkedTo, outLinks);
   for (const auto& [to, weight] : linkedTo) {
-    if (seenTo.insert(to.getObjectID()).second) {
+    if (seenTo.insert(to).second) {
       outTo.push_back(to);
     }
   }

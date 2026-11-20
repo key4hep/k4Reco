@@ -22,7 +22,6 @@
 #include "TrackHelix.h"
 
 #include <podio/LinkNavigator.h>
-#include <podio/ObjectID.h>
 
 #include "DD4hep/DD4hepUnits.h"
 #include "DD4hep/Detector.h"
@@ -71,14 +70,14 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
 
   const podio::LinkNavigator linkNavigator(trackerHitLinks);
   // A sim hit can be linked to more than one accepted hit, but is written out once.
-  std::unordered_set<podio::ObjectID> writtenSimHits;
+  std::unordered_set<edm4hep::SimTrackerHit> writtenSimHits;
 
-  // Track which hits have already been accepted so a hit close to two particles
-  // is not written out twice.
-  std::unordered_set<podio::ObjectID> acceptedHits;
+  // Track accepted handles so a hit close to two particles is not written out twice.
+  std::unordered_set<edm4hep::TrackerHitPlane> acceptedHits;
 
   for (const auto& part : mcParticles) {
     const int genStatus = part.getGeneratorStatus();
+    // With C++23, this lookup can use std::ranges::contains(m_coneAroundStatus.value(), genStatus).
     if (std::find(m_coneAroundStatus.begin(), m_coneAroundStatus.end(), genStatus) == m_coneAroundStatus.end()) {
       continue;
     }
@@ -101,8 +100,7 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
     const double intersectionTime = helix.getPointOnCircle(m_trackerOuterRadius, vertex);
 
     for (const auto& hit : trackerHits) {
-      const auto key = hit.getObjectID();
-      if (acceptedHits.count(key)) {
+      if (acceptedHits.contains(hit)) {
         continue;
       }
 
@@ -156,7 +154,7 @@ TrackerHitHelixFilter::operator()(const edm4hep::MCParticleCollection& mcParticl
 
       outHits.push_back(hit);
       k4reco::bibutils::copyLinks(hit, linkedSimHits, outLinks, outSimHits, writtenSimHits);
-      acceptedHits.insert(key);
+      acceptedHits.insert(hit);
     }
   }
 

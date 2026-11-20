@@ -206,6 +206,11 @@ add_executable(testTrackHelix BIBUtils/testTrackHelix.cpp)
 target_include_directories(testTrackHelix PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
 add_test(NAME "test_TrackHelix" COMMAND testTrackHelix)
 
+add_executable(testCopyLinks BIBUtils/testCopyLinks.cpp)
+target_include_directories(testCopyLinks PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
+target_link_libraries(testCopyLinks PRIVATE EDM4HEP::edm4hep)
+add_test(NAME "test_CopyLinks" COMMAND testCopyLinks)
+
 add_test(NAME "make_BIBUtilsLinkInput"
   COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/makeLinkTestInput.py"
 )
