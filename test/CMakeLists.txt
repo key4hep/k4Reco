@@ -70,6 +70,28 @@ add_test(NAME "compare_LumiCalClusterer"
 )
 set_tests_properties("compare_LumiCalClusterer" PROPERTIES FIXTURES_REQUIRED "WrapperLumiCalOutput;GaudiLumiCalOutput")
 
+add_test(NAME "run_marlin_LCFIPlus"
+  COMMAND k4run CLDReconstruction.py --inputFiles sim.edm4hep.root --enableLCFIJet --outputBasename output_lcfiplus_marlin
+)
+set_tests_properties("run_marlin_LCFIPlus" PROPERTIES
+  FIXTURES_REQUIRED "CLDConfig;SimOutput"
+  FIXTURES_SETUP LCFIPlusMarlinOutput)
+
+add_test(NAME "run_native_LCFIPlus"
+  COMMAND k4run ${PROJECT_SOURCE_DIR}/k4Reco/LCFIPlus/options/runPrimaryVertexFinderAndBuildUpVertex.py
+          --IOSvc.Input output_lcfiplus_marlin_REC.edm4hep.root --IOSvc.Output output_lcfiplus_native.root
+)
+set_tests_properties("run_native_LCFIPlus" PROPERTIES
+  FIXTURES_REQUIRED LCFIPlusMarlinOutput
+  FIXTURES_SETUP LCFIPlusNativeOutput)
+
+add_test(NAME "compare_LCFIPlus"
+  COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/LCFIPlus/scripts/compare-lcfiplus.py"
+          --gaudi-file output_lcfiplus_native.root --marlin-file output_lcfiplus_marlin_REC.edm4hep.root
+)
+set_tests_properties("compare_LCFIPlus" PROPERTIES
+  FIXTURES_REQUIRED "LCFIPlusMarlinOutput;LCFIPlusNativeOutput")
+
 if(BUILD_TRACKING)
 
   add_test(NAME "run_ddsim_ClonesAndSplitTracksFinder"

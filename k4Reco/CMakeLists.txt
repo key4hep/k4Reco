@@ -37,6 +37,18 @@ set(sources
   BIBUtils/src/TrackerHitHelixFilter.cpp
   BIBUtils/src/SplitCollectionByLayer.cc
   BIBUtils/src/SplitCollectionByPolarAngle.cc
+  LCFIPlus/components/PrimaryVertexFinder.cpp
+  LCFIPlus/components/BuildUpVertex.cpp
+  LCFIPlus/components/JetClustering.cpp
+  LCFIPlus/components/JetVertexRefiner.cpp
+  LCFIPlus/src/algoEtc.cc
+  LCFIPlus/src/geometry.cc
+  LCFIPlus/src/Jet.cc
+  LCFIPlus/src/JetFinder.cc
+  LCFIPlus/src/lcfiplus.cc
+  LCFIPlus/src/VertexFinderSuehara.cpp
+  LCFIPlus/src/VertexFinderSueharaRefiner.cc
+  LCFIPlus/src/VertexFinderTearDown.cc
 )
 
 set(libs
@@ -52,7 +64,12 @@ set(libs
         ROOT::Tree
         ROOT::Hist
         ${FASTJET_LIBRARIES}
+        ROOT::Physics
+        ROOT::Minuit2
 )
+
+add_subdirectory(LCFIVertex)
+list(APPEND libs LCFIVertexKalman)
 
 if(BUILD_TRACKING)
 
@@ -130,6 +147,7 @@ target_include_directories(k4RecoPlugins PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/ConformalTracking/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/GaudiLumiCalClusterer/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/Tracking/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/LCFIPlus/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_include_directories(k4RecoPlugins PRIVATE
@@ -161,4 +179,3 @@ install(TARGETS ${install_targets}
   PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
   FILE_SET headers DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/k4Reco"
   INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-

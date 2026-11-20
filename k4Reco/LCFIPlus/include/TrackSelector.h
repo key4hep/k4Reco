@@ -1,0 +1,155 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef K4RECO_TRACKSELECTOR_H
+#define K4RECO_TRACKSELECTOR_H 1
+
+#include "lcfiplus.h"
+
+#include <cmath>
+
+namespace lcfiplus {
+
+class TrackSelectorConfig {
+public:
+  // cuts which are combined using the AND scheme
+  double minD0;
+  double maxD0;
+  double minD0Err;
+  double maxD0Err;
+  double minD0Sig;
+  double maxD0Sig;
+  double minZ0;
+  double maxZ0;
+  double minZ0Err;
+  double maxZ0Err;
+  double minZ0Sig;
+  double maxZ0Sig;
+  double minD0Z0Sig;
+  double maxD0Z0Sig;
+  double minPt;
+  double maxInnermostHitRadius;
+  // cuts which are combined using the OR scheme, then AND'd with the AND schemes above
+  int minTpcHits;
+  double minTpcHitsMinPt;
+  int minFtdHits;
+  int minVtxHits;
+  int minVtxPlusFtdHits;
+
+  TrackSelectorConfig() {
+    minD0 = 0.;
+    maxD0 = 1e+300;
+    minD0Err = 0.;
+    maxD0Err = 1e+300;
+    minD0Sig = 0.;
+    maxD0Sig = 1e+300;
+    minZ0 = 0.;
+    maxZ0 = 1e+300;
+    minZ0Err = 0.;
+    maxZ0Err = 1e+300;
+    minZ0Sig = 0.;
+    maxZ0Sig = 1e+300;
+    minD0Z0Sig = 0.;
+    maxD0Z0Sig = 1e+300;
+    minPt = 0.;
+    maxInnermostHitRadius = 1e+300;
+
+    minTpcHits = 999999;
+    minTpcHitsMinPt = 999999;
+    minFtdHits = 999999;
+    minVtxHits = 999999;
+    minVtxPlusFtdHits = 0;
+  }
+};
+
+class TrackSelector {
+public:
+  std::vector<const Track*> operator()(const std::vector<const Track*>& tracks, const TrackSelectorConfig& config,
+                                       const Vertex* ip = nullptr) {
+    std::vector<const Track*> ret;
+
+    for (unsigned int i = 0; i < tracks.size(); i++) {
+      if (passesCut(tracks[i], config, ip))
+        ret.push_back(tracks[i]);
+    }
+
+    return ret;
+  }
+
+  bool passesCut(const Track* trk, const TrackSelectorConfig& cfg, const Vertex* ip = nullptr) {
+    // AND cuts
+
+    if (std::abs(trk->getD0()) < cfg.minD0)
+      return false;
+    if (std::abs(trk->getD0()) > cfg.maxD0)
+      return false;
+    if (std::sqrt(trk->getCovMatrix()[tpar::d0d0]) < cfg.minD0Err)
+      return false;
+    if (std::sqrt(trk->getCovMatrix()[tpar::d0d0]) > cfg.maxD0Err)
+      return false;
+    double d0sig = std::abs(trk->getD0()) / std::sqrt(trk->getCovMatrix()[tpar::d0d0]);
+    if (d0sig < cfg.minD0Sig)
+      return false;
+    if (d0sig > cfg.maxD0Sig)
+      return false;
+
+    double z0 = (ip ? std::abs(trk->getZ0() - ip->getZ()) : std::abs(trk->getZ0()));
+    if (z0 < cfg.minZ0)
+      return false;
+    if (z0 > cfg.maxZ0)
+      return false;
+    if (std::sqrt(trk->getCovMatrix()[tpar::z0z0]) < cfg.minZ0Err)
+      return false;
+    if (std::sqrt(trk->getCovMatrix()[tpar::z0z0]) > cfg.maxZ0Err)
+      return false;
+    double z0sig = z0 / std::sqrt(trk->getCovMatrix()[tpar::z0z0]);
+    if (z0sig < cfg.minZ0Sig)
+      return false;
+    if (z0sig > cfg.maxZ0Sig)
+      return false;
+
+    if (std::sqrt(d0sig * d0sig + z0sig * z0sig) < cfg.minD0Z0Sig)
+      return false;
+    if (std::sqrt(d0sig * d0sig + z0sig * z0sig) > cfg.maxD0Z0Sig)
+      return false;
+
+    if (trk->Pt() < cfg.minPt)
+      return false;
+    if (trk->getRadiusOfInnermostHit() > cfg.maxInnermostHitRadius)
+      return false;
+
+    // OR cuts
+    if (trk->getFtdHits() >= cfg.minFtdHits)
+      return true;
+    if (trk->getVtxHits() >= cfg.minVtxHits)
+      return true;
+    if (trk->getVtxHits() + trk->getFtdHits() >= cfg.minVtxPlusFtdHits)
+      return true;
+    if (trk->getTpcHits() >= cfg.minTpcHits && trk->Pt() > cfg.minTpcHitsMinPt)
+      return true;
+
+    return false;
+  }
+
+  // c-tor / d-tor
+  TrackSelector() {}
+  ~TrackSelector() {}
+};
+} // namespace lcfiplus
+
+#endif // K4RECO_TRACKSELECTOR_H

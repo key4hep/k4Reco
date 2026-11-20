@@ -1,0 +1,300 @@
+/*
+ * Copyright (c) 2020-2024 Key4hep-Project.
+ *
+ * This file is part of Key4hep.
+ * See https://key4hep.github.io/key4hep-doc/ for further info.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef geometry_h
+#define geometry_h 1
+
+#include "TVector3.h"
+#include "lcfiplus.h"
+
+#include "Math/SMatrix.h"
+#include "Math/SVector.h"
+
+namespace lcfiplus {
+
+class PointBase;
+class Point;
+class Helix;
+class VertexLine;
+
+class PointBase { // pure virtual point-base class
+public:
+  virtual double LogLikelihood(const TVector3& p) const = 0;
+  virtual void LogLikelihoodDeriv(const TVector3& p, double* output) const = 0;
+  virtual ~PointBase() {}
+  enum FITFLAG { NOTUSED, PRIVTX, SECVTX };
+
+protected:
+  // PointBase() : _fitflag(DEFAULT) {}
+  PointBase(FITFLAG flag) : _fitflag(flag) {}
+  // void SetFlag(FITFLAG flag) { _fitflag = flag; }
+  FITFLAG GetFlag() const { return _fitflag; }
+  FITFLAG _fitflag;
+};
+
+class Point : public PointBase { // real 3D-point with error
+public:
+  typedef ROOT::Math::SVector<double, 3> SVector3;
+  typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3>> SMatrixSym3;
+
+  double LogLikelihood(const TVector3& p) const;
+  void LogLikelihoodDeriv(const TVector3& p, double* output) const;
+
+  // Point() {}
+  Point(FITFLAG flag) : PointBase(flag) {}
+  // Point(const SVector3& pos, const SMatrixSym3& err) {
+  Point(const SVector3& pos, const SMatrixSym3& err, FITFLAG flag) : PointBase(flag) {
+    _pos = pos;
+    _err = err;
+  }
+  // Point(const Point& ref) {
+  Point(const Point& ref, FITFLAG flag) : PointBase(flag) {
+    _pos = ref._pos;
+    _err = ref._err;
+  }
+  Point(const Vertex* vtx, FITFLAG flag);
+  // Point(const Vertex* vtx, FITFLAG flag);
+  ~Point() {}
+
+  void SetPosErr(const SVector3& pos, const SMatrixSym3& err) {
+    _pos = pos;
+    _err = err;
+  }
+  double GetErr(int i, int j) const { return _err(i, j); }
+  TVector3 GetPos() const { return TVector3(_pos(0), _pos(1), _pos(2)); }
+
+private:
+  SVector3 _pos;
+  SMatrixSym3 _err;
+};
+
+class Helix : public PointBase { // parametrized point for helix
+public:
+  enum par { id0 = 0, iz0, iph, iom, itd, parN };
+
+  typedef ROOT::Math::SVector<double, 5> SVector5;
+  typedef ROOT::Math::SVector<double, 3> SVector3;
+  typedef ROOT::Math::SMatrix<double, 5, 5, ROOT::Math::MatRepSym<double, 5>> SMatrixSym5;
+  typedef ROOT::Math::SMatrix<double, 5, 3> SMatrix53; // used for helix-xyz conversion
+  typedef ROOT::Math::SMatrix<double, 3, 5> SMatrix35; // used for helix-xyz conversion
+  typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3>> SMatrixSym3; // used for xyz error
+  typedef ROOT::Math::SMatrix<double, 3, 3> SMatrix3;
+
+  class HelixLineDistance2Functor {
+  public:
+    HelixLineDistance2Functor(const Helix* hel, const VertexLine* line) : _hel(hel), _line(line) {}
+    double operator()(const double* t);
+
+  private:
+    const Helix* _hel;
+    const VertexLine* _line;
+  };
+
+  class HelixLineDistance2DerivFunctor {
+  public:
+    HelixLineDistance2DerivFunctor(const Helix* hel, const VertexLine* line) : _hel(hel), _line(line) {}
+    void operator()(const double* t, double* output);
+
+  private:
+    const Helix* _hel;
+    const VertexLine* _line;
+  };
+
+  class VarianceFunctor {
+  public:
+    VarianceFunctor(const Helix* hel, const TVector3& p) : _hel(hel), _p(p) {}
+    double operator()(const double* t) { return _hel->Variance(_p, *t); }
+
+  private:
+    const Helix* _hel;
+    TVector3 _p;
+  };
+
+  class VarianceDerivFunctor {
+  public:
+    VarianceDerivFunctor(const Helix* hel, const TVector3& p) : _hel(hel), _p(p) {}
+    double operator()(const double* t) { return _hel->VarianceDeriv(_p, *t); }
+
+  private:
+    const Helix* _hel;
+    TVector3 _p;
+  };
+
+  virtual double LogLikelihood(const TVector3& p) const { // likelihood with t-minimization
+    double tmin;
+    return LogLikelihood(p, tmin);
+  }
+  double LogLikelihood(const TVector3& p, double& tmin) const;      // full version
+  void LogLikelihoodDeriv(const TVector3& p, double* output) const; // compute space partial derivatives
+  double Variance(const TVector3& p, double t) const;               // t-fixed version, internally used
+  double VarianceDeriv(const TVector3& p, double t) const;          // t-fixed version, internally used
+  double VarianceDeriv2(const TVector3& p, double t) const;         // t-fixed version, internally used
+  TVector3 GetPos(double t) const;
+  TVector3 GetPosDerivT(double t) const;
+  void GetPosErr(double t, SVector3& pos, SMatrixSym3& err) const;
+  void GetPosErr(double t, SVector3& pos, SMatrixSym3& err, SMatrix53& trackToXyz) const;
+  void GetPosErrDeriv(double t, SVector3& pos, SMatrixSym3& err) const;
+  void GetPosErrDeriv2(double t, SVector3& pos, SMatrixSym3& err) const;
+
+  double LongitudinalDeviation(const Vertex* ip, const Vertex* sec);
+
+  Helix(FITFLAG flag) : PointBase(flag) {}
+  Helix(const SVector5& hel, const SMatrixSym5& err, int charge, FITFLAG flag) : PointBase(flag) {
+    _hel = hel, _err = err;
+    _charge = charge;
+  }
+  Helix(const Track* trk, FITFLAG flag);
+  Helix(const Helix& ref, FITFLAG flag) : PointBase(flag) {
+    _hel = ref._hel;
+    _err = ref._err;
+    _charge = ref._charge;
+  }
+  ~Helix() {}
+
+  void GetCenter(double& x, double& y) const;
+  void FindZCross(double x, double y, double& zi, double& zp) const;
+  // obtain closest points in x-y plane and choose nearest z position - not the TRUE closest point
+  TVector3 ClosePoint(const Helix& hel) const;
+  TVector3 ClosePoint(const VertexLine& line, double* distance = 0) const;
+
+private:
+  SVector5 _hel;
+  SMatrixSym5 _err;
+  int _charge;
+};
+
+class VertexLine : public PointBase { // line with error for IP-vertex line
+  typedef ROOT::Math::SVector<double, 3> SVector3;
+  typedef ROOT::Math::SMatrix<double, 3, 3, ROOT::Math::MatRepSym<double, 3>> SMatrixSym3; // used for xyz error
+
+  friend TVector3 Helix::ClosePoint(const VertexLine& line, double* distance) const;
+  friend class Helix::HelixLineDistance2Functor;
+  friend class Helix::HelixLineDistance2DerivFunctor;
+
+  class VarianceFunctor {
+  public:
+    VarianceFunctor(const VertexLine& line, const TVector3& p) : _line(line), _p(p) {}
+    double operator()(const double* t) { return _line.Variance(_p, *t); }
+
+  private:
+    const VertexLine& _line;
+    TVector3 _p;
+  };
+
+public:
+  virtual double LogLikelihood(const TVector3& p) const { // likelihood with t-minimization
+    double tmin;
+    return LogLikelihood(p, tmin);
+  }
+  double LogLikelihood(const TVector3& p, double& tmin) const;
+  void LogLikelihoodDeriv(const TVector3& p, double* output) const;
+  double Variance(const TVector3& p, double t) const; // t-fixed version, internally used
+
+  VertexLine(FITFLAG flag) : PointBase(flag) {}
+  VertexLine(const Vertex* ip, const Vertex* secvtx, FITFLAG flag) : PointBase(flag) {
+    _ip = ip;
+    _vertex = secvtx;
+    _origin = _vertex->getPos();
+    _unit = (_origin - _ip->getPos()).Unit();
+  }
+  VertexLine(const TVector3& origin, const TVector3& dir, FITFLAG flag) : PointBase(flag) {
+    _origin = origin;
+    _unit = dir.Unit();
+    _ip = 0;
+    _vertex = 0;
+  }
+  ~VertexLine() {}
+
+  void Set(const TVector3& origin, const TVector3& dir) {
+    _origin = origin;
+    _unit = dir.Unit();
+  }
+
+private:
+  // (x,y,z) = origin + t * unit
+  TVector3 _origin;
+  TVector3 _unit;
+
+  const Vertex* _ip;
+  const Vertex* _vertex;
+  /*
+                double _dispersionNear;
+                double _dispersionFar;
+  */
+};
+
+class GeometryHandler {
+public:
+  static GeometryHandler* Instance();
+
+  class PointFitFunctor {
+  public:
+    PointFitFunctor(const std::vector<PointBase*>& points) : _points(points) {}
+    double operator()(const double* xx) {
+      TVector3 p(xx[0], xx[1], xx[2]);
+
+      double ll = 0.;
+      for (unsigned int i = 0; i < _points.size(); i++) {
+        ll += _points[i]->LogLikelihood(p);
+      }
+
+      return -ll;
+    }
+
+  private:
+    const std::vector<PointBase*> _points;
+  };
+
+  class PointFitDerivFunctor {
+  public:
+    PointFitDerivFunctor(const std::vector<PointBase*>& points) : _points(points) {}
+    void operator()(const double* xx, double* output) {
+      output[0] = 0;
+      output[1] = 0;
+      output[2] = 0;
+
+      TVector3 p(xx[0], xx[1], xx[2]);
+
+      double tmp[3];
+
+      for (unsigned int i = 0; i < _points.size(); i++) {
+        _points[i]->LogLikelihoodDeriv(p, tmp);
+        output[0] += tmp[0];
+        output[1] += tmp[1];
+        output[2] += tmp[2];
+      }
+    }
+
+  private:
+    const std::vector<PointBase*> _points;
+  };
+
+  // obtain cross section of points with errors
+  double PointFit(const std::vector<PointBase*>& points, const TVector3& initial, Point* result = 0);
+  // initialization + PointFit()
+  double HelixPointFit(const std::vector<Helix*>& helices, Point* result = 0);
+
+private:
+  static GeometryHandler* _theInstance;
+  GeometryHandler();
+  ~GeometryHandler();
+};
+
+} // namespace lcfiplus
+
+#endif
