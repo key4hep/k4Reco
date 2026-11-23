@@ -23,9 +23,10 @@
 
 #include "TrackHelix.h"
 
+#include <catch2/catch_test_macros.hpp>
+
 #include <array>
 #include <cmath>
-#include <cstdio>
 #include <initializer_list>
 
 namespace {
@@ -38,8 +39,6 @@ constexpr double kC = 0.299792458e-3;
 constexpr double kMaxArcStep = 0.5; // [mm] integration step along the trajectory
 constexpr double kTimeTolerance = 1e-6;
 constexpr double kDistanceTolerance = 1e-5; // [mm]
-
-int nFailures = 0;
 
 Vec3 cross(const Vec3& a, const Vec3& b) {
   return {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
@@ -90,18 +89,15 @@ void check(const char* label, const Vec3& ref, const Vec3& mom, double charge, d
   double distance[3] = {0., 0., 0.};
   const double time = helix.getDistanceToPoint(point.data(), distance);
 
-  if (std::fabs(time - t) > kTimeTolerance * std::fmax(1., t) || distance[2] > kDistanceTolerance) {
-    std::printf("FAIL %s: charge=%+.0f mom=(%g, %g, %g) t=%g -> time=%g, d3D=%g\n", label, charge, mom[0], mom[1],
-                mom[2], t, time, distance[2]);
-    ++nFailures;
-  }
+  CAPTURE(label, charge, mom, t, time);
+  CHECK(std::fabs(time - t) <= kTimeTolerance * std::fmax(1., t));
+  CHECK(distance[2] <= kDistanceTolerance);
 }
 
 } // namespace
 
-int main() {
+TEST_CASE("TrackHelix agrees with prompt reference trajectories", "[BIBUtils][TrackHelix]") {
   const Vec3 origin{0., 0., 0.};
-  const Vec3 displaced{12., -7., 30.};
 
   for (const double charge : {-1., 1.}) {
     // Transverse track starting at the origin, hit on the forward trajectory.
@@ -111,11 +107,17 @@ int main() {
     check("almost transverse", origin, {10., 0., 1e-6}, charge, 10.);
 
     check("forward", origin, {10., 0., 5.}, charge, 10.);
+  }
+}
 
-    // Low-pT tracks scanned over the starting direction and over most of the
-    // first turn, so that the arc crosses the -pi/pi boundary of atan2.
-    const double pt = 0.5;
-    const double turnTime = 2. * M_PI / (kC * kBField);
+TEST_CASE("TrackHelix agrees with looping reference trajectories", "[BIBUtils][TrackHelix]") {
+  const Vec3 displaced{12., -7., 30.};
+  const double pt = 0.5;
+  const double turnTime = 2. * M_PI / (kC * kBField);
+
+  // Low-pT tracks scanned over the starting direction and over most of the
+  // first turn, so that the arc crosses the -pi/pi boundary of atan2.
+  for (const double charge : {-1., 1.}) {
     for (int iDir = 0; iDir < 12; ++iDir) {
       const double phiMom = -M_PI + (iDir + 0.5) * M_PI / 6.;
       const Vec3 looperTransverse{pt * std::cos(phiMom), pt * std::sin(phiMom), 0.};
@@ -128,11 +130,4 @@ int main() {
       }
     }
   }
-
-  if (nFailures > 0) {
-    std::printf("%d check(s) failed\n", nFailures);
-    return 1;
-  }
-  std::printf("All TrackHelix checks passed\n");
-  return 0;
 }
