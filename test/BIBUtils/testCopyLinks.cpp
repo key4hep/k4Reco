@@ -19,6 +19,7 @@
 
 #include "LinkUtils.h"
 
+#include <catch2/catch_test_macros.hpp>
 #include <edm4hep/SimTrackerHitCollection.h>
 #include <edm4hep/TrackerHitPlaneCollection.h>
 #include <edm4hep/TrackerHitSimTrackerHitLinkCollection.h>
@@ -26,10 +27,9 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <iostream>
 #include <unordered_set>
 
-int main() {
+TEST_CASE("copyLinks keeps distinct targets with colliding ObjectIDs", "[BIBUtils][copyLinks]") {
   edm4hep::TrackerHitPlaneCollection recoHits;
   const edm4hep::TrackerHit from = recoHits.create();
 
@@ -37,10 +37,7 @@ int main() {
   edm4hep::SimTrackerHitCollection barrelHits, endcapHits;
   const edm4hep::SimTrackerHit barrelHit = barrelHits.create();
   const edm4hep::SimTrackerHit endcapHit = endcapHits.create();
-  if (barrelHit.getObjectID() != endcapHit.getObjectID()) {
-    std::cerr << "Test input does not contain an ObjectID collision\n";
-    return 1;
-  }
+  REQUIRE(barrelHit.getObjectID() == endcapHit.getObjectID());
 
   edm4hep::TrackerHitSimTrackerHitLinkCollection inputLinks;
   const auto addLink = [&](const edm4hep::SimTrackerHit& to, float weight) {
@@ -61,21 +58,17 @@ int main() {
   std::unordered_set<edm4hep::SimTrackerHit> seen;
   k4reco::bibutils::copyLinks(from, linkedTo, outLinks, outHits, seen);
 
-  if (outHits.size() != 2 || std::count(outHits.begin(), outHits.end(), barrelHit) != 1 ||
-      std::count(outHits.begin(), outHits.end(), endcapHit) != 1) {
-    std::cerr << "Expected each distinct target in the subset exactly once\n";
-    return 1;
-  }
-  if (outLinks.size() != inputLinks.size()) {
-    std::cerr << "Expected all links to be copied, including repeated targets\n";
-    return 1;
-  }
+  CHECK(outHits.size() == 2);
+  CHECK(std::count(outHits.begin(), outHits.end(), barrelHit) == 1);
+  CHECK(std::count(outHits.begin(), outHits.end(), endcapHit) == 1);
+
+  REQUIRE(outLinks.size() == inputLinks.size());
   for (std::size_t i = 0; i < linkedTo.size(); ++i) {
+    CAPTURE(i);
     const auto& [to, weight] = linkedTo[i];
     const auto link = outLinks[i];
-    if (link.getFrom() != from || link.getTo() != to || link.getWeight() != weight) {
-      std::cerr << "Copied link endpoints or weight differ from the input\n";
-      return 1;
-    }
+    CHECK(link.getFrom() == from);
+    CHECK(link.getTo() == to);
+    CHECK(link.getWeight() == weight);
   }
 }

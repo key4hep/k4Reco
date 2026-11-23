@@ -202,14 +202,13 @@ set_tests_properties("compare_ValenciaFastJet" PROPERTIES
   FIXTURES_SETUP GaudiMarlinValenciaFastJetComparison
 )
 
-add_executable(testTrackHelix BIBUtils/testTrackHelix.cpp)
-target_include_directories(testTrackHelix PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
-add_test(NAME "test_TrackHelix" COMMAND testTrackHelix)
+find_package(Catch2 3 REQUIRED)
+include(Catch)
 
-add_executable(testCopyLinks BIBUtils/testCopyLinks.cpp)
-target_include_directories(testCopyLinks PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
-target_link_libraries(testCopyLinks PRIVATE EDM4HEP::edm4hep)
-add_test(NAME "test_CopyLinks" COMMAND testCopyLinks)
+add_executable(testBIBUtils BIBUtils/testTrackHelix.cpp BIBUtils/testCopyLinks.cpp)
+target_include_directories(testBIBUtils PRIVATE ${PROJECT_SOURCE_DIR}/k4Reco/BIBUtils/include)
+target_link_libraries(testBIBUtils PRIVATE Catch2::Catch2WithMain EDM4HEP::edm4hep)
+catch_discover_tests(testBIBUtils TEST_PREFIX "BIBUtils.")
 
 add_test(NAME "make_BIBUtilsLinkInput"
   COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/BIBUtils/makeLinkTestInput.py"
