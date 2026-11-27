@@ -36,6 +36,14 @@ parser.add_argument(
 parser.add_argument(
     "--marlin-tracks", default="SiTracksCT", help="Marlin tracks collection"
 )
+parser.add_argument(
+    "--marlin-hit-numbers-total-only",
+    action="store_true",
+    help="The Marlin tracks only store the total number of hits of the pattern recognition in the first subdetector "
+    "hit number (as Marlin ConformalTracking), while the Gaudi tracks store the numbers of hits per subdetector as in "
+    "LCIO: instead of comparing them one by one, check that the totals agree and that the numbers of hits in the fit "
+    "match the hits of the Gaudi track",
+)
 
 args = parser.parse_args()
 
@@ -72,19 +80,32 @@ for i, frame_gaudi in enumerate(events_gaudi):
         ), f"Number of hits differ for track {j}: {len(track_gaudi.getTrackerHits())} vs {len(track_marlin.getTrackerHits())}"
 
 
-        assert len(track_gaudi.getSubdetectorHitNumbers()) == len(
-            track_marlin.getSubdetectorHitNumbers()
-        ), f"Number of subdetector hit numbers differ for track {j}: {len(track_gaudi.getSubdetectorHitNumbers())} vs {len(track_marlin.getSubdetectorHitNumbers())}"
+        if args.marlin_hit_numbers_total_only:
+            # LCIO convention: hits in the fit at index 2 * subdetector - 2, hits of the pattern recognition at index
+            # 2 * subdetector - 1
+            hit_numbers = list(track_gaudi.getSubdetectorHitNumbers())
+            hits_in_fit = sum(hit_numbers[0::2])
+            hits_patrec = sum(hit_numbers[1::2])
+            assert hits_in_fit == len(
+                track_gaudi.getTrackerHits()
+            ), f"Hits in fit differ from the hits of track {j}: {hits_in_fit} vs {len(track_gaudi.getTrackerHits())}"
+            assert (
+                hits_patrec == track_marlin.getSubdetectorHitNumbers()[0]
+            ), f"Hits of the pattern recognition differ for track {j}: {hits_patrec} vs {track_marlin.getSubdetectorHitNumbers()[0]}"
+        else:
+            assert len(track_gaudi.getSubdetectorHitNumbers()) == len(
+                track_marlin.getSubdetectorHitNumbers()
+            ), f"Number of subdetector hit numbers differ for track {j}: {len(track_gaudi.getSubdetectorHitNumbers())} vs {len(track_marlin.getSubdetectorHitNumbers())}"
 
-        assert all(
-            [
-                a == b
-                for a, b in zip(
-                    track_gaudi.getSubdetectorHitNumbers(),
-                    track_marlin.getSubdetectorHitNumbers(),
-                )
-            ]
-        ), f"Subdetector hit numbers differ for track {j}: {track_gaudi.getSubdetectorHitNumbers()} vs {track_marlin.getSubdetectorHitNumbers()}"
+            assert all(
+                [
+                    a == b
+                    for a, b in zip(
+                        track_gaudi.getSubdetectorHitNumbers(),
+                        track_marlin.getSubdetectorHitNumbers(),
+                    )
+                ]
+            ), f"Subdetector hit numbers differ for track {j}: {track_gaudi.getSubdetectorHitNumbers()} vs {track_marlin.getSubdetectorHitNumbers()}"
 
 
         assert len(track_gaudi.getSubdetectorHoleNumbers()) == len(

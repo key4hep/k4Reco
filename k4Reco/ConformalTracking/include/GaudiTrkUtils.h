@@ -77,9 +77,12 @@ public:
   int finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::MutableTrack& track,
                         const std::vector<const edm4hep::TrackerHit*>& hit_list, bool fit_direction);
 
+  // Fill the numbers of hits per subdetector, as in LCIO: the vector has at least 2 * minSubdetectors entries (more if
+  // a hit has a larger subdetector index)
   void addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNumbers,
                             const std::vector<const edm4hep::TrackerHit*>& hit_list, bool hits_in_fit,
-                            const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const;
+                            const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder,
+                            int64_t minSubdetectors = 20) const;
 
   int createTrackStateAtCaloFace(GaudiDDKalTestTrack& marlintrk, edm4hep::TrackState& trkStateCalo,
                                  const edm4hep::TrackerHit* trkhit, bool tanL_is_positive);

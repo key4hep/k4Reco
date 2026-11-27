@@ -714,14 +714,21 @@ edm4hep::TrackCollection ConformalTracking::operator()(
       continue;
     }
 
-    // Add hit information TODO: this is just a fudge for the moment, since we only use vertex hits. Should do for each
-    // subdetector once enabled This is kept for compatibility with the original code in ConformalTracking.cc
-    std::vector<int32_t> hitNumbers;
-    // hitNumbers.resize(2 * lcio::ILDDetID::ETD);
-    hitNumbers.resize(2 * 6);
-    // hitNumbers[2 * lcio::ILDDetID::VXD - 2] = trackHits.size();
-    hitNumbers[2 * 1 - 2] = trackHits.size();
-    for (const auto num : hitNumbers) {
+    // Add the number of hits per subdetector, as in LCIO: hits attributed to the track by the pattern recognition and
+    // hits used in the fit (the hits of the track, which does not include the outliers rejected by the fit). The vector
+    // has the same length for all tracks, covering all the values of the subdetector field of the cell ID (64 entries
+    // for a 5-bit field, as DD4hep gives 2^width as maximum value of an unsigned field)
+    std::vector<edm4hep::TrackerHit> hitsInFit(track.getTrackerHits().begin(), track.getTrackerHits().end());
+    std::vector<const edm4hep::TrackerHit*> hitsInFitPtrs;
+    hitsInFitPtrs.reserve(hitsInFit.size());
+    for (const auto& hit : hitsInFit) {
+      hitsInFitPtrs.push_back(&hit);
+    }
+    std::vector<int32_t> subdetectorHitNumbers;
+    const int64_t maxSubdetector = m_encoder[0].maxValue();
+    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, trackHits, false, m_encoder, maxSubdetector);
+    trkUtils.addHitNumbersToTrack(subdetectorHitNumbers, hitsInFitPtrs, true, m_encoder, maxSubdetector);
+    for (const auto num : subdetectorHitNumbers) {
       track.addToSubdetectorHitNumbers(num);
     }
 

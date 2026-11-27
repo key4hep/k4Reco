@@ -92,7 +92,7 @@ if(BUILD_TRACKING)
     FIXTURES_SETUP ConformalTrackingOutput)
 
   add_test(NAME "compare_ConformalTracking"
-    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py"
+    COMMAND "${PROJECT_SOURCE_DIR}/k4Reco/ConformalTracking/scripts/compare-tracks.py" --marlin-hit-numbers-total-only
   )
   set_tests_properties("compare_ConformalTracking" PROPERTIES FIXTURES_REQUIRED "ConformalTrackingOutput")
 

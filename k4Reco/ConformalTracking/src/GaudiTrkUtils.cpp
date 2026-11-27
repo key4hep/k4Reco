@@ -493,7 +493,8 @@ int GaudiTrkUtils::finaliseLCIOTrack(GaudiDDKalTestTrack& marlintrk, edm4hep::Mu
 
 void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNumbers,
                                          const std::vector<const edm4hep::TrackerHit*>& hit_list, bool hits_in_fit,
-                                         const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder) const {
+                                         const dd4hep::DDSegmentation::BitFieldCoder& cellID_encoder,
+                                         int64_t minSubdetectors) const {
   // Because in EDM4hep for vector members only hits can be added, we need the whole
   // vector before starting to assign
   std::map<int64_t, int32_t> hitNumbers;
@@ -511,12 +512,13 @@ void GaudiTrkUtils::addHitNumbersToTrack(std::vector<int32_t>& subdetectorHitNum
   }
 
   // the original code assumed that there is no tracker with an index larger than the ecal (ILD: 20), which is not
-  // true for other detectors (e.g. ALLEGRO), so make room for the largest subdetector index, without shrinking the
-  // vector since this function is called twice per track (hits_in_fit = false, then true)
+  // true for other detectors (e.g. ALLEGRO), so make room for minSubdetectors (by default 20, as the original code)
+  // and for the largest subdetector index, without shrinking the vector since this function is called twice per track
+  // (hits_in_fit = false, then true)
 
   // subdetectorHitNumbers.resize(2 * lcio::ILDDetID::ECAL);
   const int64_t maxDetIndex = hitNumbers.empty() ? 0 : hitNumbers.rbegin()->first;
-  const size_t minSize = 2 * std::max<int64_t>(20, maxDetIndex);
+  const size_t minSize = 2 * std::max<int64_t>(minSubdetectors, maxDetIndex);
   if (subdetectorHitNumbers.size() < minSize) {
     subdetectorHitNumbers.resize(minSize);
   }
